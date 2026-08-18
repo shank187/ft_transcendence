@@ -179,10 +179,40 @@ The exact real-time features and implementation details will be documented when 
 
 ## 7. Feature Organization
 
-The application will be divided into feature modules.
-The final feature ownership and module boundaries will be defined before development starts.
-Each feature should remain organized so that its frontend, backend, and database responsibilities can be identified clearly.
-The shared architecture should allow multiple team members to work on different features without creating separate applications or databases.
+The application is organized as one shared application with feature-based
+development.
+
+The core architecture and shared infrastructure are defined centrally.
+
+Features are developed vertically.
+
+A feature may contain:
+
+- frontend UI
+- backend routes/controllers
+- business logic
+- feature-specific database models
+- tests
+- documentation
+
+Feature developers should reuse the shared core instead of creating
+independent systems.
+
+Example:
+
+```text
+Workout feature
+    │
+    ├── React UI
+    ├── Express routes
+    ├── workout services
+    └── Prisma
+          │
+          ├── User
+          ├── Exercise
+          ├── WorkoutPlan
+          └── WorkoutSession
+```
 
 ## 8. Architectural Principles
 

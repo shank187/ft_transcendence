@@ -1,7 +1,7 @@
 # FT Transcendence
 
 A full-stack web application developed as part of the 42 ft_transcendence project.
-
+`
 ## Tech Stack
 
 - Frontend: React + Vite + TypeScript
