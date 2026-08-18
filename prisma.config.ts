@@ -1,7 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { defineConfig } from '@prisma/internals'
 
-const prisma = new PrismaClient({
-  adapter: new PgDialect({
-    url: process.env.DATABASE_URL!,
-  }),
+export default defineConfig({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
