@@ -18,13 +18,13 @@ A full-stack web application developed as part of the 42 ft_transcendence projec
     ├── .gitignore
     ├── docker-compose.yml
     └── README.md
-
+                
 ## Team
 
 - aelbour — Technical Lead
-- zyahansa — Technical Lead
 - Mouarar — Project Manager
 - sabadri — Product Owner
+- zyahansa — Developer
 - abel-had — Developer
 
 ## Status
