@@ -1,4 +1,5 @@
-// README.md
+This project has been created as part of the 42 curriculum by aelbour, abel-had, mouarar, sabadri, zyahansa
+
 # FT Transcendence
 
 A full-stack web application developed as part of the 42 ft_transcendence project.
