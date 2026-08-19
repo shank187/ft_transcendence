@@ -1,4 +1,3 @@
-```markdown
 *This project has been created as part of the 42 curriculum by [aelbour, mouarar, sabadri, zyahansa, abel-had].*
 
 ---
@@ -93,5 +92,3 @@ The database is centralized around PostgreSQL using Prisma ORM. Core entities in
 - **Web - Notification System (Minor - 1 pt):** System alerts for user activities.
 
 **Total:** 14 Points.
-
-```
