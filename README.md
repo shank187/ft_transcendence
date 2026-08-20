@@ -1,94 +1,190 @@
-*This project has been created as part of the 42 curriculum by [aelbour, mouarar, sabadri, zyahansa, abel-had].*
+# FT Transcendence
+
+A full-stack collaborative gym and fitness tracking platform developed as part of the 42 ft_transcendence project.
+The application allows users to discover gyms, manage workout plans, track workouts, interact socially, and use additional fitness-related features.
 
 ---
 
-## Description
+## Tech Stack
 
-`ft_transcendence` is a full-stack collaborative gym and fitness tracking platform. Designed as a modern multi-user web application, it allows users to discover local gyms, manage equipment and facilities, build customized workout plans, track live training sessions, and connect socially through friendships and real-time messaging.
+### Frontend
+
+- React
+- Vite
+- TypeScript
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+
+### Database
+
+- PostgreSQL
+- Prisma ORM
+
+### Infrastructure
+
+- Docker
+- Docker Compose
 
 ---
 
-## Instructions
+## Project Structure
 
-### Prerequisites
-- Docker & Docker Compose (v20+)
-
-### Quick Start
-To build and run the entire application stack (PostgreSQL database, Express backend, and React frontend) with a single command:
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd ft_transcendence
-
-# Copy environment template
-cp backend/.env.example backend/.env
-
-# Build and start all containers
-docker-compose up --build
+```text
+ft_transcendence/
+│
+├── frontend/
+│   └── React + Vite + TypeScript application
+│
+├── backend/
+│   ├── src/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   │
+│   └── prisma/
+│       ├── schema.prisma
+│       └── migrations/
+│
+├── docs/
+│   ├── architecture.md
+│   ├── api.md
+│   ├── database.md
+│   └── development.md
+│
+├── docker-compose.yml
+├── .gitignore
+└── README.md
 ```
 
-- **Frontend Application:** http://localhost:5173
-- **Backend API:** http://localhost:3000
+## Getting Started
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+- Git
+
+### Clone the repository
+
+```bash
+git clone <repository-url>
+cd ft_transcendence
+```
+
+### Start the project
+
+```bash
+docker compose up --build
+```
+
+The development environment starts:
+
+- PostgreSQL → localhost:5432
+- Backend → localhost:3000
+- Frontend → localhost:5173
+
+### Backend health check
+
+Open:
+
+```
+http://localhost:3000/api/health
+```
+
+The endpoint verifies that the backend can communicate with PostgreSQL.
 
 ---
 
-## Team Information & Roles
+## Development
 
-Per the subject requirements, our team roles are distributed as follows:
+The project uses a shared architecture with vertical feature development.
+Each feature may contain:
 
-* **aelbour — Technical Lead / Architect & Developer**
-  * *Responsibilities:* Oversees technical architecture, manages the Docker containerization pipeline, defines core database schemas, and enforces code quality/reviews.
-* **mouarar — Project Manager / Scrum Master & Developer**
-  * *Responsibilities:* Coordinates task distribution, tracks deadlines, organizes synchronization meetings, and manages sprint planning.
-* **sabadri — Product Owner (PO) & Developer**
-  * *Responsibilities:* Defines product vision, manages the Trello product backlog, prioritizes feature delivery, and validates completed work.
-* **zyahansa — Full-Stack Developer**
-  * *Responsibilities:* Implements core authentication, user management, and backend API logic.
-* **abel-had — Full-Stack Developer**
-  * *Responsibilities:* Develops frontend UI components, responsive layouts, and feature views.
+- Frontend UI
+- Backend routes/controllers
+- Business logic
+- Feature-specific database models
+- Tests
+- Documentation
+
+Feature developers must reuse the shared core rather than creating independent applications or databases.
+
+See:
+
+- `docs/architecture.md`
+- `docs/api.md`
+- `docs/database.md`
+- `docs/development.md`
+
+---
+
+## Database
+
+PostgreSQL is accessed through Prisma.
+The Prisma schema is located at:
+
+```
+backend/prisma/schema.prisma
+```
+
+Core domains currently include:
+
+- Identity
+- Gyms
+- Workouts
+- Social
+- Shared infrastructure
+
+Feature developers may extend the schema when their feature requires additional entities.
+Do not create duplicate `User`, authentication, or database systems.
 
 ---
 
 ## Project Management
 
-- **Asynchronous Tracking:** Trello board tracking backlog, sprint tasks, code reviews, and completed work.
-- **Synchronous Communication:** Discord channel for daily alignment, technical syncs, and blocker removal.
-- **Quality Control:** Mandatory peer code reviews via GitHub Pull Requests before merging into production.
+The team uses:
+
+- Trello for backlog and sprint management
+- GitHub for source control and Pull Requests
+- Discord for team communication
+- Docker for the shared development environment
+
+Development follows a vertical-slice approach so that features can be developed across the frontend, backend, and database while sharing the same core architecture.
 
 ---
 
-## Technical Stack
+## Team
 
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS
-- **Backend:** Node.js, Express.js
-- **Database & ORM:** PostgreSQL 15, Prisma ORM
-- **Deployment:** Docker & Docker Compose
+The project team and official project roles are maintained according to the agreed team organization and 42 subject requirements.
+Technical responsibilities include maintaining:
 
----
+- Shared architecture
+- Core database foundation
+- Development environment
+- Technical conventions
+- Documentation
+- Code quality
 
-## Database Schema
-
-The database is centralized around PostgreSQL using Prisma ORM. Core entities include:
-
-- **Identity:** User, Role, UserRole, Session
-- **Gyms:** Gym, GymOpeningHour, Equipment, GymEquipment, Facility, GymFacility, GymReview
-- **Workouts:** Exercise, WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutSession, WorkoutSet
-- **Social:** Friendship, Conversation, ConversationMember, Message
-- **Shared Infrastructure:** Notification, Media, ApiKey
+Feature ownership is handled through the project's vertical development workflow.
 
 ---
 
-## Modules Claimed (14+ Points Target)
+## Targeted 42 Modules
 
-- **Web (Major - 2 pts):** React frontend framework and Express backend framework.
-- **Web - ORM (Minor - 1 pt):** Prisma ORM for type-safe database queries.
-- **Web - Real-time Features (Major - 2 pts):** WebSockets for live chat and instant updates.
-- **Web - User Interaction (Major - 2 pts):** Profiles, friend requests, and messaging.
-- **User Management - Standard Authentication (Major - 2 pts):** Secure signup, login, hashed passwords, and sessions.
-- **User Management - Advanced Permissions / Roles (Major - 2 pts):** Role-based access control via UserRole.
-- **Web - File Upload (Minor - 1 pt):** Avatar uploads and document storage via Media.
-- **Web - Advanced Search (Minor - 1 pt):** Filtering and sorting for gyms and exercises.
-- **Web - Notification System (Minor - 1 pt):** System alerts for user activities.
+The project targets the required subject modules and additional modules agreed by the team.
+The exact module selection and point calculation should be maintained according to the official subject requirements and the team's Trello backlog.
 
-**Total:** 14 Points.
+---
+
+## Important Rules
+
+- Do not commit `.env` files.
+- Do not commit database credentials or secrets.
+- Do not create duplicate core entities.
+- Do not access PostgreSQL directly from the frontend.
+- Use Prisma for normal database access.
+- Discuss structural changes to the shared architecture before merging.
+- Use Git branches and Pull Requests for feature development.
