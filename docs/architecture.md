@@ -2,19 +2,19 @@
 
 ## 1. Overview
 
-FT Transcendence is organized into three main layers, running entirely inside Docker, satisfying the single-command startup requirement (`docker-compose up --build`).
+FT Transcendence is organized as a single full-stack application with three main layers:
 
 ```text
 ┌─────────────────────────────┐
 │          Frontend           │
-│    React + Vite (SPA)       │
+│   React + Vite + TypeScript │
 └──────────────┬──────────────┘
                │
                │ HTTP / WebSocket
                ▼
 ┌─────────────────────────────┐
 │           Backend           │
-│         Express + JS        │
+│     Express + TypeScript    │
 └──────────────┬──────────────┘
                │
                │ Prisma ORM
@@ -23,84 +23,142 @@ FT Transcendence is organized into three main layers, running entirely inside Do
 │          Database           │
 │         PostgreSQL          │
 └─────────────────────────────┘
+
+The frontend is responsible for the user interface and client-side application logic.
+The backend is responsible for the API, application/business logic, authentication and authorization, validation, and database access.
+Prisma is used by the backend as the ORM for PostgreSQL.
+PostgreSQL stores the application's persistent data.
+The application is developed in one Git repository and uses Docker Compose for the local development environment.
+
+## 2. Technology Stack
+
+### Frontend
+
+- React
+- Vite
+- TypeScript
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+
+### Database
+
+- PostgreSQL
+- Prisma ORM
+
+### Development Infrastructure
+
+- Docker
+- Docker Compose
+- Git
+- GitHub
+
+## 3. Repository Structure
+
 ```
-
-The frontend is responsible for the user interface, managing client-side state as a Single Page Application (SPA), and communicating with the backend.
-The backend is responsible for the HTTP API, application logic, authentication, and database security.
-Prisma is used by the backend as the ORM (Object-Relational Mapper) to safely query PostgreSQL and prevent SQL injection.
-PostgreSQL stores the application's persistent data in a centralized, secure volume.
-
-## 2. Repository Structure
-
-```text
 ft_transcendence/
 │
 ├── frontend/
-│   └── React application (SPA)
+│   └── React + Vite application
 │
 ├── backend/
-│   ├── Express application
-│   └── Prisma schema & migrations
+│   ├── src/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   │
+│   └── prisma/
+│       ├── schema.prisma
+│       └── migrations/
 │
 ├── docs/
-│   └── Project documentation
+│   ├── architecture.md
+│   ├── api.md
+│   ├── database.md
+│   └── development.md
 │
-├── .gitignore
 ├── docker-compose.yml
+├── .gitignore
 └── README.md
 ```
 
+## 4. Application Layers
+
 ### Frontend
-The `frontend/` directory contains the React application.
+
+The frontend/ directory contains the React application.
 It is responsible for:
-- User interface and SPA routing
-- Components and Client-side state
+
+- User interface
+- Pages and components
+- Client-side state
+- Client-side routing
 - Communication with the backend API
-- Real-time communication with the backend via WebSockets
+- Real-time communication when required
+
+The frontend must never communicate directly with PostgreSQL.
 
 ### Backend
-The `backend/` directory contains the Express application and Prisma configuration.
+
+The backend/ directory contains the Express application and Prisma configuration.
 It is responsible for:
-- HTTP REST API
-- Authentication and authorization (JWT)
+
+- HTTP API
+- Authentication and authorization
 - Application/business logic
-- Input validation and Error Handling
+- Input validation
+- Error handling
 - Database access
-- Real-time WebSocket event handling
+- Real-time communication when required
 
-### Docs
-The `docs/` directory contains technical documentation describing the architecture, database, API, and development conventions.
+The backend is the application's data access boundary.
 
-## 3. Communication Flow
+### Database
 
-A normal HTTP REST request follows this path:
+PostgreSQL is the shared relational database.
+Prisma is used by the backend as the ORM.
+The schema is defined in:
+
+`backend/prisma/schema.prisma`
+
+Database migrations are stored in:
+
+`backend/prisma/migrations/`
+
+Feature developers extend the shared schema instead of creating separate databases or duplicated core entities.
+
+## 5. Communication Flow
+
+A normal request follows this path:
 
 ```text
 User
  │
  ▼
-React (Frontend)
+React
  │
- │ HTTP Request (Axios/Fetch)
+ │ HTTP request
  ▼
-Express (Backend)
+Express
  │
- │ Validate & process logic
+ │ Application logic
  ▼
-Prisma (ORM)
+Prisma
  │
- │ Execute safe SQL
+ │ Database query
  ▼
-PostgreSQL (Database)
+PostgreSQL
  │
- │ Return Result
+ │ Result
  ▼
 Prisma
  │
  ▼
 Express
  │
- │ HTTP JSON Response
+ │ JSON response
  ▼
 React
  │
@@ -108,50 +166,131 @@ React
 User
 ```
 
-The frontend never communicates directly with PostgreSQL. All data requests must pass through the Express backend to ensure proper authorization and security.
+The frontend does not communicate directly with PostgreSQL.
 
-## 4. Real-Time Communication
+## 6. Backend Structure
 
-Some application features (such as the Chat and Social modules) require real-time communication.
-For these features, the frontend and backend maintain a persistent WebSocket connection. This ensures instant updates without the user needing to refresh the page.
+The backend starts with a small shared foundation:
 
-```text
-Frontend (React)
-   ║
-   ║ WebSocket (e.g., Socket.io)
-   ║
-Backend (Express)
+```
+backend/
+│
+├── src/
+│   ├── app.ts
+│   └── server.ts
+│
+└── prisma/
+    ├── schema.prisma
+    └── migrations/
 ```
 
-## 5. Feature Organization (Vertical Slicing)
+### app.ts
 
-The application is organized as one shared architecture, but development is structured around feature-based development (Vertical Slicing).
-The core architecture (Docker, Prisma connection, Express shell) is shared. However, feature developers own their modules from the database all the way to the UI.
+Creates and configures the Express application.
+It is responsible for:
 
-A vertical feature slice contains:
-- Frontend UI components and routes
-- Backend routes and controllers
-- Feature-specific database models (in `schema.prisma`)
+- Express initialization
+- Middleware
+- Shared configuration
+- Route registration
 
-Example for the Workout module:
+### server.ts
 
-```text
+Starts the HTTP server.
+Keeping server startup separate from the Express application makes the application easier to test and extend.
+
+## 7. Feature Organization
+
+The application uses vertical feature development.
+A feature may contain:
+
+- Frontend UI
+- Backend routes
+- Controllers
+- Business logic/services
+- Feature-specific database models
+- Tests
+- Documentation
+
+Example:
+
+```
 Workout Feature
     │
-    ├── React UI (Workout Dashboard)
-    ├── Express Routes (`/api/workouts`)
-    ├── Controllers & Logic
-    └── Prisma Models (WorkoutPlan, WorkoutSession)
+    ├── React UI
+    ├── Express routes
+    ├── Controllers / services
+    └── Prisma models
 ```
 
-## 6. Architectural Principles
+Feature developers should reuse the shared core architecture instead of creating independent applications or databases.
 
-- **Single Application & Containerization:** The project is developed in one Git repository and launched via a single `docker-compose.yml` file.
-- **Shared Database:** All features use the same PostgreSQL database container.
-- **Backend as the Data Boundary:** The frontend does not access PostgreSQL directly. The backend validates all inputs.
-- **Clear Separation of Responsibilities:** Each layer has a specific responsibility:
-  - **Frontend** → Interface, routing, and user interaction
-  - **Backend** → API, business logic, and security
-  - **Prisma** → Type-safe database queries
-  - **PostgreSQL** → Persistent relational data
-- **Documentation:** Important architectural and technical decisions are documented so that every team member understands the codebase for the final evaluation defense.
+## 8. Shared Core
+
+The project has a shared technical foundation maintained centrally.
+This includes:
+
+- Repository structure
+- Docker development environment
+- PostgreSQL
+- Prisma
+- Core database models
+- Express application foundation
+- React application foundation
+- Shared API conventions
+- Authentication conventions
+- Validation conventions
+- Error-handling conventions
+
+Feature developers should build on top of these foundations.
+Structural changes to shared infrastructure should be discussed before merging.
+
+## 9. Real-Time Communication
+
+Some features may require real-time communication, such as messaging or live application updates.
+For these features, the frontend and backend may maintain a persistent WebSocket connection.
+
+```text
+Frontend
+    ║
+    ║ WebSocket
+    ║
+Backend
+```
+
+The exact WebSocket library and implementation should be introduced when the corresponding feature is developed.
+Real-time communication should not be added to features that do not require it.
+
+## 10. Architectural Principles
+
+### Single Application
+
+The project is developed as one application in one Git repository.
+
+### Shared Database
+
+All features use the same PostgreSQL database.
+
+### Backend Data Boundary
+
+The frontend never accesses PostgreSQL directly.
+
+### Shared Identity
+
+The application uses one central user identity system.
+Features must reuse the existing User entity.
+
+### Feature-Based Development
+
+Features are developed vertically while sharing the common architecture.
+
+### Separation of Responsibilities
+
+- Frontend → UI and user interaction
+- Backend → API and application logic
+- Prisma → Database access
+- PostgreSQL → Persistent data
+
+### Documentation
+
+Important architectural and technical decisions should be documented so that every team member can understand and follow the shared architecture.

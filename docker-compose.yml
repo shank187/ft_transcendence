@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
     container_name: transcendence_db
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: aymane
-      POSTGRES_PASSWORD: supersecretpassword
-      POSTGRES_DB: fitness_db
+      POSTGRES_USER: ${POSTGRES_USER:-transcendence}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-fitness_db}
     ports:
       - "5432:5432"
     volumes:
@@ -19,12 +17,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: transcendence_backend
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "postgresql://aymane:supersecretpassword@postgres:5432/fitness_db?schema=public"
-      JWT_SECRET: "dev-secret-key"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-transcendence}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-fitness_db}?schema=public
       PORT: 3000
     volumes:
       - ./backend:/app
@@ -37,11 +34,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: transcendence_frontend
-    restart: always
+    restart: unless-stopped
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: "http://localhost:3000"
+      VITE_API_URL: http://localhost:3000
     volumes:
       - ./frontend:/app
       - /app/node_modules
