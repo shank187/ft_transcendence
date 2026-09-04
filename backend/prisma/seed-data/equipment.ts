@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 export const EQUIPMENT = [
     "Chest Press Machine",
@@ -22,7 +21,7 @@ export const EQUIPMENT = [
 
 export type EquipmentName = typeof EQUIPMENT[number];
 
-async function seedEquipment() {
+export async function seedEquipment(prisma: PrismaClient) {
     await prisma.equipment.createMany({
         data: EQUIPMENT.map((name) => ({
             name,
