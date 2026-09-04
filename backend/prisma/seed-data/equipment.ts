@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export const EQUIPMENT = [
     "Chest Press Machine",
     "Chest Fly Machine",
-    "DumbbelLs",
+    "Dumbbells",
     "Barbell",
     "Plates",
     "Lat Pulldown Machine",
