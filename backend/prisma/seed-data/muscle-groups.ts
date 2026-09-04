@@ -1,7 +1,6 @@
 
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 export const MUSCLE_GROUPS = [
     "Upper Back",
@@ -22,7 +21,7 @@ export const MUSCLE_GROUPS = [
 export type MuscleGroupName = typeof MUSCLE_GROUPS[number];
 
 
-async function seedMuscleGroups() {
+export async function seedMuscleGroups(prisma: PrismaClient) {
     await prisma.muscleGroup.createMany({
         data: MUSCLE_GROUPS.map((name) => ({
             name,
