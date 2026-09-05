@@ -179,8 +179,9 @@ model GymOpeningHour {
 }
 
 model Equipment {
-  id   String @id @default(uuid())
-  name String @unique
+  id       String  @id @default(uuid())
+  name     String  @unique
+  imageUrl String?
 
   gyms          GymEquipment[]
   exerciseLinks ExerciseEquipment[]
@@ -253,6 +254,9 @@ model Exercise {
   description          String?
   type                 ExerciseType
   primaryMuscleGroupId String
+
+  imageUrl String?
+  demoUrl  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
