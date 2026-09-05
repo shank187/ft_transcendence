@@ -461,12 +461,12 @@ Returns the exercise catalog ordered alphabetically by exercise name.
     "secondaryMuscles": ["Triceps", "Shoulders"],
     "equipment": ["Barbell", "Bench"],
     "description": "A compound upper-body pressing exercise.",
-    "imageUrl": "https://example.com/images/bench-press.jpg",
+    "imageUrl": "https://example.com/images/bench-press.jpg"
   }
 ]
 ```
 
-Nullable fields (`descrption`, `imageUrl`, and `demoUrl`) may be `null`.
+Nullable fields (`description` and `imageUrl`) may be `null`.
 
 **Possible responses:**
 - `200` — Exercise catalog returned successfully
