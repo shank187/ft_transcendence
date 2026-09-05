@@ -460,9 +460,8 @@ Returns the exercise catalog ordered alphabetically by exercise name.
     "primaryMuscle": "Chest",
     "secondaryMuscles": ["Triceps", "Shoulders"],
     "equipment": ["Barbell", "Bench"],
-    "descrption": "A compound upper-body pressing exercise.",
+    "description": "A compound upper-body pressing exercise.",
     "imageUrl": "https://example.com/images/bench-press.jpg",
-    "demoUrl": "https://example.com/demos/bench-press.mp4"
   }
 ]
 ```
