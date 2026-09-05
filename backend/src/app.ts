@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import exerciseRouter from "./modules/exercises/exercise.route";
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ export const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/exercises", exerciseRouter)
 
 app.get('/', (_req, res) => {
     res.status(200).send('ft_transcendence API is running!');
