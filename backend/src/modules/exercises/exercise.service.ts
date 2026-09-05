@@ -39,7 +39,7 @@ export async function getExercises() {
             name: exercise.name,
             primaryMuscle: exercise.primaryMuscleGroup.name,
             secondaryMuscles: exercise.secondaryMuscles.map((item) => item.muscleGroup.name),
-            equipments: exercise.equipment.map((item) => item.equipment.name),
+            equipment: exercise.equipment.map((item) => item.equipment.name),
             
         };
     });
