@@ -35,7 +35,6 @@ export async function getExercises() {
             },
             description: true,
             imageUrl: true,
-            demoUrl: true,
         },
     });
 
@@ -50,7 +49,6 @@ export async function getExercises() {
             equipment: exercise.equipment.map((item) => item.equipment.name),
             description: exercise.description,
             imageUrl: exercise.imageUrl,
-            demoUrl: exercise.demoUrl
         };
     });
     return cleanExercises;
