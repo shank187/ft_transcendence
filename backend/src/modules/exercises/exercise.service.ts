@@ -6,6 +6,7 @@ export async function getExercises() {
         select:{
             id: true,
             name: true,
+            type: true,
             primaryMuscleGroup: {
                 select:{
                     name: true,
@@ -37,6 +38,7 @@ export async function getExercises() {
         return{
             id: exercise.id,
             name: exercise.name,
+            type: exercise.type,
             primaryMuscle: exercise.primaryMuscleGroup.name,
             secondaryMuscles: exercise.secondaryMuscles.map((item) => item.muscleGroup.name),
             equipment: exercise.equipment.map((item) => item.equipment.name),
