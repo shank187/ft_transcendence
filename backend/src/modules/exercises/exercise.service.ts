@@ -3,6 +3,9 @@ import { prisma } from "../../app";
 
 export async function getExercises() {
     const results = await prisma.exercise.findMany({
+        orderBy: {
+            name: "asc",
+        },
         select:{
             id: true,
             name: true,
@@ -30,6 +33,9 @@ export async function getExercises() {
                     },
                 },
             },
+            description: true,
+            imageUrl: true,
+            demoUrl: true,
         },
     });
 
@@ -42,7 +48,9 @@ export async function getExercises() {
             primaryMuscle: exercise.primaryMuscleGroup.name,
             secondaryMuscles: exercise.secondaryMuscles.map((item) => item.muscleGroup.name),
             equipment: exercise.equipment.map((item) => item.equipment.name),
-            
+            description: exercise.description,
+            imageUrl: exercise.imageUrl,
+            demoUrl: exercise.demoUrl
         };
     });
     return cleanExercises;

@@ -440,7 +440,42 @@ As features are implemented, their endpoints should be added to this document. F
 
 ---
 
-## 20. API Principles
+## 20. Exercise Catalog
+
+### `GET /api/exercises`
+
+Returns the exercise catalog ordered alphabetically by exercise name.
+
+**Authentication:** Not required
+
+**Parameters:** None
+
+**Response:**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Bench Press",
+    "type": "WEIGHT_REPS",
+    "primaryMuscle": "Chest",
+    "secondaryMuscles": ["Triceps", "Shoulders"],
+    "equipment": ["Barbell", "Bench"],
+    "descrption": "A compound upper-body pressing exercise.",
+    "imageUrl": "https://example.com/images/bench-press.jpg",
+    "demoUrl": "https://example.com/demos/bench-press.mp4"
+  }
+]
+```
+
+Nullable fields (`descrption`, `imageUrl`, and `demoUrl`) may be `null`.
+
+**Possible responses:**
+- `200` — Exercise catalog returned successfully
+- `500` — Internal server error
+
+---
+
+## 21. API Principles
 
 - **Backend Boundary:** The backend is the only application layer that communicates with the database.
 - **Validation:** All external input is validated by the backend.
