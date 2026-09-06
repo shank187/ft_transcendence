@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
+import exerciseRouter from "./modules/exercises/exercise.route";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+app.use("/api/exercises", exerciseRouter)
 
 app.use('/auth', authRoutes);
 app.use('/api/users', userRoutes);

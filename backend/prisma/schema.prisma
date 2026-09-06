@@ -4,10 +4,10 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 generator client {
   provider = "prisma-client-js"
 }
-
 
 // ============================================================
 // ENUMS
@@ -58,22 +58,51 @@ enum UnitSystem {
   IMPERIAL
 }
 
+enum ExerciseType {
+  WEIGHT_REPS
+  BODYWEIGHT_REPS
+  WEIGHTED_BODYWEIGHT
+  ASSISTED_BODYWEIGHT
+  DURATION
+  WEIGHT_DURATION
+  DISTANCE_DURATION
+}
+
+enum WorkoutPlanType {
+  CUSTOM
+  RECOMMENDED
+}
+
+enum WorkoutSetType {
+  NORMAL
+  HEAVY
+  WARMUP
+  DROP
+  FAILURE
+}
+
+enum WorkoutSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 // ============================================================
 // IDENTITY
 // ============================================================
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  username     String   @unique
+  id           String    @id @default(uuid())
+  email        String    @unique
+  username     String    @unique
   passwordHash String
   refreshToken String?
   displayName  String?
   avatarUrl    String?
   bio          String?
   lastSeenAt   DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
 
   experienceLevel      ExperienceLevel?
@@ -86,12 +115,12 @@ model User {
 
 
   // Identity / authentication
-  roles        UserRole[]
-  sessions     Session[]
+  roles    UserRole[]
+  sessions Session[]
 
   // Gym
-  createdGyms  Gym[]
-  gymReviews   GymReview[]
+  createdGyms Gym[]
+  gymReviews  GymReview[]
 
   // Workouts
   workoutPlans    WorkoutPlan[]
@@ -162,9 +191,9 @@ model Gym {
   createdBy User @relation(fields: [createdById], references: [id])
 
   openingHours GymOpeningHour[]
-  equipment   GymEquipment[]
-  facilities  GymFacility[]
-  reviews     GymReview[]
+  equipment    GymEquipment[]
+  facilities   GymFacility[]
+  reviews      GymReview[]
 
   @@index([city])
   @@index([createdById])
@@ -183,10 +212,12 @@ model GymOpeningHour {
 }
 
 model Equipment {
-  id   String @id @default(uuid())
-  name String @unique
+  id       String  @id @default(uuid())
+  name     String  @unique
+  imageUrl String?
 
-  gyms GymEquipment[]
+  gyms          GymEquipment[]
+  exerciseLinks ExerciseEquipment[]
 }
 
 model GymEquipment {
@@ -238,49 +269,98 @@ model GymReview {
 // FITNESS / WORKOUTS
 // ============================================================
 
-model Exercise {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  muscleGroup String?
-  equipment   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// ------------------------------------------------------------
+// EXERCISE CATALOG
+// ------------------------------------------------------------
 
-  workoutExercises WorkoutExercise[]
-  workoutSets      WorkoutSet[]
+model MuscleGroup {
+  id   String @id @default(uuid())
+  name String @unique
 
-  @@index([name])
-  @@index([muscleGroup])
+  primaryExercises   Exercise[]                @relation("PrimaryMuscle")
+  secondaryExercises ExerciseSecondaryMuscle[]
 }
 
+model Exercise {
+  id                   String       @id @default(uuid())
+  name                 String       @unique
+  description          String?
+  type                 ExerciseType
+  primaryMuscleGroupId String
+
+  imageUrl String?
+  demoUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  primaryMuscleGroup MuscleGroup @relation("PrimaryMuscle", fields: [primaryMuscleGroupId], references: [id], onDelete: Restrict)
+
+  secondaryMuscles ExerciseSecondaryMuscle[]
+  equipment        ExerciseEquipment[]
+
+  workoutExercises WorkoutExercise[]
+  sessionExercises WorkoutSessionExercise[]
+
+  @@index([primaryMuscleGroupId])
+}
+
+model ExerciseSecondaryMuscle {
+  exerciseId    String
+  muscleGroupId String
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  muscleGroup MuscleGroup @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, muscleGroupId])
+  @@index([muscleGroupId])
+}
+
+model ExerciseEquipment {
+  exerciseId  String
+  equipmentId String
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, equipmentId])
+  @@index([equipmentId])
+}
+
+// ------------------------------------------------------------
+// WORKOUT PLANNING
+// ------------------------------------------------------------
+
 model WorkoutPlan {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   userId      String?
   name        String
   description String?
-  isTemplate  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        WorkoutPlanType @default(CUSTOM)
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  days          WorkoutDay[]
-  workoutSessions WorkoutSession[]
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  days WorkoutDay[]
 
   @@index([userId])
-  @@index([isTemplate])
+  @@index([type])
 }
 
 model WorkoutDay {
-  id           String @id @default(uuid())
+  id            String @id @default(uuid())
   workoutPlanId String
-  name         String
-  dayOrder     Int
+  name          String
+  dayOrder      Int
 
   workoutPlan WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
 
   exercises WorkoutExercise[]
+  sessions  WorkoutSession[]
 
   @@unique([workoutPlanId, dayOrder])
 }
@@ -289,50 +369,128 @@ model WorkoutExercise {
   id           String @id @default(uuid())
   workoutDayId String
   exerciseId   String
-  order        Int
-  notes        String?
+
+  order Int
+
+  notes String?
+
+  // null = no automatic rest timer
+  restSeconds Int?
+
+  // null = normal standalone exercise.
+  // Same number means exercises belong to same superset/circuit.
+  supersetGroup Int?
 
   workoutDay WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
-  exercise   Exercise   @relation(fields: [exerciseId], references: [id])
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+
+  sets WorkoutExerciseSet[]
 
   @@unique([workoutDayId, order])
   @@index([exerciseId])
 }
 
-model WorkoutSession {
-  id            String    @id @default(uuid())
-  userId        String
-  workoutPlanId String?
-  startedAt     DateTime  @default(now())
-  completedAt   DateTime?
-  notes         String?
+model WorkoutExerciseSet {
+  id                String @id @default(uuid())
+  workoutExerciseId String
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workoutPlan WorkoutPlan? @relation(fields: [workoutPlanId], references: [id], onDelete: SetNull)
+  setNumber Int
+  setType   WorkoutSetType @default(NORMAL)
+
+  targetWeight   Float?
+  targetReps     Int?
+  targetDuration Int?
+  targetDistance Float?
+
+  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutExerciseId, setNumber])
+}
+
+// ------------------------------------------------------------
+// WORKOUT EXECUTION
+// ------------------------------------------------------------
+
+model WorkoutSession {
+  id     String @id @default(uuid())
+  userId String
+
+  workoutDayId String?
+
+  status WorkoutSessionStatus @default(IN_PROGRESS)
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Snapshot of user's body weight when this workout started.
+  bodyWeightKg Float?
+
+  notes String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workoutDay WorkoutDay? @relation(fields: [workoutDayId], references: [id], onDelete: SetNull)
+
+  exercises WorkoutSessionExercise[]
+
+  @@index([userId])
+  @@index([workoutDayId])
+  @@index([startedAt])
+  @@index([userId, status])
+}
+
+model WorkoutSessionExercise {
+  id               String @id @default(uuid())
+  workoutSessionId String
+  exerciseId       String
+
+  order Int
+
+  notes String?
+
+  // Snapshot of the timer configuration for TODAY.
+  // null = timer disabled.
+  restSeconds Int?
+
+  // Can differ from the saved routine during this session.
+  supersetGroup Int?
+
+  workoutSession WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
 
   sets WorkoutSet[]
 
-  @@index([userId])
-  @@index([workoutPlanId])
-  @@index([startedAt])
+  @@unique([workoutSessionId, order])
+  @@index([exerciseId])
 }
 
 model WorkoutSet {
-  id               String   @id @default(uuid())
-  workoutSessionId String
-  exerciseId       String
-  setNumber        Int
-  reps             Int?
-  weight           Float?
-  duration         Int?
-  distance         Float?
-  notes            String?
+  id                       String @id @default(uuid())
+  workoutSessionExerciseId String
 
-  workoutSession WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
-  exercise       Exercise       @relation(fields: [exerciseId], references: [id])
+  setNumber Int
+  setType   WorkoutSetType @default(NORMAL)
 
-  @@unique([workoutSessionId, exerciseId, setNumber])
-  @@index([exerciseId])
+  // Snapshot of routine targets when the workout starts.
+  plannedWeight   Float?
+  plannedReps     Int?
+  plannedDuration Int?
+  plannedDistance Float?
+
+  // What the user actually performs.
+  weight   Float?
+  reps     Int?
+  duration Int?
+  distance Float?
+
+  // null = not completed yet
+  completedAt DateTime?
+
+  workoutSessionExercise WorkoutSessionExercise @relation(fields: [workoutSessionExerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutSessionExerciseId, setNumber])
 }
 
 // ============================================================
@@ -372,11 +530,11 @@ model ConversationMember {
 }
 
 model Message {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   conversationId String
   senderId       String
   content        String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
   readAt         DateTime?
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
