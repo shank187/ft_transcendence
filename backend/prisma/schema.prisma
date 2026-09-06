@@ -36,6 +36,28 @@ enum MediaType {
   OTHER
 }
 
+// Onboarding / training profile
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum TrainingGoal {
+  BUILD_MUSCLE
+  GAIN_STRENGTH
+  LOSE_FAT
+  IMPROVE_GENERAL_FITNESS
+  IMPROVE_ENDURANCE
+  MAINTAIN_FITNESS
+}
+
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+}
+
 // ============================================================
 // IDENTITY
 // ============================================================
@@ -45,12 +67,23 @@ model User {
   email        String   @unique
   username     String   @unique
   passwordHash String
+  refreshToken String?
   displayName  String?
   avatarUrl    String?
   bio          String?
   lastSeenAt   DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+
+  experienceLevel      ExperienceLevel?
+  primaryGoal           TrainingGoal?
+  unitSystem            UnitSystem        @default(METRIC)
+  heightCm              Float?
+  weightKg              Float?
+  onboardingCompletedAt DateTime?
+
+
 
   // Identity / authentication
   roles        UserRole[]
