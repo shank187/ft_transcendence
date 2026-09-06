@@ -1,0 +1,31 @@
+
+import { PrismaClient } from "@prisma/client";
+
+
+export const MUSCLE_GROUPS = [
+    "Upper Back",
+    "Lower Back",
+    "Chest",
+    "Shoulders",
+    "Biceps",
+    "Triceps",
+    "Forearms",
+    "Abdominals",
+    "Oblique",
+    "Quadriceps",
+    "Glutes",
+    "Hamstrings",
+    "Calves"
+] as const;
+
+export type MuscleGroupName = typeof MUSCLE_GROUPS[number];
+
+
+export async function seedMuscleGroups(prisma: PrismaClient) {
+    await prisma.muscleGroup.createMany({
+        data: MUSCLE_GROUPS.map((name) => ({
+            name,
+        })),
+        skipDuplicates: true
+    });
+}
