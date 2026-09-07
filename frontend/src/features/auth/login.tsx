@@ -11,9 +11,11 @@ function Login() {
     const { setAccessToken } = useAuth();
     const navigate = useNavigate();
 
-    async function handleSubmit(event: React.FormEvent) {
+    async function handleSubmit(event: React.FormEvent)
+    {
         event.preventDefault();
         setErrorMessage('');
+
 
         try {
             const response = await api.post('/auth/login', {
@@ -23,7 +25,6 @@ function Login() {
 
             const token = response.data.accessToken;
             setAccessToken(token);
-
             navigate('/home');
 
         } catch (error) {
