@@ -3,49 +3,84 @@ services:
     image: postgres:15
     container_name: transcendence_db
     restart: unless-stopped
+
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-transcendence}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
       POSTGRES_DB: ${POSTGRES_DB:-fitness_db}
+
     ports:
-      - "5433:5432"
+      - "5432:5432"
+
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: sh -c "npx prisma generate && npm run dev"
+
     container_name: transcendence_backend
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-      - "5555:5555"
+
+    command: >
+      sh -c "
+        npx prisma generate &&
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        npm run dev
+      "
+
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-transcendence}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-fitness_db}?schema=public
       PORT: 3000
+
+    ports:
+      - "3000:3000"
+      - "5555:5555"
+
     volumes:
       - ./backend:/app
       - /app/node_modules
+
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+
     container_name: transcendence_frontend
     restart: unless-stopped
+
     ports:
       - "5173:5173"
+
     environment:
       VITE_API_URL: http://localhost:3000
+
     volumes:
       - ./frontend:/app
       - /app/node_modules
+
     depends_on:
       - backend
+
 
 volumes:
   pgdata:
