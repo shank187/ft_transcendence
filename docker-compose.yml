@@ -3,6 +3,16 @@ services:
     image: postgres:15
     container_name: transcendence_db
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-transcendence}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
@@ -29,7 +39,9 @@ services:
       - ./backend:/app
       - /app/node_modules
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    
 
   frontend:
     build:
