@@ -1,45 +1,76 @@
 NAME = ft_transcendence
 
-# Start the project normally
-all: up
+# Default: build and start the complete project
+all:
+	docker compose up -d --build
 
-# Start containers in the background
+# Start existing containers/images
 up:
 	docker compose up -d
 
-# Stop and remove containers
-down:
-	docker compose down
-
-# Rebuild and start containers
+# Build/rebuild images and start
 build:
-	docker compose up --build -d
+	docker compose up -d --build
 
-# Remove containers, networks, and volumes (fixes networking/orphan issues)
-clean:
-	docker compose down -v --remove-orphans
+# Stop and remove containers/network
+# Database volume is preserved
+down:
+	docker compose down --remove-orphans
 
-# Deep clean: remove everything including old images and cache
-fclean: clean
-	docker system prune -af
+# Stop project without removing containers
+stop:
+	docker compose stop
 
-# Full reset: clean and rebuild from scratch
-re: clean build
+# Restart services
+restart:
+	docker compose restart
 
-# View logs for all containers (follow mode)
+# Show project containers
+ps:
+	docker compose ps
+
+# Follow logs
 logs:
 	docker compose logs -f
 
-# Push Prisma schema to PostgreSQL database
-db-push:
-	docker exec -it transcendence_backend npx prisma db push
+# Backend logs only
+logs-backend:
+	docker compose logs -f backend
 
-# Start Prisma Studio to view the database in the browser
+# Frontend logs only
+logs-frontend:
+	docker compose logs -f frontend
+
+# PostgreSQL logs only
+logs-db:
+	docker compose logs -f postgres
+
+# Apply committed Prisma migrations manually
+db-migrate:
+	docker compose exec backend npx prisma migrate deploy
+
+# Run canonical seed manually
+db-seed:
+	docker compose exec backend npx prisma db seed
+
+# Open Prisma Studio
 db-studio:
-	docker exec -it transcendence_backend npx prisma studio
+	docker compose exec backend npx prisma studio --hostname 0.0.0.0 --port 5555
 
-# List running containers
-ps:
-	docker ps
+# Remove containers/network, preserve database data
+clean:
+	docker compose down --remove-orphans
 
-.PHONY: all up down build clean fclean re logs db-push db-studio ps
+# Explicit destructive reset: delete database volume too
+reset:
+	docker compose down -v --remove-orphans
+	docker compose up -d --build
+
+# Clean rebuild while preserving DB data
+re:
+	docker compose down --remove-orphans
+	docker compose up -d --build
+
+.PHONY: all up build down stop restart ps logs \
+	logs-backend logs-frontend logs-db \
+	db-migrate db-seed db-studio clean reset re
