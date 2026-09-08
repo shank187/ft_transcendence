@@ -6,6 +6,7 @@ import Onboarding from './features/auth/Onboarding';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
+import Exercises from './pages/Exercises'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/exercises" element={<Exercises />} />
         </Route>
       </Route>
     </Routes>
