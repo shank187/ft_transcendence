@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getExercises } from './exercise.api'
-import type { Exercise } from './exercise.types'
+import type {Exercise}  from './exercise.types'
+import ExerciseCard from "./ExerciseCard"
 
 function ExerciseCatalog() {
     const [exercises, setExercises] = useState<Exercise[]>([])
@@ -43,7 +44,14 @@ function ExerciseCatalog() {
         <section>
         <h1>Exercises Count: {exercises.length}</h1>
         <ul>
-            
+            {exercises.map(exercise => {
+                return (
+                    <ExerciseCard
+                    key = {exercise.id}
+                    exercise= {exercise}
+                    />
+                )
+            })}
         </ul>
         </section>
     )
