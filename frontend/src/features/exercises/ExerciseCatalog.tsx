@@ -32,6 +32,7 @@ function ExerciseCatalog() {
         return(
             <section>
                 <h1>{error}</h1>
+                
             </section>
         )
     else if (exercises.length === 0)
@@ -43,7 +44,7 @@ function ExerciseCatalog() {
     return (
         <section>
         <h1>Exercises Count: {exercises.length}</h1>
-        <ul>
+        <div>
             {exercises.map(exercise => {
                 return (
                     <ExerciseCard
@@ -52,7 +53,7 @@ function ExerciseCatalog() {
                     />
                 )
             })}
-        </ul>
+        </div>
         </section>
     )
 }
