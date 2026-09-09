@@ -28,14 +28,14 @@ function ExerciseCatalog() {
                 <h1>Loading Exercises...</h1>
             </section>
         )
-    else if (error)
+    if (error)
         return(
             <section>
                 <h1>{error}</h1>
                 
             </section>
         )
-    else if (exercises.length === 0)
+    if (exercises.length === 0)
         return(
             <section>
                 <h1>No Exercises Found.</h1>
