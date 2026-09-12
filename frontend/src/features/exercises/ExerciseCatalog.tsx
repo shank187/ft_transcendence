@@ -47,7 +47,7 @@ function ExerciseCatalog() {
                 <h1>Loading Exercises...</h1>
             </section>
         )
-    if (error)
+    if (error && exercises.length === 0)
         return(
             <section>
                 <h1>{error}</h1>
@@ -74,6 +74,20 @@ function ExerciseCatalog() {
             })}
         </div>
         <p> {exercises.length} of {total} exercises</p>
+
+        {error && exercises.length > 0 && (
+            <div>
+                <p>Failed to load more exercises.</p>
+
+                <button
+                    type="button"
+                    onClick={() => setPage(current => current)}
+                >
+                    Retry
+                </button>
+            </div>
+        )}
+
         {page < totalPages && (
             <button
                 onClick={() => setPage(current => current + 1)}
