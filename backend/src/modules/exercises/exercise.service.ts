@@ -1,8 +1,11 @@
 import { prisma } from "../../app";
 
 
-export async function getExercises() {
+export async function getExercises(page: number, limit: number) {
+    const skip = (page - 1) * limit;
     const results = await prisma.exercise.findMany({
+        skip,
+        take: limit,
         orderBy: {
             name: "asc",
         },
@@ -37,7 +40,8 @@ export async function getExercises() {
             imageUrl: true,
         },
     });
-
+    const total = await prisma.exercise.count()
+    const totalPages = Math.ceil(total/ limit);
     // DTO
     const cleanExercises = results.map((exercise) => {
         return{
@@ -51,5 +55,11 @@ export async function getExercises() {
             imageUrl: exercise.imageUrl,
         };
     });
-    return cleanExercises;
+    return{
+        items: cleanExercises,
+        page,
+        limit,
+        total,
+        totalPages,
+    };
 }
