@@ -3,16 +3,33 @@ import { getExercises } from './exercise.api'
 import type {Exercise}  from './exercise.types'
 import ExerciseCard from "./ExerciseCard"
 
+const PAGE_SIZE = 12
+
 function ExerciseCatalog() {
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const [page, setPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [total, setTotal] = useState(0)
+
     useEffect(() => {
         const loadExercises = async () => {
+            setLoading(true)
+            setError(null)
             try {
-                const data = await getExercises()
-                setExercises(data)
+                const data = await getExercises(page, PAGE_SIZE)
+                setTotal(data.total)
+                setTotalPages(data.totalPages)
+                if(page === 1){
+                    setExercises(data.items)
+                } else {
+                    setExercises(previous => [
+                        ...previous,
+                        ...data.items
+                    ])
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load exercises')
             } finally {
@@ -21,8 +38,10 @@ function ExerciseCatalog() {
         }
 
         void loadExercises()
-    }, [])
-    if(loading)
+    }, [page])
+
+
+    if(loading && exercises.length === 0)
         return(
             <section>
                 <h1>Loading Exercises...</h1>
@@ -43,7 +62,7 @@ function ExerciseCatalog() {
         )
     return (
         <section>
-        <h1>Exercises Count: {exercises.length}</h1>
+        <h1>Exercises</h1>
         <div>
             {exercises.map(exercise => {
                 return (
@@ -54,6 +73,15 @@ function ExerciseCatalog() {
                 )
             })}
         </div>
+        <p> {exercises.length} of {total} exercises</p>
+        {page < totalPages && (
+            <button
+                onClick={() => setPage(current => current + 1)}
+                disabled={loading}
+            >
+                {loading ? 'Loading...' : 'Load more'}
+            </button>
+        )}
         </section>
     )
 }
