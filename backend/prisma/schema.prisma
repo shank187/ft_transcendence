@@ -96,7 +96,6 @@ model User {
   email        String    @unique
   username     String    @unique
   passwordHash String
-  refreshToken String?
   displayName  String?
   avatarUrl    String?
   bio          String?
