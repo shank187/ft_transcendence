@@ -14,29 +14,29 @@ function ExerciseCatalog() {
     const [totalPages, setTotalPages] = useState(1)
     const [total, setTotal] = useState(0)
 
-    useEffect(() => {
-        const loadExercises = async () => {
-            setLoading(true)
-            setError(null)
-            try {
-                const data = await getExercises(page, PAGE_SIZE)
-                setTotal(data.total)
-                setTotalPages(data.totalPages)
-                if(page === 1){
-                    setExercises(data.items)
-                } else {
-                    setExercises(previous => [
-                        ...previous,
-                        ...data.items
-                    ])
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load exercises')
-            } finally {
-                setLoading(false)
+    const loadExercises = async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const data = await getExercises(page, PAGE_SIZE)
+            setTotal(data.total)
+            setTotalPages(data.totalPages)
+            if(page === 1){
+                setExercises(data.items)
+            } else {
+                setExercises(previous => [
+                    ...previous,
+                    ...data.items
+                ])
             }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load exercises')
+        } finally {
+            setLoading(false)
         }
+    }
 
+    useEffect(() => {
         void loadExercises()
     }, [page])
 
@@ -81,14 +81,14 @@ function ExerciseCatalog() {
 
                 <button
                     type="button"
-                    onClick={() => setPage(current => current)}
+                    onClick={() => void loadExercises()}
                 >
                     Retry
                 </button>
             </div>
         )}
 
-        {page < totalPages && (
+        {!error && page < totalPages && (
             <button
                 onClick={() => setPage(current => current + 1)}
                 disabled={loading}
