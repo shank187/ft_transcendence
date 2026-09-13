@@ -1,14 +1,9 @@
 import { Request, Response } from 'express';
-import { hash, compare } from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    create_session,
     find_session_by_raw_token,
     revoke_session,
 } from './session.service';
-import { PrismaClient } from '@prisma/client';
-
-export const prisma = new PrismaClient();
 
 const refresh_cookie_name = 'refreshToken';
 
@@ -24,60 +19,8 @@ function sign_access_token(user_id: string)
     return jwt.sign({ userId: user_id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
 }
 
-export const register = async (req: Request, res: Response) => {
-    const { username, email, password } = req.body;
-    try {
-        const existing_user = await prisma.user.findFirst({
-            where: { OR: [{ email }, { username }] },
-        });
 
-        if (existing_user)
-            return res.status(400).json({ error: 'Username or Email already taken' });
 
-        const hashed_pass = await hash(password, 10);
-        const new_user = await prisma.user.create({
-            data: { username, email, passwordHash: hashed_pass },
-        });
-
-        const access_token = sign_access_token(new_user.id);
-        const { raw_token } = await create_session(new_user.id);
-
-        res.cookie(refresh_cookie_name, raw_token, refresh_cookie_options);
-
-        res.status(201).json({
-            access_token,
-            user: { id: new_user.id, username: new_user.username, email: new_user.email },
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
-
-export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user)
-            return res.status(400).json({error: 'Invalid email or password'});
-
-        const is_pass_valid = await compare(password, user.passwordHash);
-        if (!is_pass_valid)
-            return res.status(400).json({ error: 'Invalid email or password' });
-
-        const access_token = sign_access_token(user.id);
-        const { raw_token } = await create_session(user.id);
-
-        res.cookie(refresh_cookie_name, raw_token, refresh_cookie_options);
-
-        res.status(200).json({
-            access_token,
-            user: { id: user.id, username: user.username, email: user.email },
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
 
 export const refresh = async (req: Request, res: Response) => {
     let raw_token: string | undefined;
@@ -156,3 +99,5 @@ export const logout = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
