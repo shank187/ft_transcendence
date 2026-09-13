@@ -24,7 +24,7 @@ function Register() {
                 password: password,
             });
 
-            const token = response.data.accessToken;
+            const token = response.data.access_token;
             setAccessToken(token);
 
             navigate('/onboarding');

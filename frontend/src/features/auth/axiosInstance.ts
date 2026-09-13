@@ -39,7 +39,7 @@ async function requestNewAccessToken(): Promise<string> {
         {},
         { withCredentials: true }
     );
-    return response.data.accessToken;
+    return response.data.access_token;
 }
 
 export async function bootstrapSession(): Promise<string | null> {
