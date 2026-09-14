@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getExercises } from './exercise.api'
 import type {Exercise}  from './exercise.types'
 import ExerciseCard from "./ExerciseCard"
+import Button from '../../components/ui/Button'
 
 const PAGE_SIZE = 12
 
@@ -77,23 +78,19 @@ function ExerciseCatalog() {
         {error && exercises.length > 0 && (
             <div>
                 <p>Failed to load more exercises.</p>
-
-                <button
-                    type="button"
-                    onClick={() => void loadExercises()}
-                >
+                <Button onClick= {() => void loadExercises()}>
                     Retry
-                </button>
+                </Button>
             </div>
         )}
 
         {!error && page < totalPages && (
-            <button
+            <Button
                 onClick={() => setPage(current => current + 1)}
                 disabled={loading}
             >
                 {loading ? 'Loading...' : 'Load more'}
-            </button>
+            </Button>
         )}
         </section>
     )
