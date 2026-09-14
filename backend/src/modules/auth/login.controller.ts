@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
 
     try {
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user)
+        if (!user || !user.passwordHash)
             return res.status(400).json({error: 'Invalid email or password'});
 
         const is_pass_valid = await compare(password, user.passwordHash);
