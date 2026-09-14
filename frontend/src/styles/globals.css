@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+    --color-app-canvas: #0b0f0d;
+    --color-app-surface: #1b2520;
+
+    --color-app-primary: #18b98c;
+
+    --color-app-text: #eef2ef;
+    --color-app-text-secondary: #b7c2bc;
+    --color-app-text-muted: #6e8177;
+}
