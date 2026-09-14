@@ -50,9 +50,7 @@ export const register = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty())
-        return res.status(400).json({
-            error: errors.array()[0].msg
-        });
+        return res.status(400).json({error: errors.array()[0].msg});
 
     let { username, email, password } = req.body;
 
@@ -72,9 +70,7 @@ export const register = async (req: Request, res: Response) => {
         });
 
         if (existing_user)
-            return res.status(400).json({
-                error: 'Username or Email already taken'
-            });
+            return res.status(400).json({error: 'Username or Email already taken'});
 
         const hashed_pass = await hash(password, 10);
 
@@ -86,11 +82,9 @@ export const register = async (req: Request, res: Response) => {
             },
         });
 
-        const access_token =
-            sign_access_token(new_user.id);
+        const access_token = sign_access_token(new_user.id);
 
-        const { raw_token } =
-            await create_session(new_user.id);
+        const { raw_token } = await create_session(new_user.id);
 
         res.cookie(
             refresh_cookie_name,

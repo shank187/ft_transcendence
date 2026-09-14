@@ -11,6 +11,12 @@ function Register() {
 
     const { setAccessToken } = useAuth();
     const navigate = useNavigate();
+    
+    function handleGoogleLogin()
+    {
+        window.location.href ='http://localhost:3000/api/auth/google';
+    }
+
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
@@ -36,6 +42,8 @@ function Register() {
     }
 
     return (
+        <div>
+
         <form onSubmit={handleSubmit}>
             <div>
                 <label htmlFor="username">Username</label>
@@ -71,6 +79,11 @@ function Register() {
 
             <button type="submit">Create Account</button>
         </form>
+        <p>or</p>
+        <button type="button" onClick={handleGoogleLogin}>
+            Continue with Google
+        </button>
+        </div>
     );
 }
 
