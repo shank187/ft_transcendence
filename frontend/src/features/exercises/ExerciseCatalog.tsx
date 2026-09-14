@@ -78,7 +78,10 @@ function ExerciseCatalog() {
         {error && exercises.length > 0 && (
             <div>
                 <p>Failed to load more exercises.</p>
-                <Button onClick= {() => void loadExercises()}>
+                <Button
+                onClick= {() => void loadExercises()}
+                variant='secondary'
+                >
                     Retry
                 </Button>
             </div>
@@ -88,6 +91,7 @@ function ExerciseCatalog() {
             <Button
                 onClick={() => setPage(current => current + 1)}
                 disabled={loading}
+                variant='primary'
             >
                 {loading ? 'Loading...' : 'Load more'}
             </Button>
