@@ -11,7 +11,7 @@ function ExerciseCard(props: ExerciseCardProps)
 {
     return(
         <article>
-            <Card className="space-y-2">
+            <Card className="h-full space-y-2">
                 <h2 className="text-lg font-semibold">
                     {props.exercise.name}
                 </h2>
