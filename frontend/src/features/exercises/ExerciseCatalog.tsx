@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getExercises } from './exercise.api'
 import type {Exercise}  from './exercise.types'
 import ExerciseCard from "./ExerciseCard"
+import Button from '../../components/ui/Button'
 
 const PAGE_SIZE = 12
 
@@ -9,7 +10,6 @@ function ExerciseCatalog() {
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [total, setTotal] = useState(0)
@@ -63,7 +63,7 @@ function ExerciseCatalog() {
     return (
         <section>
         <h1>Exercises</h1>
-        <div>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
             {exercises.map(exercise => {
                 return (
                     <ExerciseCard
@@ -78,23 +78,23 @@ function ExerciseCatalog() {
         {error && exercises.length > 0 && (
             <div>
                 <p>Failed to load more exercises.</p>
-
-                <button
-                    type="button"
-                    onClick={() => void loadExercises()}
+                <Button
+                onClick= {() => void loadExercises()}
+                variant='secondary'
                 >
                     Retry
-                </button>
+                </Button>
             </div>
         )}
 
         {!error && page < totalPages && (
-            <button
+            <Button
                 onClick={() => setPage(current => current + 1)}
                 disabled={loading}
+                variant='primary'
             >
                 {loading ? 'Loading...' : 'Load more'}
-            </button>
+            </Button>
         )}
         </section>
     )

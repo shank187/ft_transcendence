@@ -1,5 +1,5 @@
+import Card from '../../components/ui/Card'
 import type { Exercise } from './exercise.types'
-
 
 interface ExerciseCardProps
 {
@@ -10,25 +10,36 @@ function ExerciseCard(props: ExerciseCardProps)
 {
     return(
         <article>
-            <h2>{props.exercise.name}</h2>
-            <p>{props.exercise.type}</p>
-            <p>Primary: {props.exercise.primaryMuscle}</p>
-            <p>
-                Secondary: {
-                    props.exercise.secondaryMuscles.length > 0
-                        ? props.exercise.secondaryMuscles.join(', ')
-                        : 'None'
-                }
-            </p>
+            <Card className="h-full min-w-0 space-y-2 [overflow-wrap:anywhere]">
+                <h2 className="text-lg font-semibold">
+                    {props.exercise.name}
+                </h2>
 
-            <p>
-                Equipment: {
-                    props.exercise.equipment.length > 0
-                        ? props.exercise.equipment.join(', ')
-                        : 'None'
-                }
-            </p>
-    </article>
+                <p className="text-app-text-secondary">
+                    {props.exercise.type}
+                </p>
+
+                <p>
+                    Primary: {props.exercise.primaryMuscle}
+                </p>
+
+                <p>
+                    Secondary: {
+                        props.exercise.secondaryMuscles.length > 0
+                            ? props.exercise.secondaryMuscles.join(', ')
+                            : 'None'
+                    }
+                </p>
+
+                <p>
+                    Equipment: {
+                        props.exercise.equipment.length > 0
+                            ? props.exercise.equipment.join(', ')
+                            : 'None'
+                    }
+                </p>
+            </Card>
+        </article>
     )
 }
 
