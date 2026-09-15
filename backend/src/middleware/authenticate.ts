@@ -13,8 +13,14 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
 
     const token = authHeader.split(' ')[1];
 
+    const secret = process.env.JWT_SECRET;
+    if (!secret)
+        return res.status(500).json({ message: "JWT secret is missing" });
+
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+        const decoded = jwt.verify(token, secret);
+        if (typeof decoded === "string" || !decoded.userId)
+            return res.status(401).json({ message: "Invalid token" });
         req.userId = decoded.userId;
         next();
     } catch (error) {
