@@ -34,8 +34,8 @@ export const register = async (req: Request, res: Response) => {
         .run(req);
 
     await body('email')
-        .isEmail()
-        .run(req);
+        .isEmail()//create the rule
+        .run(req);//Execute this validator on the current request.
 
     await body('password')
         .isStrongPassword({
@@ -47,7 +47,7 @@ export const register = async (req: Request, res: Response) => {
         })
         .run(req);
 
-    const errors = validationResult(req);
+    const errors = validationResult(req); //Get all validation errors stored on this request.
 
     if (!errors.isEmpty())
         return res.status(400).json({error: errors.array()[0].msg});
