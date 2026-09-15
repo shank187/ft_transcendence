@@ -5,10 +5,10 @@ import type {
 
 const variantClasses = {
     primary:
-        'bg-app-primary text-app-canvas hover:opacity-90',
+        'bg-app-primary text-app-canvas hover:brightness-110',
 
     secondary:
-        'bg-app-surface text-app-text hover:opacity-90',
+        'bg-app-surface text-app-text hover:brightness-125',
 
     ghost:
         'bg-transparent text-app-text hover:bg-app-surface',
@@ -37,7 +37,10 @@ function Button({
                 rounded-md
                 px-4 py-2
                 text-sm font-medium
-                transition
+
+                transition-all duration-150 ease-out
+                hover:-translate-y-0.5
+                active:translate-y-0
 
                 ${variantClasses[variant]}
 
