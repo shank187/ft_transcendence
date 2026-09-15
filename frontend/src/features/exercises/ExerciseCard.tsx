@@ -1,7 +1,6 @@
 import Card from '../../components/ui/Card'
 import type { Exercise } from './exercise.types'
 
-
 interface ExerciseCardProps
 {
     exercise: Exercise
@@ -11,7 +10,7 @@ function ExerciseCard(props: ExerciseCardProps)
 {
     return(
         <article>
-            <Card className="h-full space-y-2">
+            <Card className="h-full min-w-0 space-y-2 [overflow-wrap:anywhere]">
                 <h2 className="text-lg font-semibold">
                     {props.exercise.name}
                 </h2>
