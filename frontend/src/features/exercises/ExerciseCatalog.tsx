@@ -63,7 +63,7 @@ function ExerciseCatalog() {
     return (
         <section>
         <h1>Exercises</h1>
-        <div>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
             {exercises.map(exercise => {
                 return (
                     <ExerciseCard
