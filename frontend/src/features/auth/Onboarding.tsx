@@ -80,7 +80,7 @@ function Onboarding() {
             navigate('/home');
 
         } catch (error) {
-            console.error("Onboarding failed:", error);
+            // console.error("Onboarding failed:", error);
             setErrorMessage("Could not save your profile. Please try again.");
         } finally {
             setIsSubmitting(false);
