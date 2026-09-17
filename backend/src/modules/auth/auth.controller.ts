@@ -1,134 +1,103 @@
 import { Request, Response } from 'express';
-import { hash, compare } from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import {
+    find_session_by_raw_token,
+    revoke_session,
+} from './session.service';
 
+const refresh_cookie_name = 'refreshToken';
 
-
-
-
-export const prisma = new PrismaClient();
-
-
-const REFRESH_COOKIE_NAME = 'refreshToken';
-
-const refreshCookieOptions = {
+const refresh_cookie_options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict' as const,
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+function sign_access_token(user_id: string)
+{
+    return jwt.sign({ userId: user_id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
+}
 
-export const register = async (req: Request, res: Response) => {
-    const { username, email, password } = req.body;
-    try {
-        const existingUser = await prisma.user.findFirst({
-            where: { OR: [{ email },{ username }] },
-        });
 
-        if (existingUser) {
-            return res.status(400).json({ error: 'Username or Email already taken'});
-        }
 
-        const hashed_pass = await hash(password, 10);
-        const newUser = await prisma.user.create({
-            data: { username, email, passwordHash: hashed_pass },
-        });
-
-        const accessToken = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-        const refreshToken = jwt.sign({ userId: newUser.id }, process.env.JWT_REFRESH_SECRET as string, { expiresIn: '7d' });
-
-        await prisma.user.update({
-            where: { id: newUser.id },
-            data: { refreshToken },
-        });
-
-        res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions);
-
-        res.status(201).json({
-            accessToken,
-            user: { id: newUser.id, username: newUser.username, email: newUser.email },
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
-
-export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user)
-            return res.status(400).json({ error: 'Invalid email or password' });
-
-        const is_pass_valid = await compare(password, user.passwordHash);
-        if (!is_pass_valid)
-            return res.status(400).json({ error: 'Invalid email or password' });
-
-        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-        const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET as string, { expiresIn: '7d' });
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { refreshToken },
-        });
-
-        res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions);
-
-        res.status(200).json({
-            accessToken,
-            user: { id: user.id, username: user.username, email: user.email },
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
 
 export const refresh = async (req: Request, res: Response) => {
-    const token = req.cookies?.[REFRESH_COOKIE_NAME];
+    let raw_token: string | undefined;
+    if (req.cookies)
+        raw_token = req.cookies[refresh_cookie_name];
+    else
+        raw_token = undefined;
+
     try {
-        if (!token)
+        if (!raw_token)
             return res.status(401).json({ error: 'No refresh token provided' });
 
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET as string) as { userId: string };
-        } catch {
-            return res.status(403).json({ error: 'Invalid or expired refresh token' });
+        const session = await find_session_by_raw_token(raw_token);
+
+        if (!session)
+            return res.status(403).json({ error: 'Invalid refresh token' });
+
+        if (session.revokedAt)
+        {
+            res.clearCookie(refresh_cookie_name, refresh_cookie_options);
+            return res.status(403).json({error: 'Refresh token revoked'});
+        }
+        if (session.expiresAt < new Date())
+        {
+            await revoke_session(session.id);
+            res.clearCookie(refresh_cookie_name, refresh_cookie_options);
+            return res.status(403).json({ error: 'Refresh token expired' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-        if (!user || token !== user.refreshToken)
-            return res.status(403).json({ error: 'Refresh token does not match' });
+        const access_token = sign_access_token(session.userId);
 
-        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-        res.status(200).json({ accessToken });
-    } catch (error) {
+        res.status(200).json({ access_token });
+    } catch (error)
+    {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
 
 export const logout = async (req: Request, res: Response) => {
-    const token = req.cookies?.[REFRESH_COOKIE_NAME];
+    let raw_token: string | undefined;
+
+    if (req.cookies)
+        raw_token = req.cookies[refresh_cookie_name];
+    else
+        raw_token = undefined;
+
+
+
     try {
-        if (token)
+        if (raw_token)
         {
-            await prisma.user.updateMany({
-                where: { refreshToken: token },
-                data: { refreshToken: null },
-            });
+            const session = await find_session_by_raw_token(raw_token);
+            if (session && !session.revokedAt)
+                await revoke_session(session.id);
         }
 
-        res.clearCookie(REFRESH_COOKIE_NAME, {
-            httpOnly: true,
+        res.clearCookie(refresh_cookie_name, {
+            httpOnly: true,// JavaScript in the browser cannot read this cookie.
+            // Helps protect the refresh token from being stolen by frontend JS.
+            //httpOnly = protect cookie from JavaScript
+
+
             secure: process.env.NODE_ENV === 'production',
+            // In production, send this cookie only through HTTPS.
+            // In development, allow HTTP such as localhost.
+
+
             sameSite: 'strict',
+            // Browser sends this cookie only when requests come from your own site.
+            // Helps protect against CSRF attacks.
         });
 
         res.status(200).json({ message: 'Logged out successfully' });
-    } catch (error) {
+    } catch (error)
+    {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+

@@ -1,56 +1,36 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = 'http://localhost:3000';
+const API_URL = "http://localhost:3000";
 
 let accessToken: string | null = null;
 
+let refreshPromise: Promise<string> | null = null;
 
-type TokenListener = (token: string | null) => void;
-let tokenListener: TokenListener | null = null;
-
-
-export function setAccessToken(token: string | null)
-{
+export function setAccessToken(token: string | null) {
     accessToken = token;
-    
-    if (tokenListener !== null)
-        tokenListener(token);
 }
 
-export function getAccessToken()
+
+
+export function refreshAccessToken(): Promise<string>
 {
-    return accessToken;
-}
+    if (refreshPromise)
+        return refreshPromise;
 
-export function subscribeToTokenChanges(listener: (token: string | null) => void)
-{
-    tokenListener = listener;
-
-    
-    return () => {
-        if (tokenListener === listener)
-            tokenListener = null;
-    };
-}
-
-async function requestNewAccessToken(): Promise<string> {
-    const response = await axios.post(
+    refreshPromise = axios.post(
         `${API_URL}/api/auth/refresh`,
         {},
-        { withCredentials: true }
-    );
-    return response.data.accessToken;
-}
+        { withCredentials: true } // i keep this here because i did use default axios not my configured api  
+    )
+    .then((response) => {
+        accessToken = response.data.access_token;
+        return response.data.access_token;
+    })
+    .finally(() => {
+        refreshPromise = null;
+    });
 
-export async function bootstrapSession(): Promise<string | null> {
-    try {
-        const newAccessToken = await requestNewAccessToken();
-        setAccessToken(newAccessToken);
-        return newAccessToken;
-    } catch {
-        setAccessToken(null);
-        return null;
-    }
+    return refreshPromise;
 }
 
 const api = axios.create({
@@ -58,10 +38,11 @@ const api = axios.create({
     withCredentials: true,
 });
 
+
 api.interceptors.request.use((config) => {
-    if (accessToken) {
+    if (accessToken)
         config.headers.Authorization = `Bearer ${accessToken}`;
-    }
+
     return config;
 });
 
@@ -70,28 +51,27 @@ api.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
- 
-        if (error.response && error.response.status === 401 && !originalRequest._retry)
-        {
-            originalRequest._retry = true;
- 
+        const request = error.config;
+
+        if (error.response && error.response.status === 401 && !request._retry) {
+            request._retry = true;
+
             try {
-                const newAccessToken = await requestNewAccessToken();
-                setAccessToken(newAccessToken);
- 
-                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                return api(originalRequest);
- 
-            } catch (refreshError) {
-                setAccessToken(null);
-                console.error("Refresh failed, user needs to log in again:", refreshError);
-                return Promise.reject(refreshError);
+                const token = await refreshAccessToken();
+
+                request.headers.Authorization = `Bearer ${token}`;
+
+                return api(request);
+            } catch {
+                accessToken = null;
+                window.location.href = "/login";
+
+                return Promise.reject(error);
             }
         }
- 
+
         return Promise.reject(error);
     }
 );
- 
+
 export default api;
