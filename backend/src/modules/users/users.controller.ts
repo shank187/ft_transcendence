@@ -1,5 +1,5 @@
-import { Response } from 'express';
-import { prisma } from '../../app';
+import {Request, Response } from 'express';
+import { prisma } from '../../lib/prisma';
 import { AuthenticatedRequest } from '../../middleware/authenticate';
 
 const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
@@ -64,4 +64,16 @@ export const updateOnboarding = async (req: AuthenticatedRequest, res: Response)
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }
+};
+
+
+export const get_me = async (req: AuthenticatedRequest,res: Response) => {
+    const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: {
+            onboardingCompletedAt: true
+        }
+    });
+
+    return res.json(user);
 };

@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
 
-import { prisma } from '../../app';
+import { prisma } from '../../lib/prisma';
 import { create_session } from './session.service';
+
+import {refreshCookieName,refreshCookieOptions} from './cookie.config';
 
 const googleClient = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
@@ -35,6 +37,11 @@ export const googleCallback = async (req: Request, res: Response) => {
 
         const state = req.query.state;  // State value returned by Google
         const savedState = req.cookies.google_oauth_state;  // State value we saved before going to Google
+
+       res.clearCookie('google_oauth_state', {
+        httpOnly: true,
+        sameSite: 'lax'
+        });
 
         if (typeof code !== 'string' || typeof state !== 'string' || state !== savedState) // Check that the Google request is valid
             return res.status(400).json({ error: 'Invalid Google request' });
@@ -86,11 +93,7 @@ export const googleCallback = async (req: Request, res: Response) => {
 
         const { raw_token } = await create_session(user.id);
 
-        res.cookie('refreshToken', raw_token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
 
         if (!user.onboardingCompletedAt)
             return res.redirect('http://localhost:5173/onboarding');

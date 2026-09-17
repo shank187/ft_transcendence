@@ -1,30 +1,15 @@
 import { Request, Response } from 'express';
 import { hash } from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
+
+import {refreshCookieName,refreshCookieOptions} from './cookie.config';
+import { sign_access_token } from './token.service';
 
 import { create_session } from './session.service';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../lib/prisma';
 
-const refresh_cookie_name = 'refreshToken';
 
-const refresh_cookie_options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
-function sign_access_token(user_id: string)
-{
-    return jwt.sign(
-        { userId: user_id },
-        process.env.JWT_SECRET as string,
-        { expiresIn: '15m' }
-    );
-}
 
 export const register = async (req: Request, res: Response) => {
 
@@ -86,11 +71,7 @@ export const register = async (req: Request, res: Response) => {
 
         const { raw_token } = await create_session(new_user.id);
 
-        res.cookie(
-            refresh_cookie_name,
-            raw_token,
-            refresh_cookie_options
-        );
+        res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
 
         return res.status(201).json({
             access_token,
