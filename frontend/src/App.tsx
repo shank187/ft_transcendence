@@ -6,7 +6,7 @@ import Onboarding from './features/auth/Onboarding';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
-import Exercises from './pages/Exercises'
+import Exercises from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 
 function App() {
