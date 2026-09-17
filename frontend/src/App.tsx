@@ -6,7 +6,7 @@ import Onboarding from './features/auth/Onboarding';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
-import Exercises from './pages/Exercises'
+import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
 
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/exercises" element={<Exercises />} />
+          <Route path="/workouts" element={<Workouts />} />
         </Route>
       </Route>
     </Routes>
