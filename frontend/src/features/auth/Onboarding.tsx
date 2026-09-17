@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './axiosInstance';
 
@@ -88,6 +88,17 @@ function Onboarding() {
     }
 
 
+    useEffect(() => {
+        async function checkOnboarding()
+        {
+            const response = await api.get('/api/users/me');
+
+            if (response.data.onboardingCompletedAt)
+                navigate('/home');
+        }
+
+        checkOnboarding();
+    }, []);
 
     let buttonText;
     if (isSubmitting) {

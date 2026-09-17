@@ -95,8 +95,8 @@ model User {
   id           String    @id @default(uuid())
   email        String    @unique
   username     String    @unique
-  passwordHash String
-  refreshToken String?
+  passwordHash String?
+  googleId     String?   @unique
   displayName  String?
   avatarUrl    String?
   bio          String?
@@ -104,15 +104,12 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-
-  experienceLevel      ExperienceLevel?
+  experienceLevel       ExperienceLevel?
   primaryGoal           TrainingGoal?
-  unitSystem            UnitSystem        @default(METRIC)
+  unitSystem            UnitSystem       @default(METRIC)
   heightCm              Float?
   weightKg              Float?
   onboardingCompletedAt DateTime?
-
-
 
   // Identity / authentication
   roles    UserRole[]

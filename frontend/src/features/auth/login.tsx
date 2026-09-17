@@ -11,6 +11,11 @@ function Login() {
     const { setAccessToken } = useAuth();
     const navigate = useNavigate();
 
+    function handleGoogleLogin()
+    {
+        window.location.href = 'http://localhost:3000/api/auth/google';
+    }
+
     async function handleSubmit(event: React.FormEvent)
     {
         event.preventDefault();
@@ -23,9 +28,13 @@ function Login() {
                 password: password,
             });
 
-            const token = response.data.accessToken;
+            const token = response.data.access_token;
             setAccessToken(token);
-            navigate('/home');
+
+            if (!response.data.user.onboardingCompleted)
+                navigate('/onboarding');
+            else
+                navigate('/home');
 
         } catch (error) {
             console.error("Login failed:", error);
@@ -34,6 +43,8 @@ function Login() {
     }
 
     return (
+        <div>
+
         <form onSubmit={handleSubmit}>
             <div>
                 <label htmlFor="email">Email</label>
@@ -59,6 +70,12 @@ function Login() {
 
             <button type="submit">Log In</button>
         </form>
+        <p>or</p>
+        <button type="button" onClick={handleGoogleLogin}>
+            Continue with Google
+        </button>
+
+        </div>
     );
 }
 

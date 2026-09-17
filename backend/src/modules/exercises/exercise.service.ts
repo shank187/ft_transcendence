@@ -1,4 +1,4 @@
-import { prisma } from "../../app";
+import { prisma } from "../../lib/prisma";
 
 
 export async function getExercises(page: number, limit: number) {

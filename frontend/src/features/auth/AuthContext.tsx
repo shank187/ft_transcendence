@@ -1,72 +1,82 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import api,{
+import api, {
     setAccessToken as setAxiosAccessToken,
-    subscribeToTokenChanges,
-    bootstrapSession,
-} from './axiosInstance';
+    refreshAccessToken,
+} from "./axiosInstance";
 
 type AuthContextType = {
     accessToken: string | null;
-    isLoading: boolean;
     setAccessToken: (token: string | null) => void;
+
+    user: User | null;
+    setUser: (user: User | null) => void;
+
     logout: () => Promise<void>;
 };
 
-type auth_provider_props = {
-    children: ReactNode;
+
+type User = {
+    id: string;
+    username: string;
+    email: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    onboardingCompletedAt: string | null;
 };
-
-
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: auth_provider_props)
+export function AuthProvider({ children }: { children: ReactNode })
 {
-    const [accessToken, setAccessTokenState] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [accessToken, setToken] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+
 
     function setAccessToken(token: string | null)
     {
-
+        setToken(token);
         setAxiosAccessToken(token);
     }
-    async function logout()
-    {
-        try {
-            
-            await api.post('/api/auth/logout');
-        } catch (error) {
-            console.error('Logout request failed:', error);
-        } finally {
-            setAxiosAccessToken(null);
-        }
-    }
 
+    async function logout() {
+        await api.post("/api/auth/logout");
+
+        setAccessToken(null);
+        setUser(null);
+    }
     useEffect(() => {
-        const unsubscribe = subscribeToTokenChanges(setAccessTokenState);
+    refreshAccessToken()
+        .then(async(token) => {
+            setAccessToken(token);
 
-        bootstrapSession().finally(() => setIsLoading(false));
+            const response = await api.get('/api/users/me');
+            setUser(response.data);
+        })
+        .catch(() => {
+            setAccessToken(null);
+            setUser(null);
+        })
+        .finally(() => setLoading(false));
+}, []);
 
-        return unsubscribe;
-    }, []);
-
-    if (isLoading) {
-        return <div>Loading session...</div>;
-    }
+    if (loading)
+        return <div>Loading...</div>;
 
     return (
-        <AuthContext.Provider value={{ accessToken, isLoading, setAccessToken , logout}}>
+        <AuthContext.Provider value={{accessToken, setAccessToken, user, setUser, logout}} >
             {children}
         </AuthContext.Provider>
     );
 }
 
-export function useAuth()
-{
+export function useAuth() {
     const context = useContext(AuthContext);
+
     if (!context)
-        throw new Error("useAuth must be used inside an AuthProvider");
+        throw new Error("useAuth must be used inside AuthProvider");
+
     return context;
 }
