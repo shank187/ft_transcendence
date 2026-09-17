@@ -37,7 +37,7 @@ function Login() {
                 navigate('/home');
 
         } catch (error) {
-            console.error("Login failed:", error);
+            // console.error("Login failed:", error);
             setErrorMessage("Invalid email or password");
         }
     }
@@ -53,6 +53,7 @@ function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                 />
             </div>
 
@@ -63,6 +64,7 @@ function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                 />
             </div>
 

@@ -36,7 +36,7 @@ function Register() {
             navigate('/onboarding');
 
         } catch (error) {
-            console.error("Registration failed:", error);
+            // console.error("Registration failed:", error);
             setErrorMessage("Could not create account. Try a different username or email.");
         }
     }
@@ -52,6 +52,7 @@ function Register() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    required
                 />
             </div>
 
@@ -62,6 +63,7 @@ function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                 />
             </div>
 
@@ -72,6 +74,7 @@ function Register() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                 />
             </div>
 
