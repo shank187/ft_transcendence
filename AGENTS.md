@@ -1,215 +1,98 @@
 # AGENTS.md — ft_transcendence
 
-## Project context
+## Authority order
 
-This repository is a 42 Common Core `ft_transcendence` project.
+Use these sources in order and report conflicts:
 
-Tech stack:
-- Frontend: React + Vite + TypeScript
-- Backend: Express + TypeScript
-- Database: PostgreSQL
-- ORM: Prisma
-- Deployment: Docker / Docker Compose
+1. Current `ft_transcendence` subject v21.1
+2. `docs/SCOPE_AND_VALIDATION.md` for the frozen validation product/modules
+3. Current executable code and `backend/prisma/schema.prisma`
+4. `docs/architecture.md`, `docs/api.md`, `docs/database.md`, and `docs/development.md`
+5. Live GitHub/Trello evidence for current progress and ownership
 
-The current `ft_transcendence` subject is the source of truth for project requirements.
-Do not invent requirements or assume old versions of the subject.
+Never treat a dated checkpoint as permanent. Never claim that frozen target scope is already implemented.
 
-## Main goals
+## Product and deadline
 
-1. Keep the project correct, maintainable, secure, and explainable.
-2. Help the team finish the project without creating code that team members do not understand.
-3. Prefer simple, explicit architecture over unnecessary abstractions.
-4. Preserve clear ownership and meaningful Git history for every team member.
-5. Keep all changes compatible with the project subject and evaluation expectations.
+This is a five-slice social fitness application targeting reliable 14-point validation before 16–20 November 2026. Core validation and integration outrank bonuses. Reserve time for regression testing, documentation, peer review, evaluation practice, and contract fixes.
 
-## Working style
+Defer AI/coaches, social feeds, advanced recommendations, and advanced workout controls until the validation gate is green.
 
-Default behavior:
-- Inspect first.
-- Explain the problem before editing.
-- Make the smallest reasonable change.
-- Do not rewrite unrelated code.
-- Do not add dependencies unless necessary.
-- Do not make broad architectural changes without explaining the trade-offs first.
-- Prefer incremental implementation over large generated features.
-- When asked to review, do not modify files unless explicitly requested.
-- When asked to implement, state which files you expect to modify before editing.
-- After editing, summarize exactly what changed and why.
+## Architecture
 
-For significant features, explain:
-- what problem the feature solves
-- request/data flow
-- important abstractions
-- failure cases
-- security implications
-- design trade-offs
+- Modular monolith: one React frontend, one Express backend, one PostgreSQL database
+- Docker Compose provides the local service topology
+- Prisma is the normal database-access boundary
+- Browser → API → controller → service/business rule → Prisma → PostgreSQL
+- Frontend never accesses PostgreSQL directly
+- Backend authorization never trusts user IDs or ownership claims from the browser
+
+## Slice ownership
+
+- S1: platform, identity, auth/session, onboarding, profile, OAuth, legal, shell, environment/security conventions
+- S2: gyms, gym details, canonical equipment, current gym, advanced gym search
+- S3: exercises, workout planning, workout execution, snapshots, sets, completion, workout history, basic PRs
+- S4: public profiles, friends, presence, chat, WebSockets
+- S5: progress views, volume/PR consumption, XP, achievements, leaderboard
+
+The Technical Lead coordinates contracts and reviews critical shared changes; this does not transfer teammate implementation ownership.
+
+## Critical contracts
+
+- S1 → all: authenticated `req.userId`, session lifecycle, consistent error DTOs
+- S2 → S3: canonical `Equipment.id` and gym-equipment availability
+- S3 → S5: completed session/set DTOs, applicable volume, PR rules, idempotent completion
+- S4 → S1/Home: presence and unread/message data
+- S5 → Home: summary/progress data
+
+## Workout invariants
+
+- `WorkoutPlan`/`WorkoutDay`/`WorkoutExerciseSet` are reusable planning intent.
+- `WorkoutSession`/`WorkoutSessionExercise`/`WorkoutSet` are execution/history.
+- Starting a planned workout copies planned targets and relevant configuration into the session representation.
+- Planned values and performed values remain distinct.
+- Ownership comes from authenticated identity.
+- Editing/deleting a plan must not corrupt completed history.
+- Closed sessions reject further mutation.
+- Repeated completion must not double-count S5 rewards.
+
+## Working rules
+
+- Inspect branch, status, current files, and relevant contracts first.
+- Make the smallest coherent change; preserve unrelated teammate work.
+- Do not add schema fields, dependencies, routes, or shared abstractions speculatively.
+- Validate browser input at runtime; TypeScript is not runtime validation.
+- Handle loading, error, empty, success, repeated-action, and ownership states deliberately.
+- Do not suppress dependency warnings or add effect dependencies blindly; reason about request lifecycle.
+- Never commit `.env`, credentials, tokens, or keys. `.env.example` contains names/placeholders only.
+- Never reset data, rewrite history, force-push, or edit old migrations without explicit authorization.
 
 ## Review format
 
-When reviewing code, classify findings as:
+- BLOCKING: security, correctness, ownership, historical-data loss, evaluation rejection, race/data corruption
+- IMPORTANT: fragile contracts, poor failure handling, missing tests/docs, maintainability risks
+- OPTIONAL: polish, naming, small refactors, nonessential optimization
 
-### BLOCKING
-Correctness, security, data-loss, broken requirements, race conditions, invalid database design, or changes that can make the project fail evaluation.
+Separate verified defects from risks and preferences.
 
-### IMPORTANT
-Maintainability, weak error handling, poor TypeScript usage, unclear API design, duplicated logic, fragile architecture, or missing important tests.
+## Verification
 
-### OPTIONAL
-Naming, small refactors, code style improvements, or non-essential optimizations.
-
-Explain the issue before suggesting a fix.
-
-## TypeScript rules
-
-- Prefer precise types over `any`.
-- Avoid unsafe casts unless justified.
-- Keep DTO/request types separate from database models when their responsibilities differ.
-- Validate runtime input even when TypeScript types exist.
-- Handle nullable and optional values explicitly.
-- Prefer exhaustive handling of enums/unions when appropriate.
-- Do not hide type errors with broad casts.
-
-## Backend / Express rules
-
-- Keep routing, validation, business logic, and persistence responsibilities clear.
-- Validate all user-controlled input on the backend.
-- Return intentional HTTP status codes and consistent error responses.
-- Do not expose internal errors, stack traces, secrets, or sensitive database information.
-- Treat authentication and authorization as separate concerns.
-- Check authorization at the backend even if the frontend hides an action.
-- Avoid trusting IDs, ownership claims, roles, or other security-sensitive values from the client.
-
-## Prisma / PostgreSQL rules
-
-Before changing `schema.prisma`:
-1. Explain the relationship being modeled.
-2. Identify ownership and foreign keys.
-3. Consider deletion behavior and historical data.
-4. Consider uniqueness constraints and indexes.
-5. Consider nullability and lifecycle.
-
-Do not:
-- silently change relations
-- silently change `onDelete` behavior
-- edit old migrations unless explicitly requested
-- destroy or reset data without explicit approval
-- generate migrations for speculative schema changes
-
-After schema changes, run when applicable:
+Run the narrowest relevant checks first. Typical commands:
 
 ```bash
-npx prisma format
-npx prisma validate
+cd frontend && npm run build && npm run lint
+cd backend && npm run build && npm run prisma:validate
+docker compose config
+git diff --check
+git status -sb
 ```
 
-Explain migration consequences before running destructive operations.
+For each meaningful flow verify success, failure, unauthorized ownership, repeated action/concurrency where relevant, refresh/navigation, and browser console.
 
-## Authentication / security rules
+## Evaluation/learning rule
 
-- Never commit `.env`, credentials, API keys, tokens, or secrets.
-- Keep `.env.example` free of real secrets.
-- Passwords must never be stored in plaintext.
-- Validate authentication state on the backend.
-- Validate authorization for protected resources.
-- Treat all browser input as untrusted.
-- Consider ownership checks for user-owned resources.
-- Consider concurrent requests where data consistency matters.
-- Do not weaken security merely to make development easier.
+Every contributor must be able to trace their request/data flow, explain one failure case, justify one decision, and perform one small modification. AI-generated work must be reviewed, tested, understood, and independently recoded when it covers a pattern being learned.
 
-## Frontend rules
+## Dated implementation checkpoint — 17 September 2026
 
-- Keep components focused and reusable where reuse is real.
-- Avoid putting business rules only in the frontend.
-- Handle loading, empty, success, and error states.
-- Do not assume backend requests always succeed.
-- Keep API contracts typed.
-- Avoid unnecessary global state.
-- Keep accessibility and responsive behavior in mind.
-
-## Docker / environment rules
-
-- Do not hard-code environment-specific values.
-- Preserve the ability to run the project with the documented container workflow.
-- Do not expose unnecessary ports or secrets.
-- Distinguish host, container, and Docker-network addresses correctly.
-- Do not make local-only fixes that break containerized execution.
-
-## Git rules
-
-Before significant edits:
-- inspect the current branch
-- inspect `git status`
-- avoid touching unrelated teammate work
-
-Do not:
-- force-push
-- reset branches
-- delete branches
-- discard uncommitted work
-- commit automatically
-
-unless explicitly requested.
-
-Prefer small, meaningful changes that can be reviewed independently.
-
-## Testing and verification
-
-After a change, run the narrowest relevant verification first.
-
-Typical checks:
-
-```bash
-npm run build
-npx prisma format
-npx prisma validate
-git diff
-git status
-```
-
-Use repository-specific lint/test commands when they exist.
-
-When something fails:
-- report the exact failing command
-- explain the likely root cause
-- do not hide or bypass the failure just to make the command pass
-
-## 42 / evaluation constraints
-
-AI-generated output must remain understandable by the team.
-
-Do not optimize for "code that works" at the cost of explainability.
-
-Assume evaluators may ask a team member to:
-- explain request flow
-- explain a database relation
-- justify a technical choice
-- identify a failure case
-- modify a small behavior live
-
-Prefer designs the team can defend and modify during evaluation.
-
-## Default Codex modes
-
-### Inspection request
-When asked to inspect:
-- do not modify files
-- map the relevant architecture
-- identify blocking issues first
-- cite exact files/functions/models involved
-
-### Review request
-When asked to review:
-- do not rewrite automatically
-- classify findings as BLOCKING / IMPORTANT / OPTIONAL
-- explain why each issue matters
-
-### Implementation request
-When asked to implement:
-1. restate the intended behavior briefly
-2. list files likely to change
-3. make the smallest coherent change
-4. run relevant validation/tests
-5. summarize the diff
-6. mention remaining risks or edge cases
-
-
+`main` is `3da8f33`. Auth/onboarding, the protected shell, `/home`, `/exercises`, the paginated catalog, shared Button/Card, and workout schema foundation exist. `/workouts` is not yet registered. Current S3 work is the protected Workouts route bridge, then the smallest custom-plan flow. Catalog recovery remains required before validation but is not the current blocker.

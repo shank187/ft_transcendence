@@ -1,355 +1,112 @@
-# Development Guide
+# Development Workflow
 
-## 1. Development Model
+## One bounded task
 
-The project uses vertical feature development.
-
-A feature should be developed across the parts it requires:
-
-- Frontend
-- Backend
-- Database
-- Tests
-- Documentation
-
-Developers should build on the shared project architecture instead of creating independent systems.
-
----
-
-## 2. Branches
-
-Do not develop directly on `main`.
-
-Create a branch for each task or feature.
-
-Recommended format:
+Start from one acceptance criterion, not an entire slice.
 
 ```text
-feature/<feature-name>
-fix/<issue-name>
-chore/<task-name>
-docs/<documentation-name>
+inspect → understand contract → implement smallest vertical step → verify → peer review → document → explain/recode
 ```
 
-Examples:
-
-```text
-feature/gym-discovery
-feature/user-profile
-fix/workout-session
-chore/backend-setup
-docs/api-conventions
-```
-
-Keep branches focused on one task or feature.
-
----
-
-## 3. Commits
-
-Use clear and meaningful commit messages.
-
-Recommended format:
-
-```text
-<type>: <short description>
-```
-
-Examples:
-
-```text
-feat: add gym discovery endpoint
-feat: add workout session tracking
-fix: validate gym review input
-chore: configure docker development environment
-docs: update API documentation
-```
-
-Avoid meaningless messages such as:
-
-```text
-update
-fix
-stuff
-changes
-final
-```
-
----
-
-## 4. Pull Requests
-
-Features should be merged through Pull Requests.
-
-Before opening a Pull Request:
-
-1. Make sure the project builds.
-2. Make sure the relevant tests pass.
-3. Make sure Prisma migrations are valid if the database changed.
-4. Update relevant documentation.
-5. Resolve merge conflicts.
-6. Explain what was implemented.
-
-Pull Requests should be reviewed before merging.
-
----
-
-## 5. Frontend
-
-The frontend uses:
-
-- React
-- Vite
-- TypeScript
-
-Frontend code belongs in:
-
-```text
-frontend/
-```
-
-The frontend communicates with the backend through the API.
-
-The frontend must not access PostgreSQL or Prisma directly.
-
----
-
-## 6. Backend
-
-The backend uses:
-
-- Node.js
-- Express
-- TypeScript
-
-The backend starts from:
-
-```text
-backend/src/app.ts
-backend/src/server.ts
-```
-
-The backend is responsible for:
-
-- API routes
-- Validation
-- Application logic
-- Authentication and authorization
-- Database access
-- Error handling
-
-Feature-specific backend code should be organized consistently with the existing project structure.
-
----
-
-## 7. Database
-
-The database uses:
-
-- PostgreSQL
-- Prisma
-
-The Prisma schema is located at:
-
-```text
-backend/prisma/schema.prisma
-```
-
-Feature developers must extend the shared schema.
-
-Do not:
-
-- Create another database
-- Create another `User` entity
-- Duplicate authentication/session systems
-- Duplicate existing core entities
-
-Database changes must use Prisma migrations.
-
-Example:
+## Before coding
 
 ```bash
-npx prisma migrate dev --name <migration-name>
+git fetch origin --prune
+git status -sb
+git branch --show-current
+git rev-parse --short HEAD
 ```
 
-After modifying the schema, validate it:
+- Start from the current shared base agreed by the team.
+- Preserve uncommitted and teammate work.
+- Confirm Trello ownership and dependencies.
+- Inspect executable sources before trusting dated documentation.
+- Use a focused branch such as `feature/workouts-home`.
+
+After the 17 September history cleanup, teammates with old clones must resynchronize with cleaned `main` before pushing. Do not merge old secret-containing history back into active branches.
+
+## Vertical slice standard
+
+A meaningful feature normally crosses:
+
+```text
+React UI → API request → Express route/controller → service rule → Prisma → PostgreSQL → response/UI state
+```
+
+Do not build broad layers with no user-visible/testable flow.
+
+## Pull requests
+
+- One coherent behavior per PR where practical
+- Explain problem, scope, affected contract, verification, and remaining risk
+- Keep unrelated formatting/refactors out
+- Request peer review for security, auth, schema, transactions, shared UI, and cross-slice DTOs
+- Do not claim tests/build/runtime checks that were not run
+
+## Environment and secrets
+
+- `.env` stays local and ignored.
+- `.env.example` lists required names but contains no real credentials.
+- Public port numbers and service names are normally safe configuration.
+- Passwords, JWT keys, tokens, API keys, certificates/private keys, and deployment credentials are secrets.
+- A bootstrap command may create `.env` once but must not overwrite existing values.
+- Compose must fail clearly when required security values are absent; do not rely on `change_me` fallbacks.
+
+S1/shared owns the bootstrap, Compose injection, and CI/Gitleaks implementation. The Technical Lead reviews the contract without absorbing ownership.
+
+## Verification matrix
+
+For each flow, test only relevant rows but cover deliberate behavior:
+
+| Area | Checks |
+|---|---|
+| Build/static | frontend build/lint, backend TypeScript build, Prisma validate |
+| Happy path | expected request, persistence, render/navigation |
+| Input failure | empty/malformed/out-of-range data |
+| Auth | unauthenticated and expired/invalid state |
+| Ownership | user A cannot access/mutate user B resource |
+| Lifecycle | closed/completed resource rejects invalid mutation |
+| Repetition | double-click/retry/repeated completion is safe |
+| Concurrency | simultaneous starts/reorders/completion where relevant |
+| UX | loading, error, empty, success, final state, refresh |
+| Browser | Chrome console clean; Firefox/Edge module evidence |
+
+Typical commands:
 
 ```bash
-npx prisma validate
+cd frontend && npm run build && npm run lint
+cd backend && npm run build && npm run prisma:validate
+docker compose config
+git diff --check
+git status -sb
 ```
 
-Do not modify or delete existing migrations casually.
+## Learning/evaluation loop
 
-Structural changes affecting shared entities should be discussed before merging.
+For every significant pattern:
 
----
+1. Build the bounded real feature.
+2. Trace the request/data flow.
+3. Explain one failure case and one design decision.
+4. Recode the important mechanism from a blank scratch example without copying.
+5. Practice one small requirement change.
 
-## 8. Environment Variables
+Use AI for bounded explanation/review and verify its output. Do not merge code a contributor cannot explain or modify.
 
-Secrets and local configuration must not be committed.
+## Priority language
 
-Use:
+- **Must finish before 16–20 November:** frozen core, 14-point modules, mandatory requirements, integration/security correctness
+- **Should finish:** work directly supporting validation, integration, documentation, or evaluation evidence
+- **Defer:** bonuses and polish that do not remove a core blocker
 
-```text
-.env
-```
+## Current S3 order — dated 17 September 2026
 
-for local values.
+1. Protected `/workouts` page and route bridge
+2. Working Workouts entry points and smallest owned custom-plan flow
+3. Plan/day/exercise/set planning vertical slice
+4. Empty/planned session start with snapshot and ownership
+5. Type-aware set logging/completion
+6. History/basic PR completion contract with S5
+7. Required catalog recovery/search hardening before final validation
 
-Use:
-
-```text
-.env.example
-```
-
-to document required variables without exposing real secrets.
-
-Never commit:
-
-```text
-.env
-```
-
-or database credentials.
-
----
-
-## 9. Docker
-
-Docker Compose provides the shared local development environment.
-
-Start the project with:
-
-```bash
-docker compose up --build
-```
-
-Stop it with:
-
-```bash
-docker compose down
-```
-
-The main services are:
-
-```text
-Frontend   → localhost:5173
-Backend    → localhost:3000
-PostgreSQL → localhost:5432
-```
-
-Developers should normally use the shared Docker environment rather than creating separate local infrastructure.
-
----
-
-## 10. Feature Development
-
-Before starting a feature:
-
-1. Check its Trello card.
-2. Read the acceptance criteria.
-3. Check its dependencies.
-4. Check the existing architecture.
-5. Check the Prisma schema for reusable entities.
-6. Create a branch.
-7. Implement the feature vertically.
-8. Test the feature.
-9. Update documentation if necessary.
-10. Open a Pull Request.
-
-Do not start implementation by creating duplicate infrastructure.
-
----
-
-## 11. Shared Architecture
-
-The following are shared project foundations:
-
-- Repository structure
-- Docker environment
-- Express application
-- React application
-- PostgreSQL database
-- Prisma schema
-- Authentication conventions
-- API conventions
-- Error handling
-- Validation conventions
-
-Changes to these foundations should be discussed with the Technical Lead before implementation or merging.
-
----
-
-## 12. Trello and Development Status
-
-Trello is the source of truth for feature/task progress.
-
-Developers should keep their cards updated.
-
-The expected flow is:
-
-```text
-Backlog
-   ↓
-To Do
-   ↓
-In Progress
-   ↓
-Review
-   ↓
-Done
-```
-
-A card should only be marked `Done` when its acceptance criteria are satisfied.
-
-Dependencies between cards should be identified before implementation.
-
----
-
-## 13. Vertical Feature Example
-
-A workout feature may contain:
-
-```text
-Workout
-│
-├── Frontend
-│   └── Workout pages/components
-│
-├── Backend
-│   └── Workout routes/services
-│
-├── Database
-│   └── Workout-related Prisma models
-│
-└── Tests
-```
-
-The feature should integrate with the existing:
-
-```text
-User
-PostgreSQL
-Prisma
-Express
-React
-```
-
-rather than creating independent systems.
-
----
-
-## 14. Quality Rules
-
-Before merging:
-
-- TypeScript must compile.
-- The application must build.
-- Relevant functionality must be tested.
-- No secrets should be committed.
-- No unnecessary duplicate entities should be introduced.
-- Database changes must have migrations.
-- API changes should be documented when necessary.
-- The implementation should follow the existing architecture.
-
-The goal is to keep the shared codebase stable while allowing independent vertical feature development.
+Re-estimate from live GitHub/Trello evidence; this order is not permission to implement multiple steps at once.
