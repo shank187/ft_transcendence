@@ -30,7 +30,11 @@ function Login() {
 
             const token = response.data.access_token;
             setAccessToken(token);
-            navigate('/home');
+
+            if (!response.data.user.onboardingCompleted)
+                navigate('/onboarding');
+            else
+                navigate('/home');
 
         } catch (error) {
             console.error("Login failed:", error);

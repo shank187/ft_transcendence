@@ -1,8 +1,10 @@
 import crypto from 'crypto';
-import { Session, PrismaClient } from '@prisma/client';
+import { Session} from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
-export const prisma = new PrismaClient();
+import { prisma } from '../../lib/prisma';
+
+
 
 const refresh_token_ttl_ms = 7 * 24 * 60 * 60 * 1000;
 

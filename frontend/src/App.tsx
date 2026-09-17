@@ -7,16 +7,20 @@ import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Exercises from './pages/Exercises'
+import GuestRoute from './features/auth/GuestRoute';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Root />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/onboarding" element={<Onboarding />} />
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Route>
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/onboarding" element={<Onboarding />} />
+
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/exercises" element={<Exercises />} />
