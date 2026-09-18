@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import api, {
     setAccessToken as setAxiosAccessToken,
     refreshAccessToken,
+    hasSession,
 } from "./axiosInstance";
 
 type AuthContextType = {
@@ -47,21 +48,41 @@ export function AuthProvider({ children }: { children: ReactNode })
         setAccessToken(null);
         setUser(null);
     }
+
+
+
     useEffect(() => {
-    refreshAccessToken()
-        .then(async(token) => {
+    async function bootstrapSession() {
+        try {
+            const authenticated = await hasSession();
+
+            if (!authenticated) {
+                setAccessToken(null);
+                setUser(null);
+                return;
+            }
+
+            const token = await refreshAccessToken();
+
             setAccessToken(token);
 
             const response = await api.get('/api/users/me');
+
             setUser(response.data);
-        })
-        .catch(() => {
+
+        } catch {
             setAccessToken(null);
             setUser(null);
-        })
-        .finally(() => setLoading(false));
-}, []);
 
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    bootstrapSession();
+    }, []);
+
+    
     if (loading)
         return <div>Loading...</div>;
 

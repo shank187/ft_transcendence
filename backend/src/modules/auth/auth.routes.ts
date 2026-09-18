@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { register } from './register.controller';
 import { login } from './login.controller';
-import { refresh, logout } from './auth.controller';
+import { refresh, logout , check_session} from './auth.controller';
 import {
     googleLogin,
     googleCallback
@@ -18,6 +18,7 @@ router.get('/google/callback', googleCallback);
 
 router.post('/refresh', refresh);
 router.post('/logout', logout);
+router.get('/session', check_session);
 
 
 export default router;

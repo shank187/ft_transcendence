@@ -26,10 +26,10 @@ export const login = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty())
-        return res.status(400).json({
+        return res.status(200).json({
+            success: false,
             error: 'Invalid email or password'
-        });
-
+         });
     let { email, password } = req.body;
 
     email = email.trim().toLowerCase();
@@ -41,11 +41,17 @@ export const login = async (req: Request, res: Response) => {
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || !user.passwordHash)
-            return res.status(400).json({error: 'Invalid email or password'});
+            return res.status(200).json({
+                success: false,
+                error: 'Invalid email or password'
+            });
 
         const is_pass_valid = await compare(password, user.passwordHash);
         if (!is_pass_valid)
-            return res.status(400).json({ error: 'Invalid email or password' });
+            return res.status(200).json({
+                success: false,
+                error: 'Invalid email or password'
+            });
 
         const access_token = sign_access_token(user.id);
         const { raw_token } = await create_session(user.id);
@@ -53,6 +59,7 @@ export const login = async (req: Request, res: Response) => {
         res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
 
         res.status(200).json({
+            success: true,
             access_token,
             user: { id: user.id, username: user.username, email: user.email , onboardingCompleted: user.onboardingCompletedAt},
         });
