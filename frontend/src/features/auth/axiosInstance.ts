@@ -11,6 +11,17 @@ export function setAccessToken(token: string | null) {
 }
 
 
+export async function hasSession(): Promise<boolean> {
+    const response = await axios.get(
+        `${API_URL}/api/auth/session`,
+        {
+            withCredentials: true
+        }
+    );
+
+    return response.data.authenticated;
+}
+
 
 export function refreshAccessToken(): Promise<string>
 {

@@ -35,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
     const errors = validationResult(req); //Get all validation errors stored on this request.
 
     if (!errors.isEmpty())
-        return res.status(400).json({error: errors.array()[0].msg});
+        return res.status(200).json({success: false, error: errors.array()[0].msg});
 
     let { username, email, password } = req.body;
 
@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
         });
 
         if (existing_user)
-            return res.status(400).json({error: 'Username or Email already taken'});
+            return res.status(200).json({success: false, error: 'Username or Email already taken'});
 
         const hashed_pass = await hash(password, 10);
 
@@ -74,6 +74,7 @@ export const register = async (req: Request, res: Response) => {
         res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
 
         return res.status(201).json({
+            success: true,
             access_token,
             user: {
                 id: new_user.id,

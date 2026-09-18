@@ -27,6 +27,11 @@ function Login() {
                 email: email,
                 password: password,
             });
+            if (!response.data.success)
+            {
+                setErrorMessage(response.data.error);
+                return;
+            }
 
             const token = response.data.access_token;
             setAccessToken(token);

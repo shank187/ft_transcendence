@@ -5,6 +5,7 @@ import {
     revoke_session,
 } from './session.service';
 
+import { refreshCookieName,refreshCookieOptions} from './cookie.config';
 const refresh_cookie_name = 'refreshToken';
 
 const refresh_cookie_options = {
@@ -101,3 +102,34 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 
+
+export const check_session = async (req: Request, res: Response) => {
+    let raw_token: string | undefined;
+
+    if (req.cookies)
+        raw_token = req.cookies[refresh_cookie_name];
+    else
+        raw_token = undefined;
+
+    if (!raw_token)
+        return res.status(200).json({ authenticated: false });
+
+    try {
+        const session = await find_session_by_raw_token(raw_token);
+
+        if (!session || session.revokedAt || session.expiresAt < new Date()) {
+            res.clearCookie(refreshCookieName, refreshCookieOptions);
+
+            return res.status(200).json({authenticated: false});
+        }
+
+        return res.status(200).json({
+            authenticated: true
+        });
+
+    } catch {
+        return res.status(500).json({
+            error: 'Internal server error'
+        });
+    }
+};
