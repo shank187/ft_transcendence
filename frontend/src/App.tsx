@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+
 import Root from './features/auth/Root';
 import Register from './features/auth/Register';
 import Login from './features/auth/login';
@@ -8,8 +10,22 @@ import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
-
 function App() {
+useEffect(() => {
+  const ws = new WebSocket('ws://localhost:3000/chat');
+
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+  };
+
+  ws.onclose = () => {
+    console.log('WebSocket disconnected');
+  };
+
+  return () => {
+    ws.close();
+  };
+}, []);
   return (
     <Routes>
       <Route path="/" element={<Root />} />
