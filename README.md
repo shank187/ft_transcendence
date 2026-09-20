@@ -66,7 +66,7 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 ```bash
 git clone https://github.com/shank187/ft_transcendence.git
 cd ft_transcendence
-cp backend/.env.example .env
+make setup
 ```
 
 Fill every required value with local credentials. Never commit `.env` or real secrets.
