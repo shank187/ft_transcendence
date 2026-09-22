@@ -1,8 +1,8 @@
 import Card from "../../components/ui/Card";
-import { WorkoutPlan } from "./workout.types";
+import type{ WorkoutPlan } from "./workout.types";
 
 
-function WorkoutPlanCard(props: WorkoutPlan){
+export default function WorkoutPlanCard(props: WorkoutPlan){
     return(<article>
         <Card key={props.id} className="space-y-3">
         <div className="flex items-center gap-3 text-app-primary">
