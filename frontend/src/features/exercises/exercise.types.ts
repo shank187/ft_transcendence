@@ -15,5 +15,4 @@ export interface PaginatedExercises{
     limit: number,
     total: number,
     totalPages: number
-
 }
