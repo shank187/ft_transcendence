@@ -7,7 +7,3 @@ export interface WorkoutPlan
     description: string,
 }
 
-export interface WorkoutPlanList
-{
-    plans: WorkoutPlan[],
-}
