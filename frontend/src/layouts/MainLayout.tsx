@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import   ChatConnection  from '../features/chat/ChatConnection';
 import './MainLayout.css';
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
 function MainLayout() {
   return (
     <div className="app-layout">
+      <ChatConnection />
       <header className="topbar">
         <span className="topbar-title">ft_transcendence</span>
       </header>

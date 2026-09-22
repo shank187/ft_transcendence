@@ -3,6 +3,7 @@ import {WebSocketServer} from 'ws';
 import { prisma } from './lib/prisma';
 import { initializeChat } from './modules/chat/chat.logic' 
 
+
 const PORT = Number(process.env.PORT) || 3000;
 
 const wss = new WebSocketServer({ noServer:true })
