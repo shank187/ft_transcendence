@@ -1,4 +1,4 @@
-import {Request, Response } from 'express';
+import { Response } from 'express';
 import { prisma } from '../../lib/prisma';
 import { AuthenticatedRequest } from '../../middleware/authenticate';
 
@@ -77,15 +77,112 @@ export const get_me = async (req: AuthenticatedRequest,res: Response) => {
             displayName: true,
             avatarUrl: true,
             experienceLevel: true,
+            bio: true,
             primaryGoal: true,
             unitSystem: true,
             weightKg: true,
+            heightCm: true,
             onboardingCompletedAt: true
         }
     });
 
     if(!user)
-        res.status(404).json({message : "User not found"});
+        return res.status(404).json({message : "User not found"});
 
     return res.json(user);
+};
+
+
+
+function validate_profile(
+    displayName: string,
+    bio: string,
+    avatarUrl: string | null,
+    experienceLevel: string,
+    primaryGoal: string,
+    unitSystem: string,
+    heightCm: number | null,
+    weightKg: number | null): string | null
+{
+    if (typeof displayName !== "string" ||displayName.trim().length === 0 || displayName.trim().length > 50)
+        return "Invalid display name";
+
+    if (typeof bio !== "string" ||bio.length > 300)
+        return "Invalid bio";
+
+    if (avatarUrl !== null && (typeof avatarUrl !== "string" || avatarUrl.length > 500 ||(!avatarUrl.startsWith("http://") && !avatarUrl.startsWith("https://"))))
+        return "Invalid avatar URL";
+
+    if (typeof experienceLevel !== "string" ||!EXPERIENCE_LEVELS.includes(experienceLevel))
+        return "Invalid experience level";
+
+    if (typeof primaryGoal !== "string" ||!TRAINING_GOALS.includes(primaryGoal))
+        return "Invalid primary goal";
+
+     if (typeof unitSystem !== "string" ||!UNIT_SYSTEMS.includes(unitSystem))
+        return "Invalid unit system";
+
+    if (heightCm !== null &&(typeof heightCm !== "number" ||!Number.isFinite(heightCm) ||heightCm < 50 || heightCm > 300))
+        return "Invalid height";
+
+    if (weightKg !== null &&(typeof weightKg !== "number" ||!Number.isFinite(weightKg) ||weightKg < 20 || weightKg >500 ))
+        return "Invalid weight";
+
+
+    return null;
+}
+
+//isfifnit !!!!returns true only when the value is a normal, usable number.
+
+
+
+export const update_me = async( req: AuthenticatedRequest, res: Response) => {
+    const {displayName,bio,avatarUrl,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg} = req.body;
+
+    const error_mssg = validate_profile(displayName,bio,avatarUrl,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg);
+    if (error_mssg)
+        return res.status(400).json({message : error_mssg});
+
+
+    try
+    {
+        const updated_user = await prisma.user.update({
+            where:{
+                id: req.userId,
+            },
+            data:{
+                displayName: displayName.trim(),
+                bio: bio.trim() || null,
+                avatarUrl,
+                experienceLevel,
+                primaryGoal,
+                unitSystem,
+                heightCm,
+                weightKg,
+            },
+            select:{
+                id: true,
+                username: true,
+                email: true,
+                displayName: true,
+                avatarUrl: true,
+                bio: true,
+                experienceLevel: true,
+                primaryGoal: true,
+                unitSystem: true,
+                heightCm: true,
+                weightKg: true,
+                onboardingCompletedAt: true,
+            },
+        });
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            user: updated_user,
+        }); 
+
+
+    }catch
+    {
+        return res.status(500).json({message: "Internal server error"});
+    }
 };

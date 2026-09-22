@@ -11,7 +11,7 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
     if (!authHeader || !authHeader.startsWith('Bearer '))
         return res.status(401).json({ message: "Access token is required" });
 
-    const token = authHeader.split(' ')[1];
+    let token = authHeader.split(' ')[1];
 
     const secret = process.env.JWT_SECRET;
     if (!secret)

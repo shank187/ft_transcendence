@@ -8,6 +8,7 @@ import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/workouts" element={<Workouts />} />
+          <Route path="/profile/edit" element={<EditProfile />}/>
         </Route>
       </Route>
     </Routes>
