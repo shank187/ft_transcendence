@@ -3,6 +3,7 @@ import type { WorkoutPlan } from "./workout.types";
 
 export default async function getWorkouts(): Promise<WorkoutPlan[]>
 {
+    // throw new Error("fake error")
     return [
         {
             id: "1",
