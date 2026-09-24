@@ -3,6 +3,7 @@ import type {WorkoutPlan} from "./workout.types";
 import getWorkouts from "./workout.api";
 import WorkoutPlanCard from "./WorkoutPlanCard";
 import Button from "../../components/ui/Button";
+import EmptyState from "../../components/states/EmptyState";
 
 
 export default function WorkoutPlanCatalog()
@@ -51,9 +52,10 @@ export default function WorkoutPlanCatalog()
         )
     if(workouts.length === 0)
         return(
-            <section>
-                <h1>No workouts Added yet.</h1>
-            </section>
+            <EmptyState
+            title="No workouts."
+            description="Create your first plan to get started."
+            />
     )
     return(
         <section className="grid gap-4 grid-cols-1 md:grid-cols-3">
