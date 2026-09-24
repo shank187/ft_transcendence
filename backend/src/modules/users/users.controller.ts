@@ -97,7 +97,7 @@ export const get_me = async (req: AuthenticatedRequest,res: Response) => {
 function validate_profile(
     displayName: string,
     bio: string,
-    avatarUrl: string | null,
+    // avatarUrl: string | null,
     experienceLevel: string,
     primaryGoal: string,
     unitSystem: string,
@@ -109,9 +109,6 @@ function validate_profile(
 
     if (typeof bio !== "string" ||bio.length > 300)
         return "Invalid bio";
-
-    if (avatarUrl !== null && (typeof avatarUrl !== "string" || avatarUrl.length > 500 ||(!avatarUrl.startsWith("http://") && !avatarUrl.startsWith("https://"))))
-        return "Invalid avatar URL";
 
     if (typeof experienceLevel !== "string" ||!EXPERIENCE_LEVELS.includes(experienceLevel))
         return "Invalid experience level";
@@ -137,9 +134,9 @@ function validate_profile(
 
 
 export const update_me = async( req: AuthenticatedRequest, res: Response) => {
-    const {displayName,bio,avatarUrl,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg} = req.body;
+    const {displayName,bio,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg} = req.body;
 
-    const error_mssg = validate_profile(displayName,bio,avatarUrl,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg);
+    const error_mssg = validate_profile(displayName,bio,experienceLevel,primaryGoal,unitSystem,heightCm,weightKg);
     if (error_mssg)
         return res.status(400).json({message : error_mssg});
 
@@ -153,7 +150,6 @@ export const update_me = async( req: AuthenticatedRequest, res: Response) => {
             data:{
                 displayName: displayName.trim(),
                 bio: bio.trim() || null,
-                avatarUrl,
                 experienceLevel,
                 primaryGoal,
                 unitSystem,
@@ -184,5 +180,43 @@ export const update_me = async( req: AuthenticatedRequest, res: Response) => {
     }catch
     {
         return res.status(500).json({message: "Internal server error"});
+    }
+};
+
+
+
+export const upload_avatar = async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.userId)
+        return res.status(401).json({message: "Unauthorized"});
+
+    if (!req.file)
+        return res.status(400).json({message: "No image uploaded"});
+
+
+    const avatarPath ="/uploads/avatars/" +req.file.filename;
+
+    try {
+        const updatedUser = await prisma.user.update({
+                where: {
+                    id: req.userId,
+                },
+
+                data: {
+                    avatarUrl: avatarPath
+                },
+
+                select: {
+                    id: true,
+                    username: true,
+                    avatarUrl: true,
+                }
+            });
+
+        return res.status(200).json({
+            message: "Avatar uploaded successfully",
+            user: updatedUser
+        });
+    } catch {
+        return res.status(500).json({message:"Internal server error"});
     }
 };

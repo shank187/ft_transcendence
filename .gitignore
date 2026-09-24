@@ -1,6 +1,6 @@
 node_modules/
+backend/uploads/avatars/
 dist/
 .env
 todo
 .vscode
-z
