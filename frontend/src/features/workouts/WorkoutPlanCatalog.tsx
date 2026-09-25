@@ -4,7 +4,7 @@ import getWorkouts from "./workout.api";
 import WorkoutPlanCard from "./WorkoutPlanCard";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/states/EmptyState";
-
+import emptyStateIcon from "../../assets/empty-icon.png"
 
 export default function WorkoutPlanCatalog()
 {
@@ -53,6 +53,13 @@ export default function WorkoutPlanCatalog()
     if(workouts.length === 0)
         return(
             <EmptyState
+            icon={
+                <img
+                src={emptyStateIcon}
+                alt=""
+                className="w-32"
+                />
+            }
             title="No workouts."
             description="Create your first plan to get started."
             />
