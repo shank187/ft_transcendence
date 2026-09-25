@@ -11,17 +11,17 @@ interface EmptyStateProps{
 export default function EmptyState({
     title,
     description,
+    icon,
     action
 }: EmptyStateProps)
 {
     return(
-        <div >
+        <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
+            {icon}
             <h2>{title}</h2>
-
             {description && 
                 (<p>{description}</p>
             )}
-
             {action}
         </div>
     )
