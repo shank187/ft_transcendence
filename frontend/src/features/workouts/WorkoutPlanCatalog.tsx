@@ -5,13 +5,15 @@ import WorkoutPlanCard from "./WorkoutPlanCard";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/states/EmptyState";
 import emptyStateIcon from "../../assets/empty-icon.png"
+import { useNavigate } from "react-router-dom";
+import LoadingState from "../../components/states/LoadingState";
 
 export default function WorkoutPlanCatalog()
 {
     const [workouts, setWorkouts] = useState<WorkoutPlan[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null)
-
+    const navigate = useNavigate()
     
     const loadWorkouts = useCallback(
         async () => {
@@ -39,9 +41,7 @@ export default function WorkoutPlanCatalog()
 
     if(loading)
         return(
-            <section>
-                <h1>Loading Workouts...</h1>
-            </section>
+            <LoadingState message="Loading Plans..."/>
         )
     if(error)
         return(
@@ -60,8 +60,14 @@ export default function WorkoutPlanCatalog()
                 className="w-32"
                 />
             }
-            title="No workouts."
+            title="No plans yet."
             description="Create your first plan to get started."
+            action={<Button
+                        className="m-5"
+                        onClick={()=> navigate('/workouts/new-plan')}
+                    >
+                Create Plan
+            </Button>}
             />
     )
     return(
