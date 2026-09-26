@@ -78,11 +78,24 @@ export default function WorkoutPlanCatalog()
             </Button>}
             />
     )
-    return(
-        <section className="grid gap-4 grid-cols-1 md:grid-cols-3">
-            {workouts.map((workout) => (
-                <WorkoutPlanCard key={workout.id} workout={workout} />
-            ))}
+    return (
+        <section className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-semibold">My Plans</h1>
+
+                <Button onClick={() => navigate('/workouts/new-plan')}>
+                    Create Plan
+                </Button>
+            </div>
+
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                {workouts.map((workout) => (
+                    <WorkoutPlanCard
+                        key={workout.id}
+                        workout={workout}
+                    />
+                ))}
+            </div>
         </section>
     )
 }
