@@ -7,6 +7,7 @@ import EmptyState from "../../components/states/EmptyState";
 import emptyStateIcon from "../../assets/empty-icon.png"
 import { useNavigate } from "react-router-dom";
 import LoadingState from "../../components/states/LoadingState";
+import ErrorState from "../../components/states/ErrorState";
 
 export default function WorkoutPlanCatalog()
 {
@@ -45,10 +46,15 @@ export default function WorkoutPlanCatalog()
         )
     if(error)
         return(
-            <section>
-                <h1>ERROR: {error}</h1>
-                <Button variant="secondary" onClick={()=> void loadWorkouts()}>Retry</Button>
-            </section>
+            <ErrorState
+            message={error}
+            action={<Button
+                variant="secondary"
+                onClick={()=>loadWorkouts()}
+            >
+                Retry
+            </Button>}
+            />
         )
     if(workouts.length === 0)
         return(
