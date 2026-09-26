@@ -1,55 +1,24 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import './MainLayout.css';
 
-const navItems = [
-  { to: '/home', label: 'Home' },
-  { to: '/gyms', label: 'Gyms' },
-  { to: '/workouts', label: 'Workouts' },
-  { to: '/progress', label: 'Progress' },
-  { to: '/social', label: 'Social' },
-  { to: '/coaches', label: 'Coaches' },
-  { to: '/profile', label: 'Profile' },
-  { to: '/settings', label: 'Settings' },
+const nav_items = [
+    { to: '/home', label: 'Home' },
+    { to: '/workouts', label: 'Workouts' },
 ];
 
 function MainLayout() {
   return (
-    <div className="app-layout">
-      <header className="topbar">
-        <span className="topbar-title">ft_transcendence</span>
-      </header>
+        <div className="min-h-screen bg-gray-100 md:flex">
+            <div className="flex gap-4 p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2 md:border-r md:border-gray-200 md:bg-white">
 
-      <aside className="sidebar">
-        <div className="sidebar-title">ft_transcendence</div>
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
+                {nav_items.map((item)=> (
+                    <NavLink to={item.to} className="rounded-md px-3 py-2 hover:bg-gray-100" >{item.label}</NavLink>
+                ))}
+            </div>
 
-      <main className="main-content">
-        <Outlet />
-      </main>
-
-      <nav className="bottom-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `bottom-nav-link${isActive ? ' active' : ''}`}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-    </div>
+            <div className="p-8 md:flex-1">
+                <Outlet />
+            </div>
+        </div>
   );
 }
 
