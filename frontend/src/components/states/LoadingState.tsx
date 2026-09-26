@@ -1,5 +1,5 @@
 interface LoadingStateProps{
-    message: String
+    message: string
 }
 
 export default function LoadingState({message}:LoadingStateProps)

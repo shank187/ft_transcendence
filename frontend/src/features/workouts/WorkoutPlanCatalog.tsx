@@ -19,8 +19,6 @@ export default function WorkoutPlanCatalog()
     const loadWorkouts = useCallback(
         async () => {
                 try{
-                    setLoading(true)
-                    setError(null)
                     const data = await getWorkouts();
                     setWorkouts(data)
 
@@ -34,8 +32,12 @@ export default function WorkoutPlanCatalog()
             }
     ,[])
 
+    const retryWorkouts = () =>{
+        setLoading(true)
+        setError(null)
+        void loadWorkouts()
+    }
     useEffect(()=>{
-        console.log("loaded")
         void loadWorkouts();
     }
     ,[loadWorkouts])
@@ -50,7 +52,7 @@ export default function WorkoutPlanCatalog()
             message={error}
             action={<Button
                 variant="secondary"
-                onClick={()=>loadWorkouts()}
+                onClick={retryWorkouts}
             >
                 Retry
             </Button>}
