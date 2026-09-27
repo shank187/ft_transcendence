@@ -1,0 +1,3 @@
+# Require Tech Lead review when main branch protection requires code owner approval.
+# This includes changes to this CODEOWNERS file.
+* @shank187
