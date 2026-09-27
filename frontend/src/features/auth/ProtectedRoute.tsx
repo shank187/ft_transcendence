@@ -11,8 +11,7 @@ function ProtectedRoute({require_onboarding = true})
     if (!require_onboarding)
         return <Outlet />;
 
-    // if (!user)
-    //     return <p>Loading profile...</p>;
+
 
     if (!user ||!user.onboardingCompletedAt)
         return <Navigate to="/onboarding" replace />;
