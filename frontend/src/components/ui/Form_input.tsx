@@ -1,12 +1,13 @@
 type FormInputProps = {
     id: string;
     label: string;
-    type: "email" | "password" | "text";
+    type: "email" | "password" | "text" | "number";
     value: string;
     onChange: (value: string) => void;
+    required?: boolean;
 };
 
-function Form_input({ id, label, type, value, onChange }: FormInputProps) {
+function Form_input({ id, label, type, value, onChange , required = true}: FormInputProps) {
     return (
         <div>
             <label htmlFor={id} className="sr-only">
@@ -19,7 +20,7 @@ function Form_input({ id, label, type, value, onChange }: FormInputProps) {
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
                 className="w-full rounded-2xl border border-gray-300 px-4 py-4 text-gray-900 placeholder:text-gray-500 focus:border-gray-600 focus:outline-none"
-                required
+                required={required}
             />
         </div>
     );
