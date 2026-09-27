@@ -61,7 +61,7 @@ export const login = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             access_token,
-            user: { id: user.id, username: user.username, email: user.email , onboardingCompleted: user.onboardingCompletedAt},
+            user: { id: user.id, username: user.username, email: user.email , onboardingCompletedAt: user.onboardingCompletedAt},
         });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
