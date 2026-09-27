@@ -53,20 +53,36 @@ function Onboarding(){
     async function handle_submit()
     {
         set_err_msg('');
+
+        let heightCm: number | undefined;
+        if (form_data.heightCm.trim() === '')
+        {
+            heightCm = undefined;
+        } else
+        {
+            heightCm = Number(form_data.heightCm);
+        
+            if (!Number.isFinite(heightCm) || heightCm < 50 || heightCm > 300) {
+                set_err_msg('Invalid height value');
+                return;
+            }
+        }
+
+        let weightKg: number | undefined;
+        if (form_data.weightKg.trim() === '') {
+            weightKg = undefined;
+        } else {
+            weightKg = Number(form_data.weightKg);
+        
+            if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500) {
+                set_err_msg('Invalid weight value');
+                return;
+            }
+        }
+
         set_is_submitting(true);
 
-        let heightCm;
-        if (form_data.heightCm)
-            heightCm = Number(form_data.heightCm);
-        else
-            heightCm = undefined;
-
-        let weightKg;
-        if (form_data.weightKg)
-            weightKg = Number(form_data.weightKg);
-        else
-            weightKg = undefined;
-        
+      
         try {
             await api.patch('/api/users/onboarding', {
                 displayName: form_data.displayName.trim(),
@@ -94,10 +110,14 @@ function Onboarding(){
     useEffect(() => {
         async function checkOnboarding()
         {
-            const response = await api.get('/api/users/me');
+           try {
+                const response = await api.get('/api/users/me');
 
-            if (response.data.onboardingCompletedAt)
-                navigate('/home');
+                if (response.data.onboardingCompletedAt)
+                    navigate('/home', { replace: true });
+            } catch {
+                set_err_msg('Could not check your onboarding status. Please try again.');
+            }
         }
 
         checkOnboarding();
@@ -117,7 +137,7 @@ function Onboarding(){
                 <div className="space-y-5">
                     <h2 className="text-xl font-semibold">Tell us about you</h2>
                     <Form_input id="displayName" label="Display name" type="text" value={form_data.displayName} onChange={(value) => set_form_data({ ...form_data, displayName: value })}/>
-                    <Form_input id="bio" label="Short bio (optional)" type="text" value={form_data.bio} onChange={(value) => set_form_data({ ...form_data, bio: value })}/>
+                    <Form_input id="bio" label="Short bio (optional)" type="text" value={form_data.bio} onChange={(value) => set_form_data({ ...form_data, bio: value })} required={false}/>
                 </div>
             )}
 
@@ -134,8 +154,8 @@ function Onboarding(){
                     <h2 className="text-xl font-semibold text-gray-900"> Optional details </h2>
                     <p className="text-sm text-gray-600"> You can leave these empty and update them later.</p>
 
-                    <Form_input id="heightCm" label="Height (cm)" type="text" value={form_data.heightCm} onChange={(value) => set_form_data({ ...form_data, heightCm: value })}/>
-                    <Form_input id="weightKg" label="Current weight (kg)" type="text" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })}/>
+                    <Form_input id="heightCm" label="Height (cm)" type="number" value={form_data.heightCm} onChange={(value) => set_form_data({ ...form_data, heightCm: value })} required={false}/>
+                    <Form_input id="weightKg" label="Current weight (kg)" type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
                 </div>
             )}
 

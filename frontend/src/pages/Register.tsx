@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../features/auth/axiosInstance';
+import api ,{API_URL}from '../features/auth/axiosInstance';
 import { useAuth } from '../features/auth/AuthContext';
 
 import Form_input from "../components/ui/Form_input";
@@ -19,7 +19,7 @@ function Register() {
     
     function handle_google_login()
     {
-        window.location.href ='http://localhost:3000/api/auth/google';
+        window.location.href = new URL('/api/auth/google', API_URL).toString();
     }
 
 
@@ -70,7 +70,7 @@ function Register() {
                     
                     <Or_divider />
 
-                    <Button  variant="secondary" className="w-full" onClick={handle_google_login}>
+                    <Button type="button" variant="secondary" className="w-full" onClick={handle_google_login}>
                         Continue with Google
                     </Button>
 
