@@ -1,11 +1,11 @@
-export type clientMessages = 
+export type ClientMessage =
     | {
-        type:"message"
+        type: "message"
         to: string
-        content:string
+        content: string
     }
     | {
-        type:"authenticate"
+        type: "authenticate"
         token: string
     }
 

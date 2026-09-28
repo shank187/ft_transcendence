@@ -1,17 +1,17 @@
 import { WebSocket } from "ws";
 
 export interface AuthenticatedWebSocket extends WebSocket {
-    userId: string;
+    userId?: string;
 }
 
-export type clientMessages = 
+export type ClientMessage =
     | {
-        type:"message"
+        type: "message"
         to: string
-        content:string
+        content: string
     }
     | {
-        type:"authenticate"
+        type: "authenticate"
         token: string
     }
 
