@@ -2,52 +2,52 @@ import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { prisma } from "../../lib/prisma";
 import { Response } from "express";
 
-export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response) => {
-    const requesterId = req.userId
-    const { userId } = req.params;
+export const getFriends = async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.userId
 
-    if (!requesterId)
-        return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
-    if (typeof userId !== 'string')
-        return res.status(400).json({ message: "Invalid user ID" });
-    const addresseeId = userId;
     try {
-        const user = await prisma.user.findUnique({
+        const friends = await prisma.friendship.findMany({
             where: {
-                id: addresseeId
+                OR: [
+                    {
+                        requesterId: userId,
+                        status: "ACCEPTED"
+                    },
+                    {
+                        addresseeId: userId,
+                        status: "ACCEPTED"
+                    }
+                ]
             }
         })
-        if (!user)
-            return res.status(404).json({ message: "User not found" });
-        if (requesterId === addresseeId)
-            return res.status(400).json({message: "You cannot send a friend request to yourself"})
-        const friendship = await prisma.friendship.findFirst(
-            {
-                where: {
-                    OR: [
-                        {
-                            requesterId,
-                            addresseeId
-                        },
-                        {
-                            requesterId: addresseeId,
-                            addresseeId: requesterId
-                        }
-                    ]
-                }
+        const friendIds = friends.map(friendship => {
+            if (friendship.requesterId === userId)
+                return friendship.addresseeId
+            return friendship.requesterId
+        })
+        const friendsList = await prisma.user.findMany({
+            where : {
+                id : { in: friendIds}
+            },
+            select: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatarUrl: true,
+                lastSeenAt: true
             }
-        )
-        if (friendship)
-            return res.status(400).json({message: "A friendship already exists"})
-        await prisma.friendship.create({
-            data: {
-                requesterId,
-                addresseeId,
-            }
-        });
-    return res.status(200).json({message: "friendship created"})   
+        })
+        return res.status(200).json(friendsList)
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        console.error(error)
+        return res.status(500).json({message: "Internal server error"})
     }
+}
+
+export const getPendingRequests = async (req: AuthenticatedRequest, res: Response) => {
+
+}
+
+export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) => {
+
 }
