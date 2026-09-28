@@ -13,7 +13,7 @@ export type ClientMessage =
     | {
         type: "authenticate"
         token: string
-    }
+    } 
 
 export type ServerMessage =
     | {
@@ -23,7 +23,7 @@ export type ServerMessage =
     }
     | {
         type: "presence";
-        username: string;
+        userId?: string;
         status: "online" | "offline";
     }
     | {
