@@ -7,6 +7,7 @@ import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Workouts from './pages/Workouts'
+import Social from './pages/Social'
 import GuestRoute from './features/auth/GuestRoute';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/workouts" element={<Workouts />} />
+          <Route path="/social" element={<Social />} />
         </Route>
       </Route>
     </Routes>

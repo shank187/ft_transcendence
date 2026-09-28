@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
-import type {clientMessages, ServerMessage} from './Chat.type'
+import type { ClientMessage, ServerMessage } from './Chat.type'
 
 function ChatConnection() {
     const { accessToken } = useAuth();
@@ -12,15 +12,15 @@ function ChatConnection() {
         const ws = new WebSocket("ws://localhost:3000/chat");
         ws.onopen = () => {
             console.log("WebSocket connected");
-            const respons : clientMessages = {
+            const respons: ClientMessage = {
                 type: "authenticate",
                 token: accessToken,
-            }  
+            }
             ws.send(JSON.stringify(respons));
         };
 
         ws.onmessage = (event) => {
-            let message : ServerMessage = JSON.parse(event.data);
+            let message: ServerMessage = JSON.parse(event.data);
             if (message.type === "authenticated")
                 console.log("WebSocket authenticated");
             if (message.type === "error") {
