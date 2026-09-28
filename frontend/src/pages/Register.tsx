@@ -39,7 +39,8 @@ function Register() {
 
             const token = response.data.access_token;
             setAccessToken(token);
-
+            const me = await api.get('/api/users/me');
+            setUser(me.data);
             navigate('/onboarding');
 
         } catch (error) {
