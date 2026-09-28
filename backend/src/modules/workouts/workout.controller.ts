@@ -10,7 +10,7 @@ export async function getWorkoutPlansController(req: AuthenticatedRequest, res: 
             message: "Unauthorized",
         })    
     }
-    const workoutsPlans = await getWorkoutPlans(req.userId);
+    const workoutPlans = await getWorkoutPlans(req.userId);
 
-    return res.status(200).json(workoutsPlans);
+    return res.status(200).json(workoutPlans);
 }
