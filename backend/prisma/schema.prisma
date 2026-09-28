@@ -92,21 +92,20 @@ enum WorkoutSessionStatus {
 // ============================================================
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  username     String    @unique
-  passwordHash String?
-  googleId     String?   @unique
-  displayName  String?
-  avatarUrl    String?
-  bio          String?
-  lastSeenAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  username              String             @unique
+  passwordHash          String?
+  googleId              String?            @unique
+  displayName           String?
+  avatarUrl             String?
+  bio                   String?
+  lastSeenAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
   experienceLevel       ExperienceLevel?
   primaryGoal           TrainingGoal?
-  unitSystem            UnitSystem       @default(METRIC)
+  unitSystem            UnitSystem         @default(METRIC)
   heightCm              Float?
   weightKg              Float?
   onboardingCompletedAt DateTime?
@@ -124,11 +123,11 @@ model User {
   workoutSessions WorkoutSession[]
 
   // Social
-  sentFriendships     Friendship[] @relation("FriendshipRequester")
-  receivedFriendships Friendship[] @relation("FriendshipAddressee")
-
-  conversationMembers ConversationMember[]
+  sentFriendships     Friendship[]   @relation("FriendshipRequester")
+  receivedFriendships Friendship[]   @relation("FriendshipAddressee")
   messages            Message[]
+  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
 
   // Shared
   notifications Notification[]
@@ -499,6 +498,7 @@ model Friendship {
   addresseeId String
   status      FriendshipStatus @default(PENDING)
   createdAt   DateTime         @default(now())
+  blockedById String?
 
   requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
   addressee User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
@@ -509,21 +509,16 @@ model Friendship {
 
 model Conversation {
   id        String   @id @default(uuid())
+  user1Id   String
+  user2Id   String
   createdAt DateTime @default(now())
 
-  members  ConversationMember[]
+  user1 User @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+
   messages Message[]
-}
 
-model ConversationMember {
-  conversationId String
-  userId         String
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([conversationId, userId])
-  @@index([userId])
+  @@unique([user1Id, user2Id])
 }
 
 model Message {
@@ -538,7 +533,6 @@ model Message {
   sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
-  @@index([senderId])
 }
 
 // ============================================================
