@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import exerciseRouter from "./modules/exercises/exercise.route";
+import friendsRoutes from "./modules/friends/friends.routes"
 
 dotenv.config();
 
@@ -24,5 +25,6 @@ app.use("/api/exercises", exerciseRouter)
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
+app.use('/api/friends', friendsRoutes)
 
 export default app;
