@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws'
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
 import jwt from "jsonwebtoken";
+import { getFriendsId , areUsersFriends} from "../friends/friends.service";
 
 
 let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
@@ -17,11 +18,30 @@ function isValidMessage(message: unknown): message is ClientMessage {
     return false
 }
 
+async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "offline") {
+    const friends = await getFriendsId(ws.userId)
+    const response: ServerMessage = {
+        type: "presence",
+        userId: ws.userId,
+        status: status
+    }
+    friends.forEach( friendId => {
+        if (!connectedUsers.has(friendId))
+            return
+        if (connectedUsers.get(friendId)?.size !== 0)
+            connectedUsers.get(friendId)?.forEach( Socket => {
+                Socket.send(JSON.stringify(response))
+            })
+    }
+    )
+}
+
+
 
 export function initializeChat(wss: WebSocketServer) {
     wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
         console.log(`client connected.`)
-        ws.on('message', rawData => {
+        ws.on('message', async rawData => {
             let message: unknown
             try {
                 message = JSON.parse(rawData.toString())
@@ -65,6 +85,8 @@ export function initializeChat(wss: WebSocketServer) {
                     if (!connectedUsers.has(ws.userId))
                         connectedUsers.set(ws.userId, new Set)
                     connectedUsers.get(ws.userId)?.add(ws)
+                    if (connectedUsers.get(ws.userId)?.size === 1)
+                        await handlePresence(ws, "online")
                     return
                 } catch {
                     ws.close(1008, "Invalid or expired access token");
@@ -80,18 +102,21 @@ export function initializeChat(wss: WebSocketServer) {
                 return
             }
             else if (message.type === "message") {
+                if (!( await areUsersFriends(message.to, ws.userId)))
+                    return
                 // send_message(ws, message.to, message.content)
                 console.log(
                     `Message received from user ${ws.userId}`
                 );
             }
         })
-        ws.on('close', (code, reason) => {
+        ws.on('close', async (code, reason) => {
             if (ws.userId) {
                 connectedUsers.get(ws.userId)?.delete(ws)
-                if (connectedUsers.get(ws.userId)?.size === 0)
-                    connectedUsers.delete(ws.userId)
-
+                if (connectedUsers.get(ws.userId)?.size === 0) {
+                        await handlePresence(ws, "offline")
+                        connectedUsers.delete(ws.userId)
+                }
             }
             console.log(`connection closed with ${code} and reason: ${reason}`)
         })
