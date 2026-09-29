@@ -7,6 +7,9 @@ export async function getWorkoutPlans(userId: string)
         where: {
             userId: userId,
         },
+        orderBy: {
+            name: 'asc',
+        },
         select:
         {
             id: true,
