@@ -1,11 +1,10 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
-import { prisma } from "../../lib/prisma";
 import { Response } from "express";
 import { areUsersFriends } from "../friends/friends.service"
-import { findConversation } from "./chat.service"
+import { findConversation, getConversationMessages } from "./chat.service"
 
 
-export const getMessageHestory = async (req: AuthenticatedRequest, res: Response)  => {
+export const getMessageHistory = async (req: AuthenticatedRequest, res: Response)  => {
     const userId = req.userId
     const { target } = req.params
 
@@ -16,16 +15,8 @@ export const getMessageHestory = async (req: AuthenticatedRequest, res: Response
             return res.status(404).json({ message: "You are not friends" })
         const conversation = await findConversation(userId, target)
         if (!conversation)
-            return res.status(404).json({ message: "conversation not found" });
-        const messageHistory = await prisma.message.findMany({
-            where: {
-                conversationId : conversation.id
-            },
-            orderBy: {
-                createdAt: "desc"
-            },
-            take: 50
-        })
+            return res.status(200).json([]);
+        const messageHistory = await getConversationMessages(conversation.id)
         const history = messageHistory.reverse()
         return res.status(200).json(history)
     } catch (error) {

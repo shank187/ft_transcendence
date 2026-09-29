@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws'
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
 import jwt from "jsonwebtoken";
 import { getFriendsId , areUsersFriends} from "../friends/friends.service";
-import { sendMessage } from "./chat.service"
+import { storeMessage } from "./chat.service"
 
 export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
 
@@ -102,15 +102,7 @@ export function initializeChat(wss: WebSocketServer) {
                 return
             }
             else if (message.type === "message") {
-                if (!( await areUsersFriends(message.to, ws.userId))) {
-                    const response : ServerMessage = {
-                        type: "error",
-                        message: "You can only message accepted friends"
-                    }
-                    ws.send(JSON.stringify(response))
-                    return
-                }
-                else if (message.to === ws.userId) {
+                if (message.to === ws.userId) {
                     const response : ServerMessage = {
                         type: "error",
                         message: "You can't message yourself"
@@ -118,7 +110,15 @@ export function initializeChat(wss: WebSocketServer) {
                     ws.send(JSON.stringify(response))
                     return
                 }
-                const msgRecord = await sendMessage(message.to, message.content, ws)
+                if (!( await areUsersFriends(message.to, ws.userId))) {
+                    const response : ServerMessage = {
+                        type: "error",
+                        message: "You can only message accepted friends 1 "
+                    }
+                    ws.send(JSON.stringify(response))
+                    return
+                }
+                const msgRecord = await storeMessage(message.to, message.content, ws.userId)
                 if (connectedUsers.has(message.to)) {
                     const response : ServerMessage = {
                         type: "message",
@@ -132,7 +132,6 @@ export function initializeChat(wss: WebSocketServer) {
                         toSocket.send(JSON.stringify(response))
                     })
                 }
-                // send_message(ws, message.to, message.content)
                 console.log(
                     `Message received from user ${ws.userId}`
                 );

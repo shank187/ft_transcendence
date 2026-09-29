@@ -22,11 +22,11 @@ export type ServerMessage =
         content: string;
         messageId: string;
         conversationId: string;
-        createdAt: Date;
+        createdAt: string;
     }
     | {
         type: "presence";
-        userId?: string;
+        userId: string;
         status: "online" | "offline";
     }
     | {

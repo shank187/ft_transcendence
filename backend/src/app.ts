@@ -6,6 +6,7 @@ import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import exerciseRouter from "./modules/exercises/exercise.route";
 import friendsRoutes from "./modules/friends/friends.routes"
+import conversationsRoutes from "./modules/chat/chat.router"
 
 dotenv.config();
 
@@ -26,5 +27,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 app.use('/api/friends', friendsRoutes)
+app.use('/api/conversations', conversationsRoutes)
 
 export default app;
