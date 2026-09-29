@@ -14,10 +14,13 @@ export type ServerMessage =
         type: "message";
         from: string;
         content: string;
+        messageId: string;
+        conversationId: string;
+        createdAt: Date;
     }
     | {
         type: "presence";
-        username: string;
+        userId?: string;
         status: "online" | "offline";
     }
     | {
