@@ -2,9 +2,9 @@ import { WebSocketServer } from 'ws'
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
 import jwt from "jsonwebtoken";
 import { getFriendsId , areUsersFriends} from "../friends/friends.service";
+import { sendMessage } from "./chat.service"
 
-
-let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
+export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
 
 function isValidMessage(message: unknown): message is ClientMessage {
     if (typeof message === "object" && message !== null) {
@@ -102,8 +102,36 @@ export function initializeChat(wss: WebSocketServer) {
                 return
             }
             else if (message.type === "message") {
-                if (!( await areUsersFriends(message.to, ws.userId)))
+                if (!( await areUsersFriends(message.to, ws.userId))) {
+                    const response : ServerMessage = {
+                        type: "error",
+                        message: "You can only message accepted friends"
+                    }
+                    ws.send(JSON.stringify(response))
                     return
+                }
+                else if (message.to === ws.userId) {
+                    const response : ServerMessage = {
+                        type: "error",
+                        message: "You can't message yourself"
+                    }
+                    ws.send(JSON.stringify(response))
+                    return
+                }
+                const msgRecord = await sendMessage(message.to, message.content, ws)
+                if (connectedUsers.has(message.to)) {
+                    const response : ServerMessage = {
+                        type: "message",
+                        from: ws.userId,
+                        content: message.content,
+                        messageId: msgRecord.id,
+                        conversationId: msgRecord.conversationId,
+                        createdAt: msgRecord.createdAt
+                    }
+                    connectedUsers.get(message.to)?.forEach( toSocket => {
+                        toSocket.send(JSON.stringify(response))
+                    })
+                }
                 // send_message(ws, message.to, message.content)
                 console.log(
                     `Message received from user ${ws.userId}`
