@@ -4,7 +4,6 @@ import api from '../features/auth/axiosInstance';
 import { useAuth } from '../features/auth/AuthContext';
 import Form_input from '../components/ui/Form_input';
 import Button from '../components/ui/Button';
-// import Or_divider from '../components/ui/Or_divider';
 import Form_select from "../components/ui/Form_select";
 
 const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
@@ -63,7 +62,8 @@ function Onboarding(){
             weightKg = undefined;
         } else {
             weightKg = Number(form_data.weightKg);
-        
+            if (form_data.unitSystem === 'IMPERIAL')
+                weightKg = weightKg * 0.453592;
             if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500) {
                 set_err_msg('Invalid weight value');
                 return;
@@ -88,7 +88,6 @@ function Onboarding(){
             navigate('/home', { replace: true });
 
         } catch (error) {
-            // console.error("Onboarding failed:", error);
             set_err_msg("Could not save your profile. Please try again.");
         } finally {
             set_is_submitting(false);
@@ -144,7 +143,7 @@ function Onboarding(){
                     <p className="text-sm text-gray-600"> You can leave these empty and update them later.</p>
 
                     <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={(value) =>set_form_data({ ...form_data, unitSystem: value })}/>
-                    <Form_input id="weightKg" label="Current weight (kg)" type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
+                    <Form_input id="weightKg" label={form_data.unitSystem === 'IMPERIAL' ? 'Current weight (lb)' : 'Current weight (kg)'} type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
                 </div>
             )}
 
