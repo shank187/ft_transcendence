@@ -99,10 +99,10 @@ Use AI for bounded explanation/review and verify its output. Do not merge code a
 - **Should finish:** work directly supporting validation, integration, documentation, or evaluation evidence
 - **Defer:** bonuses and polish that do not remove a core blocker
 
-## Current S3 order — dated 17 September 2026
+## Current S3 order — dated 30 September 2026
 
-1. Protected `/workouts` page and route bridge
-2. Working Workouts entry points and smallest owned custom-plan flow
+1. ~~Protected `/workouts` page and route bridge~~ — merged (PR #8)
+2. Working Workouts entry points and smallest owned custom-plan flow — plan list UI merged (PR #9); `GET /api/workout-plans` on `feature/workout-plans-get`; next close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan
 3. Plan/day/exercise/set planning vertical slice
 4. Empty/planned session start with snapshot and ownership
 5. Type-aware set logging/completion
