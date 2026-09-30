@@ -14,8 +14,6 @@ const TRAINING_GOALS = [
     'GAIN_STRENGTH',
     'LOSE_FAT',
     'IMPROVE_GENERAL_FITNESS',
-    'IMPROVE_ENDURANCE',
-    'MAINTAIN_FITNESS',
 ];
 
 function Onboarding(){
@@ -23,7 +21,7 @@ function Onboarding(){
     const [err_msg, set_err_msg] = useState('');
     const [is_submitting, set_is_submitting] = useState(false);
 
-    const [form_data, set_form_data] = useState({displayName: '', bio: '', experienceLevel: '', primaryGoal: '', heightCm: '', weightKg: ''});
+    const [form_data, set_form_data] = useState({displayName: '', bio: '', experienceLevel: '', primaryGoal: '', unitSystem: '', weightKg: ''});
     const { setUser } = useAuth();
     const navigate = useNavigate();
 
@@ -41,6 +39,12 @@ function Onboarding(){
             return;
         }
 
+        if (step === 3 && !form_data.unitSystem)
+        {
+            set_err_msg("Please select a unit system");
+            return;
+        }
+
         set_step(step + 1);
     }
 
@@ -53,20 +57,6 @@ function Onboarding(){
     async function handle_submit()
     {
         set_err_msg('');
-
-        let heightCm: number | undefined;
-        if (form_data.heightCm.trim() === '')
-        {
-            heightCm = undefined;
-        } else
-        {
-            heightCm = Number(form_data.heightCm);
-        
-            if (!Number.isFinite(heightCm) || heightCm < 50 || heightCm > 300) {
-                set_err_msg('Invalid height value');
-                return;
-            }
-        }
 
         let weightKg: number | undefined;
         if (form_data.weightKg.trim() === '') {
@@ -89,8 +79,7 @@ function Onboarding(){
                 bio: form_data.bio.trim() || undefined,
                 experienceLevel: form_data.experienceLevel,
                 primaryGoal: form_data.primaryGoal,
-                unitSystem: 'METRIC',
-                heightCm: heightCm,
+                unitSystem: form_data.unitSystem,
                 weightKg: weightKg,
             });
 
@@ -154,7 +143,7 @@ function Onboarding(){
                     <h2 className="text-xl font-semibold text-gray-900"> Optional details </h2>
                     <p className="text-sm text-gray-600"> You can leave these empty and update them later.</p>
 
-                    <Form_input id="heightCm" label="Height (cm)" type="number" value={form_data.heightCm} onChange={(value) => set_form_data({ ...form_data, heightCm: value })} required={false}/>
+                    <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={(value) =>set_form_data({ ...form_data, unitSystem: value })}/>
                     <Form_input id="weightKg" label="Current weight (kg)" type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
                 </div>
             )}
@@ -168,7 +157,7 @@ function Onboarding(){
                         <li>Display name: {form_data.displayName}</li>
                         <li>Experience: {form_data.experienceLevel}</li>
                         <li>Goal: {form_data.primaryGoal.replaceAll('_', ' ')}</li>
-                        <li>Units: Metric (kg/cm)</li>
+                        <li>Units: {form_data.unitSystem}</li>
                     </ul>
                 </div>
             )}

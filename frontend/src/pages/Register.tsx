@@ -12,7 +12,9 @@ function Register() {
     const [username, set_username] = useState('');
     const [email,set_email] = useState('');
     const [password,set_password] = useState('');
+    const [confirm_password, set_confirm_password] = useState('');
     const [err_msg,set_err_msg] = useState('');
+    const [is_submitting, set_is_submitting] = useState(false);
 
     const { setAccessToken , setUser} = useAuth();
     const navigate = useNavigate();
@@ -26,7 +28,13 @@ function Register() {
     async function handle_submit(event: React.FormEvent) {
         event.preventDefault();
         set_err_msg('');
+        if (password !== confirm_password)
+        {
+            set_err_msg("Passwords do not match");
+            return;
+        }
 
+        set_is_submitting(true);
         try {
  
             const response = await api.post('/api/auth/register', {username: username, email: email, password: password});
@@ -46,6 +54,8 @@ function Register() {
         } catch (error) {
             // console.error("Registration failed:", error);
             set_err_msg("Could not create account. Try a different username or email.");
+        } finally {
+            set_is_submitting(false);
         }
     }
 
@@ -62,11 +72,12 @@ function Register() {
                     <Form_input id="username" label="username" type="text" value={username} onChange={set_username}/>
                     <Form_input id="email" label="Email address" type="email" value={email} onChange={set_email}/>
                     <Form_input id="password" label="password" type="password" value={password} onChange={set_password}/>
+                    <Form_input id="confirmPassword" label="Confirm password" type="password" value={confirm_password} onChange={set_confirm_password}/>
 
                     {err_msg && <p>{err_msg}</p>}
                     
-                    <Button type="submit" className="w-full">
-                        Create account
+                    <Button type="submit" className="w-full" disabled={is_submitting}>
+                        {is_submitting ? "Creating account..." : "Create account"}
                     </Button>
                     
                     <Or_divider />
