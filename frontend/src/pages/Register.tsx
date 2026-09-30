@@ -52,7 +52,6 @@ function Register() {
             navigate('/onboarding');
 
         } catch (error) {
-            // console.error("Registration failed:", error);
             set_err_msg("Could not create account. Try a different username or email.");
         } finally {
             set_is_submitting(false);

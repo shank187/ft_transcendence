@@ -2,9 +2,12 @@ import { NavLink, Outlet } from 'react-router-dom';
 
 const nav_items = [
     { to: '/home', label: 'Home' },
+    { to: '/gyms', label: 'Gyms' },
     { to: '/workouts', label: 'Workouts' },
+    { to: '/progress', label: 'Progress' },
+    { to: '/social', label: 'Social' },
+    { to: '/profile', label: 'Profile' },
 ];
-
 function MainLayout() {
   return (
         <div className="min-h-screen bg-gray-100 md:flex">
