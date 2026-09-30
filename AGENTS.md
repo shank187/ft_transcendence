@@ -93,6 +93,6 @@ For each meaningful flow verify success, failure, unauthorized ownership, repeat
 
 Every contributor must be able to trace their request/data flow, explain one failure case, justify one decision, and perform one small modification. AI-generated work must be reviewed, tested, understood, and independently recoded when it covers a pattern being learned.
 
-## Dated implementation checkpoint — 17 September 2026
+## Dated implementation checkpoint — 30 September 2026
 
-`main` is `3da8f33`. Auth/onboarding, the protected shell, `/home`, `/exercises`, the paginated catalog, shared Button/Card, and workout schema foundation exist. `/workouts` is not yet registered. Current S3 work is the protected Workouts route bridge, then the smallest custom-plan flow. Catalog recovery remains required before validation but is not the current blocker.
+`main` is `177c75a`. Auth/onboarding (including Google OAuth and session check), the protected shell, `/home`, protected `/workouts` (owned plan list) and placeholder `/workouts/new-plan`, the paginated catalog API (UI currently unrouted), shared Button/Card/state components, and workout schema foundation exist. `GET /api/workout-plans` (owned plans, `feature/workout-plans-get`) is pending merge. Current S3 work is the smallest custom-plan creation flow. Catalog recovery remains required before validation but is not the current blocker.
