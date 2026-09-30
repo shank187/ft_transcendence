@@ -103,7 +103,7 @@ A label or implemented-looking schema is not evidence. Each claimed module needs
 
 Verified current foundation: auth/onboarding (email/password and Google OAuth, refresh/session check), protected shell, `/home`, protected `/workouts` plan list with loading/error/empty states, authenticated `GET /api/workout-plans` (owned plans only; on `feature/workout-plans-get` pending merge), authenticated paginated exercise catalog API (UI currently unrouted), shared Button/Card and state components, Prisma schema/migrations, and Docker Compose baseline.
 
-Active S3 task: smallest owned custom-plan creation flow (`/workouts/new-plan` is a placeholder). Catalog recovery is required before final validation but scheduled when the catalog re-enters the picker/search path.
+Active S3 task: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan (`/workouts/new-plan` is currently a placeholder). Catalog recovery is required before final validation but scheduled when the catalog re-enters the picker/search path.
 
 S1/shared open security work: safe non-overwriting environment bootstrap, required-value failure, Compose JWT injection/no insecure fallback, runtime rotation confirmation, and CI/Gitleaks.
 
