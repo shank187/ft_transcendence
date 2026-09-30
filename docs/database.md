@@ -23,14 +23,16 @@ npm run prisma:migrate    # create/apply a dev migration
 One shared database. Features extend the existing schema; they do not create parallel user, equipment, or workout-history entities.
 
 ```text
-Identity        User, Role, UserRole, Session
-Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, Facility, GymFacility, GymReview
+Identity        User, Session, Role*, UserRole*
+Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, Facility*, GymFacility*, GymReview*
 Exercises (S3)  MuscleGroup, Exercise, ExerciseSecondaryMuscle, ExerciseEquipment
 Planning (S3)   WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutExerciseSet
 Execution (S3)  WorkoutSession, WorkoutSessionExercise, WorkoutSet
 Social (S4)     Friendship, Conversation, ConversationMember, Message
-Shared          Notification, Media, ApiKey
+Shared          Notification*, Media*, ApiKey*
 ```
+
+`*` Present in the schema but not required by the frozen V1 scope in `docs/SCOPE_AND_VALIDATION.md`. Do not build features on them before the validation gate is green. Likewise, the `RECOMMENDED` plan type and `supersetGroup` exist in the schema, but recommended templates and complex supersets are deferred.
 
 ## Identity
 
@@ -54,19 +56,23 @@ WorkoutPlan                                WorkoutSession  (userId, status, star
             └─ WorkoutExerciseSet (target*)
 ```
 
-Invariants encoded in the schema:
+Enforced by the Prisma schema / PostgreSQL:
 
-- `WorkoutPlan.userId` is nullable: owned plans have a user and default to `CUSTOM`; `RECOMMENDED` plans may have no owner. Owned-plan queries must filter by the authenticated `userId`.
-- Ordering is unique per parent: `(workoutPlanId, dayOrder)`, `(workoutDayId, order)`, `(workoutExerciseId, setNumber)`, `(workoutSessionId, order)`, `(workoutSessionExerciseId, setNumber)`. Reordering several rows must run in one transaction.
-- Deleting a plan cascades its days/exercises/sets, but `WorkoutSession.workoutDayId` is `SetNull`, so completed history survives.
-- `WorkoutSet` keeps `plannedWeight/Reps/Duration/Distance` (copied when the session starts) separate from performed `weight/reps/duration/distance`. `completedAt = null` means the set is not done.
-- `WorkoutSession.status` is `IN_PROGRESS`, `COMPLETED`, or `CANCELLED`. Closed sessions must reject mutation in the service layer; the `(userId, status)` index supports the active-session lookup.
-- `WorkoutSession.bodyWeightKg` snapshots body weight at start for bodyweight-type volume.
+- `WorkoutPlan.userId` is nullable and `type` defaults to `CUSTOM`. Nothing in the schema ties `type` to whether `userId` is set.
+- Ordering is unique per parent: `(workoutPlanId, dayOrder)`, `(workoutDayId, order)`, `(workoutExerciseId, setNumber)`, `(workoutSessionId, order)`, `(workoutSessionExerciseId, setNumber)`.
+- Deleting a plan cascades its days/exercises/sets, but `WorkoutSession.workoutDayId` is `SetNull`, so the session rows survive.
+- `WorkoutSet` has separate columns for planned values (`plannedWeight/Reps/Duration/Distance`) and performed values (`weight/reps/duration/distance`), plus a nullable `completedAt`.
+- `WorkoutSession.status` is limited to `IN_PROGRESS`, `COMPLETED`, or `CANCELLED`, and `(userId, status)` is indexed.
+- `WorkoutSession.bodyWeightKg` is a nullable column for a body-weight snapshot.
 
-Rules the schema cannot enforce and services must:
+Service/application rules (not schema constraints):
 
+- `CUSTOM` plans belong to the authenticated user; owned-plan queries filter by `req.userId`;
+- reordering several rows runs in one transaction;
+- closed (`COMPLETED`/`CANCELLED`) sessions reject further mutation;
 - at most one `IN_PROGRESS` session per user (check inside the start transaction);
-- starting a planned workout copies targets and configuration atomically;
+- starting a planned workout copies targets and configuration into the session atomically;
+- `completedAt = null` is treated as "set not done";
 - repeated completion must not double-count S5 rewards.
 
 ## Migrations

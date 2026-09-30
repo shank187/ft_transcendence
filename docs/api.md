@@ -115,7 +115,7 @@ Lists the plans owned by the authenticated user. Used by the `/workouts` page (`
 
 - **Auth:** required (Bearer access token).
 - **Request:** no path, query, or body parameters. Pagination is not implemented.
-- **Ownership:** the service filters `WorkoutPlan.userId = req.userId`. The browser never sends a user ID. Plans with `userId = null` (reserved for `RECOMMENDED` plans) are not returned.
+- **Ownership:** the service filters `WorkoutPlan.userId = req.userId`. The browser never sends a user ID. Plans with `userId = null` are not returned. The schema only makes `userId` nullable; that `CUSTOM` plans belong to a user is a service/business rule, not a database constraint.
 - **Ordering:** `name` ascending.
 - **Code:** `backend/src/modules/workouts/workout.route.ts` → `workout.controller.ts` → `workout.service.ts`.
 
@@ -138,7 +138,7 @@ Response `200` — array, empty when the user has no plans:
 | `id` | string (UUID) | `WorkoutPlan.id` |
 | `name` | string | |
 | `description` | string \| null | Optional in the schema |
-| `type` | `"CUSTOM"` \| `"RECOMMENDED"` | `WorkoutPlanType`; owned plans are normally `CUSTOM` |
+| `type` | `"CUSTOM"` \| `"RECOMMENDED"` | `WorkoutPlanType`; schema default `CUSTOM` |
 | `days` | number | Count of `WorkoutDay` rows, not the day objects |
 
 Status codes:

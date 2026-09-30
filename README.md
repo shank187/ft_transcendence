@@ -42,7 +42,7 @@ Verified on `main` at `177c75a`, plus `feature/workout-plans-get` (pending merge
 - Shared `Button`, `Card`, and loading/error/empty state foundations
 - Workout planning/execution schema foundation
 
-Current Slice 3 gate: implement the smallest owned custom-plan creation flow behind `/workouts/new-plan`. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
+Current Slice 3 gate: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan behind `/workouts/new-plan`. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
 
 ## Technical stack
 
