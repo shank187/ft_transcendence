@@ -67,7 +67,7 @@ Frozen workout routes:
 /workouts/session/:id
 ```
 
-These are target routes; check `frontend/src/App.tsx` before claiming implementation. At the 17 September checkpoint, only `/home` and `/exercises` are registered inside the protected layout, and `/workouts` is the active bridge task. `/exercises` is a temporary implemented route; the frozen UX nests it under `/workouts/exercises` when navigation is integrated.
+These are target routes; check `frontend/src/App.tsx` before claiming implementation. At the 30 September checkpoint, the protected layout registers `/home`, `/workouts` (the user's plan list, backed by `GET /api/workout-plans`), and `/workouts/new-plan` (placeholder page). The temporary `/exercises` route was removed; `frontend/src/pages/Exercises.tsx` and the catalog still exist but are not routed until the catalog re-enters the frozen `/workouts/exercises` path or the plan exercise picker. `/workouts/new-plan` is the working create-plan route and replaces the earlier `/workouts/plans/new` proposal above; keep it unless there is a concrete reason to change it.
 
 ## Backend organization
 
