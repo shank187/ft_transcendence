@@ -65,7 +65,7 @@ function Register() {
             </Button>
 
             <div className="mx-auto w-full max-w-xl px-8 py-50">
-                <h1 className="mb-6 text-lg font-semibold text-gray-900"> Create account</h1>
+                <h1 className="mb-6 text-lg font-semibold"> Create account</h1>
 
                 <form className="space-y-5" onSubmit={handle_submit}>
                     <Form_input id="username" label="username" type="text" value={username} onChange={set_username}/>
@@ -73,7 +73,7 @@ function Register() {
                     <Form_input id="password" label="password" type="password" value={password} onChange={set_password}/>
                     <Form_input id="confirmPassword" label="Confirm password" type="password" value={confirm_password} onChange={set_confirm_password}/>
 
-                    {err_msg && <p>{err_msg}</p>}
+                    {err_msg && <p className="text-sm text-app-danger">{err_msg}</p>}
                     
                     <Button type="submit" className="w-full" disabled={is_submitting}>
                         {is_submitting ? "Creating account..." : "Create account"}
