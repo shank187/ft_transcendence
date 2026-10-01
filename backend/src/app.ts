@@ -1,20 +1,19 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import exerciseRouter from "./modules/exercises/exercise.route";
 import workoutRouter from "./modules/workouts/workout.route"
 
 
-dotenv.config();
 
 const app = express();
 
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
 }));
 app.use(express.json());
