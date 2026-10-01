@@ -61,7 +61,7 @@ function Login()
             Register
         </Button>
     <div className="mx-auto w-full max-w-xl px-8 py-50">
-        <h1 className="mb-6 text-lg font-semibold text-gray-900">
+        <h1 className="mb-6 text-lg font-semibold">
             Log in
         </h1>
 
@@ -69,7 +69,7 @@ function Login()
             <Form_input id="email" label="Email address" type="email" value={email} onChange={set_email}/>
             <Form_input id="password" label="Password" type="password" value={password} onChange={set_password}/>
             
-            {err_msg && <p>{err_msg}</p>}
+            {err_msg && <p className="text-sm text-app-danger">{err_msg}</p>}
 
             <Button type="submit">
                 Log in
