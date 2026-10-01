@@ -1679,7 +1679,7 @@ Do not schedule all remaining time as feature-development time.
 
 # 32. Dated Repository Checkpoint — Must Be Refreshed
 
-As of **15 September 2026**, the repository uses:
+As of **30 September 2026**, the repository uses:
 
 ```text
 Frontend: React + Vite + TypeScript
@@ -1711,16 +1711,16 @@ The frontend currently follows route/page/feature separation under:
 frontend/src/
 ```
 
-A shared-UI branch has been establishing:
+Merged on `main` (`177c75a`) since the previous checkpoint:
 
 ```text
-design tokens
-Button
-Card
-exercise-catalog adoption
-responsive UI
-shared app-shell visual styling
+design tokens, Button, Card, Loading/Error/Empty state components
+Google OAuth, refresh-session check, route guards
+protected /workouts (owned plan list) and placeholder /workouts/new-plan
+/exercises route removed; catalog API remains, UI unrouted
 ```
+
+Pending merge: `GET /api/workout-plans` on `feature/workout-plans-get`. See `docs/api.md` for the endpoint inventory.
 
 **Do not treat this dated checkpoint as permanent.**
 

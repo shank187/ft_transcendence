@@ -27,20 +27,22 @@ The project deliberately freezes scope around a reliable 14-point validation tar
 
 Implementation status must be taken from GitHub/Trello. A feature listed in the frozen target is not automatically implemented.
 
-## Current implementation checkpoint — 17 September 2026
+## Current implementation checkpoint — 30 September 2026
 
-Verified on `main` at `3da8f33`:
+Verified on `main` at `177c75a`, plus `feature/workout-plans-get` (pending merge):
 
 - React/Vite/TypeScript frontend and Express/TypeScript backend
 - PostgreSQL through Prisma
 - Docker Compose development topology
-- Registration, login, refresh/logout infrastructure, and onboarding route
-- Protected frontend layout with `/home` and `/exercises`
-- Authenticated, paginated exercise catalog
-- Shared `Button` and `Card` foundations
+- Registration, login, Google OAuth, refresh/logout/session-check infrastructure, and onboarding route
+- Protected frontend layout with `/home`, `/workouts`, and placeholder `/workouts/new-plan`
+- `/workouts` lists the user's own plans with loading/error/retry/empty states
+- Authenticated `GET /api/workout-plans` returning owned plans only (branch `feature/workout-plans-get`)
+- Authenticated, paginated exercise catalog API (catalog UI exists but is not currently routed)
+- Shared `Button`, `Card`, and loading/error/empty state foundations
 - Workout planning/execution schema foundation
 
-Current Slice 3 gate: add a protected `/workouts` page/route bridge, then implement the smallest owned custom-plan vertical flow. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
+Current Slice 3 gate: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan behind `/workouts/new-plan`. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
 
 ## Technical stack
 
@@ -191,8 +193,8 @@ Keep this section evidence-based and update it from merged commits/PRs before ev
 
 ## Known gaps at this checkpoint
 
-- Protected `/workouts` route/page is not yet on `main`.
-- Workout plan/session APIs and UI are not yet implemented.
+- Workout plan create/detail/update/delete, days/exercises/sets, and all session APIs/UI are not yet implemented; only the owned-plan list read exists.
+- Error response bodies are inconsistent (`{ message }` vs `{ error }`) until S1 finalizes the shared error DTO.
 - Exercise search/filter and complete recovery hardening remain pending.
 - Safe `.env` bootstrap, JWT Compose injection, and CI/Gitleaks remain S1/shared tasks.
 - Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
