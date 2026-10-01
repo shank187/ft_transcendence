@@ -9,7 +9,7 @@ type FormSelectProps = {
 function Form_select({id, label, value, options, onChange}: FormSelectProps) {
     return (
         <div>
-            <label htmlFor={id} className="mb-2 block text-sm text-gray-700">
+            <label htmlFor={id} className="mb-2 block text-sm text-app-text-secondary">
                 {label}
             </label>
 
@@ -17,7 +17,7 @@ function Form_select({id, label, value, options, onChange}: FormSelectProps) {
                 id={id}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-4 text-gray-900 focus:border-gray-600 focus:outline-none"
+                className="w-full rounded-2xl border border-app-border bg-app-surface px-4 py-4 text-app-text focus:border-app-primary focus:outline-none"
             >
                 <option value="">Select an option</option>
 
