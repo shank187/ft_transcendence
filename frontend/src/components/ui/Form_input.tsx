@@ -19,7 +19,7 @@ function Form_input({ id, label, type, value, onChange , required = true}: FormI
                 placeholder={label}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="w-full rounded-2xl border border-app-border bg-app-surface px-4 py-4 text-app-text placeholder:text-app-text-muted focus:border-app-primary focus:outline-none"
+                className="w-full rounded-2xl border border-gray-300 px-4 py-4 text-gray-900 placeholder:text-gray-500 focus:border-gray-600 focus:outline-none"
                 required={required}
             />
         </div>

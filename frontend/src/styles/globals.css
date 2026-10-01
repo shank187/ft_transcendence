@@ -54,6 +54,30 @@
 
 
     /* ========================================
+       DARK-THEME REMAP OF TAILWIND PALETTE
+       ======================================== */
+
+    /*
+     * The app is dark-only, but some components use light-theme
+     * palette classes (text-gray-900, bg-white, ...). Remap the shades
+     * in use so they render as their dark-theme equivalent:
+     * dark grays become light text, light grays become dark surfaces.
+     * New code should use the app-* tokens directly.
+     */
+    --color-white: var(--color-app-surface);
+
+    --color-gray-100: var(--color-app-canvas);
+    --color-gray-200: var(--color-app-border);
+    --color-gray-300: var(--color-app-border);
+    --color-gray-500: var(--color-app-text-muted);
+    --color-gray-600: var(--color-app-text-secondary);
+    --color-gray-700: var(--color-app-text-secondary);
+    --color-gray-900: var(--color-app-text);
+
+    --color-red-600: var(--color-app-danger);
+
+
+    /* ========================================
        TYPOGRAPHY
        ======================================== */
 
