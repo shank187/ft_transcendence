@@ -1,8 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
-import Root from './features/auth/Root';
-import Register from './features/auth/Register';
-import Login from './features/auth/login';
-import Onboarding from './features/auth/Onboarding';
+import Root from './pages/Root';
+import Register from './pages/Register';
+import Login from './pages/login';
+import Onboarding from './pages/Onboarding';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
@@ -13,15 +13,16 @@ import CreatePlan from './pages/CreatePlan';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Root />} />
       <Route element={<GuestRoute />}>
+        <Route path="/" element={<Root />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
 
+    <Route element={<ProtectedRoute require_onboarding={false} />}>
+      <Route path="/onboarding" element={<Onboarding />} />
+    </Route>
       <Route element={<ProtectedRoute />}>
-        <Route path="/onboarding" element={<Onboarding />} />
-
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/workouts" element={<Workouts />} />
