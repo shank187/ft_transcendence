@@ -1,233 +1,80 @@
 @import "tailwindcss";
 
+/*
+ * @theme = our design tokens.
+ * Every --color-NAME here becomes Tailwind classes: bg-NAME, text-NAME, border-NAME.
+ * Example: --color-app-surface  ->  bg-app-surface
+ */
 @theme {
-    /* ========================================
-       BACKGROUNDS
-       ======================================== */
+    /* Backgrounds */
+    --color-app-canvas: #050505;          /* page background */
+    --color-app-surface: #222222;         /* cards, sidebar, inputs */
+    --color-app-surface-raised: #262626;  /* dropdowns, modals */
+    --color-app-surface-hover: #303030;   /* hovered surfaces */
+    --color-app-border: #3a3a3a;          /* borders, dividers */
 
-    /* Main page background */
-    --color-app-canvas: #050505;
-
-    /*
-     * Sidebar, cards, navbar, inputs.
-     * Intentionally much lighter than canvas.
-     */
-    --color-app-surface: #222222;
-    /* Elevated cards, dropdowns, modals */
-    --color-app-surface-raised: #262626;
-
-    /* Hovered surfaces */
-    --color-app-surface-hover: #303030;
-
-    /* Borders / separators */
-    --color-app-border: #3a3a3a;
-
-
-    /* ========================================
-       BRAND
-       ======================================== */
-
-    /* Main and only strong accent */
-    --color-app-primary: #00f7d6;
-
-    /* Muted accent when needed */
+    /* Accent */
+    --color-app-primary: #00f7d6;         /* buttons, active links */
     --color-app-primary-muted: #00c9af;
 
-
-    /* ========================================
-       TEXT
-       ======================================== */
-
-    --color-app-text: #f5f5f5;
-
-    --color-app-text-secondary: #bdbdbd;
-
-    --color-app-text-muted: #888888;
-
-
-    /* ========================================
-       STATUS
-       ======================================== */
-
-    /* Error messages; readable on canvas and surface */
-    --color-app-danger: #f87171;
-
-
-    /* ========================================
-       DARK-THEME REMAP OF TAILWIND PALETTE
-       ======================================== */
+    /* Text */
+    --color-app-text: #f5f5f5;            /* main text */
+    --color-app-text-secondary: #bdbdbd;  /* less important text */
+    --color-app-text-muted: #888888;      /* hints, placeholders */
+    --color-app-danger: #f87171;          /* error messages */
 
     /*
-     * The app is dark-only, but some components use light-theme
-     * palette classes (text-gray-900, bg-white, ...). Remap the shades
-     * in use so they render as their dark-theme equivalent:
-     * dark grays become light text, light grays become dark surfaces.
-     * New code should use the app-* tokens directly.
+     * Dark-theme fix for older components.
+     * Some components use light-theme classes like text-gray-900 or bg-white.
+     * On our black background they were unreadable, so we point those
+     * colors at our dark tokens. New code: use the app-* classes instead.
      */
-    --color-white: var(--color-app-surface);
+    --color-white: var(--color-app-surface);          /* bg-white      -> dark card */
+    --color-gray-100: var(--color-app-canvas);        /* bg-gray-100   -> page bg */
+    --color-gray-200: var(--color-app-border);        /* border-gray-200 */
+    --color-gray-300: var(--color-app-border);        /* border-gray-300 */
+    --color-gray-500: var(--color-app-text-muted);    /* text-gray-500 */
+    --color-gray-600: var(--color-app-text-secondary);/* text-gray-600 */
+    --color-gray-700: var(--color-app-text-secondary);/* text-gray-700 */
+    --color-gray-900: var(--color-app-text);          /* text-gray-900 -> light text */
+    --color-red-600: var(--color-app-danger);         /* text-red-600  -> readable red */
 
-    --color-gray-100: var(--color-app-canvas);
-    --color-gray-200: var(--color-app-border);
-    --color-gray-300: var(--color-app-border);
-    --color-gray-500: var(--color-app-text-muted);
-    --color-gray-600: var(--color-app-text-secondary);
-    --color-gray-700: var(--color-app-text-secondary);
-    --color-gray-900: var(--color-app-text);
-
-    --color-red-600: var(--color-app-danger);
-
-
-    /* ========================================
-       TYPOGRAPHY
-       ======================================== */
-
-    --font-sans:
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-
-    /* ========================================
-       BORDER RADIUS
-       ======================================== */
-
+    /* Font and corner sizes (used by font-sans, rounded-md, rounded-xl, ...) */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
 }
 
-
-/* ========================================
-   GLOBAL RESET
-   ======================================== */
-
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-
-/* ========================================
-   DOCUMENT
-   ======================================== */
-
+/* Whole page: dark background, light text, dark browser controls and scrollbars */
 html {
-    min-width: 320px;
-
-    background: var(--color-app-canvas);
-
     color-scheme: dark;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-app-border) var(--color-app-canvas);
 }
-
-
-/* ========================================
-   BODY
-   ======================================== */
 
 body {
-    margin: 0;
-
     min-width: 320px;
     min-height: 100vh;
-
     background: var(--color-app-canvas);
     color: var(--color-app-text);
-
     font-family: var(--font-sans);
-
     line-height: 1.5;
-
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
-
-
-/* ========================================
-   ROOT
-   ======================================== */
 
 #root {
     min-height: 100vh;
 }
 
-
-/* ========================================
-   TEXT SELECTION
-   ======================================== */
-
+/* Highlighted text and keyboard focus use the accent color */
 ::selection {
     background: var(--color-app-primary);
     color: var(--color-app-canvas);
 }
 
-
-/* ========================================
-   KEYBOARD FOCUS
-   ======================================== */
-
 :focus-visible {
     outline: 2px solid var(--color-app-primary);
     outline-offset: 2px;
-}
-
-
-/* ========================================
-   LINKS
-   ======================================== */
-
-a {
-    color: inherit;
-}
-
-
-/* ========================================
-   FORM ELEMENTS
-   ======================================== */
-
-button,
-input,
-textarea,
-select {
-    font: inherit;
-}
-
-
-/* ========================================
-SCROLLBAR
-======================================== */
-
-* {
-    scrollbar-width: thin;
-
-    scrollbar-color:
-        var(--color-app-border)
-        var(--color-app-canvas);
-}
-
-
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-
-::-webkit-scrollbar-track {
-    background: var(--color-app-canvas);
-}
-
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-app-border);
-
-    border-radius: 999px;
-}
-
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--color-app-text-muted);
 }
