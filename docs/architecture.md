@@ -77,12 +77,12 @@ frontend/src/
   features/<name>/  one folder per feature: <name>.api.ts, <name>.types.ts, feature components
   components/ui/    shared primitives (Button, Card, Form_input, Form_select, Or_divider)
   components/states/ shared LoadingState / ErrorState / EmptyState
-  layouts/          MainLayout: authenticated shell (sidebar on desktop, top bar + bottom nav on mobile)
+  layouts/          MainLayout: authenticated shell (nav + <Outlet />)
   styles/globals.css design tokens (@theme) and global resets
 ```
 
 - Styling is Tailwind utilities using the `app-*` tokens defined in `styles/globals.css` (`bg-app-canvas`, `bg-app-surface`, `border-app-border`, `text-app-text`, `text-app-text-secondary`, `text-app-text-muted`, `text-app-primary`, `text-app-danger`).
-- The app is dark-only (`color-scheme: dark`). Do not use raw Tailwind palette colors such as `text-gray-900` or `bg-white`: they were written for a light background and become unreadable on the canvas. If a needed color is missing, add a token to `globals.css` instead of hardcoding it.
+- The app is dark-only (`color-scheme: dark`). New code should not use raw Tailwind palette colors such as `text-gray-900` or `bg-white`. Existing components still use some; `globals.css` remaps those specific shades (`white`, `gray-100/200/300/500/600/700/900`, `red-600`) to their dark-theme token so they stay readable. If a needed color is missing, add an `app-*` token instead of hardcoding it.
 - No per-component CSS files; shared visuals go into `components/ui`.
 - Feature API modules call the backend through the shared Axios instance in `features/auth/axiosInstance.ts`.
 
