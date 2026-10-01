@@ -120,7 +120,7 @@ function Onboarding(){
 
     return (
         <div className="mx-auto w-full max-w-xl px-5 py-10">
-            <p className="mb-6 text-sm text-gray-500">Step {step} of 4</p>
+            <p className="mb-6 text-sm text-app-text-muted">Step {step} of 4</p>
             {step === 1 && (
                 <div className="space-y-5">
                     <h2 className="text-xl font-semibold">Tell us about you</h2>
@@ -139,8 +139,8 @@ function Onboarding(){
 
             {step === 3 && (
                 <div className="space-y-5">
-                    <h2 className="text-xl font-semibold text-gray-900"> Optional details </h2>
-                    <p className="text-sm text-gray-600"> You can leave these empty and update them later.</p>
+                    <h2 className="text-xl font-semibold"> Optional details </h2>
+                    <p className="text-sm text-app-text-secondary"> You can leave these empty and update them later.</p>
 
                     <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={(value) =>set_form_data({ ...form_data, unitSystem: value })}/>
                     <Form_input id="weightKg" label={form_data.unitSystem === 'IMPERIAL' ? 'Current weight (lb)' : 'Current weight (kg)'} type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
@@ -149,10 +149,10 @@ function Onboarding(){
 
             {step === 4 && (
                 <div className="space-y-5">
-                    <h2 className="text-xl font-semibold text-gray-900"> Review your details</h2>
-                    <p className="text-sm text-gray-600"> Check your information before continuing.</p>
+                    <h2 className="text-xl font-semibold"> Review your details</h2>
+                    <p className="text-sm text-app-text-secondary"> Check your information before continuing.</p>
 
-                    <ul className="space-y-2 text-gray-700">
+                    <ul className="space-y-2 text-app-text-secondary">
                         <li>Display name: {form_data.displayName}</li>
                         <li>Experience: {form_data.experienceLevel}</li>
                         <li>Goal: {form_data.primaryGoal.replaceAll('_', ' ')}</li>
@@ -161,7 +161,7 @@ function Onboarding(){
                 </div>
             )}
             {err_msg && (
-                <p className="mt-4 text-sm text-red-600">
+                <p className="mt-4 text-sm text-app-danger">
                     {err_msg}
                 </p>
             )}
