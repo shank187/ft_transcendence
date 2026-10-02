@@ -1,4 +1,4 @@
-function CreatePlanForm()
+export default function CreatePlanForm()
 {
     
     return(
