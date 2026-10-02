@@ -75,7 +75,12 @@ export const get_me = async (req: AuthenticatedRequest,res: Response) => {
             username: true,
             email: true,
             displayName: true,
+            bio: true,
             avatarUrl: true,
+            experienceLevel: true,
+            primaryGoal :true,
+            unitSystem :true,
+            weightKg: true,
             onboardingCompletedAt: true
         }
     });
