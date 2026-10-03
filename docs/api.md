@@ -111,7 +111,7 @@ Required validation hardening before final QA:
 
 ### `GET /api/workout-plans`
 
-Lists the plans owned by the authenticated user. Used by the `/workouts` page (`frontend/src/features/workouts/workout.api.tsx`).
+Lists the plans owned by the authenticated user. Used by the `/workouts` page (`frontend/src/features/workouts/workout.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Request:** no path, query, or body parameters. Pagination is not implemented.
@@ -147,7 +147,7 @@ Status codes:
 - `401` missing, invalid, or expired access token — e.g. no `Authorization` header returns `{ "message": "Access token is required" }`
 - `500` unexpected server/database error (no feature-specific error body yet)
 
-Frontend type: `WorkoutPlan` in `frontend/src/features/workouts/workout.types.tsx` must stay in sync with this DTO.
+Frontend type: `WorkoutPlan` in `frontend/src/features/workouts/workout.types.ts` must stay in sync with this DTO.
 
 ## Frozen S3 target resources
 
