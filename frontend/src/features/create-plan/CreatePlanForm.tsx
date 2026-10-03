@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import Form_input from "../../components/ui/Form_input"
 import Button from "../../components/ui/Button"
 import createWorkoutPlan from "./create-plan.api"
+import { useNavigate } from "react-router-dom"
 
 export default function CreatePlanForm()
 {
@@ -9,6 +10,7 @@ export default function CreatePlanForm()
     const [description, setDescription] = useState("")
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
+    const navigate = useNavigate()
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>)=> {
         e.preventDefault()
@@ -21,10 +23,9 @@ export default function CreatePlanForm()
         try{
             const resp = await createWorkoutPlan({
             name: name.trim(),
-
             description: description.trim().length ? description.trim() : null
             })
-            console.log(resp)
+            navigate(`/workouts/plans/${resp.id}`, {replace: true})
         }
         catch(err){
             setError(err instanceof Error ? err.message: "Failed to send Your Workout.")
