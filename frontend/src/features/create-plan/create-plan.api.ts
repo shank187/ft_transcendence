@@ -6,12 +6,12 @@ export default async function createWorkoutPlan(infos: CreatePlanInput):Promise<
 {
     await new Promise((resolve) => setTimeout(resolve, 500));
     if(infos.name === "fail")
-        throw new Error("Fake Error");
+        throw new Error("Could not create plan. Please try again.");
     return ({id: "1234",
         name: infos.name,
         description: infos.description,
         type: "CUSTOM",
-        days: 4
+        days: 0
     })
 
 }

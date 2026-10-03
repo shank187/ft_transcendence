@@ -3,7 +3,10 @@ import CreatePlanForm from "../features/create-plan/CreatePlanForm";
 export default function CreatePlan()
 {
     return(
-        <CreatePlanForm/>
+        <div>
+            <h1>Create Plan</h1>
+            <CreatePlanForm/>
+        </div>
     )
 
 

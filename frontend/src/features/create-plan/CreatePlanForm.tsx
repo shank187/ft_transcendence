@@ -21,7 +21,8 @@ export default function CreatePlanForm()
         try{
             const resp = await createWorkoutPlan({
             name: name.trim(),
-            description: description.trim()
+
+            description: description.trim().length ? description.trim() : null
             })
             console.log(resp)
         }
@@ -41,14 +42,14 @@ export default function CreatePlanForm()
             type="text"
             value={name}
             onChange={setName}
-            label="Plan Name."
+            label="Plan name"
             />
             <Form_input
-            id = "Description."
+            id = "plan-description"
             type="text"
             value={description}
             onChange={setDescription}
-            label="Description."
+            label="Description"
             required ={false}
             />
             {error && <p className="text-app-danger">{error}</p>}
@@ -56,3 +57,5 @@ export default function CreatePlanForm()
         </form>
     )
 }
+
+
