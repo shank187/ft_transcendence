@@ -6,9 +6,9 @@ import Form_input from '../components/ui/Form_input';
 import Button from '../components/ui/Button';
 import Form_select from "../components/ui/Form_select";
 
-const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
+export const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
-const TRAINING_GOALS = [
+export const TRAINING_GOALS = [
     'BUILD_MUSCLE',
     'GAIN_STRENGTH',
     'LOSE_FAT',
