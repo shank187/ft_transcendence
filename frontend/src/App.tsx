@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
+import PlanDetail from './pages/PlanDetail';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
+          <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
         </Route>
       </Route>
     </Routes>

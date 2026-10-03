@@ -1,6 +1,13 @@
+import CreatePlanForm from "../features/create-plan/CreatePlanForm";
+
 export default function CreatePlan()
 {
     return(
-        <h1>Create Plan</h1>
+        <div>
+            <h1>Create Plan</h1>
+            <CreatePlanForm/>
+        </div>
     )
+
+
 }
