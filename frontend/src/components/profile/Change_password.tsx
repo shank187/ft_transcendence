@@ -34,6 +34,7 @@ export default function Change_password() {
 
         try
         {
+            set_isSaving(true);
             await api.post("/api/users/change_password", {currentPassword: current_password, newPassword: new_password});
 
             set_current_password("");
@@ -41,7 +42,7 @@ export default function Change_password() {
             set_confirm_password("");
             set_success("Password updated successfully.");
 
-        }catch
+        }catch (error)
         {
             set_error(error.response?.data.message || "Could not update your password.");
         }finally {
