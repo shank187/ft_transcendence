@@ -1,11 +1,10 @@
 import { useParams } from "react-router-dom"
+import PlanDetailView from "../features/plan-details/PlanDetailView"
 
 export default function PlanDetail()
 {
     const {planId} = useParams()
     return(
-        <div>
-            <h1>Plan detail of {planId}</h1>
-        </div>
+        <PlanDetailView planId = {planId}/>
     )
 }
