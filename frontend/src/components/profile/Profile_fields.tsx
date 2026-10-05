@@ -1,4 +1,4 @@
-import {useState , useEffect} from "react";
+import {useState} from "react";
 import api from '../../features/auth/axiosInstance';
 import Form_select from "../ui/Form_select";
 import Profile_input_field from "./Profile_input_field";
@@ -11,7 +11,7 @@ import {EXPERIENCE_LEVELS, TRAINING_GOALS} from '../../pages/Onboarding'
 const unitSystems = ["METRIC", "IMPERIAL"];
 
 
-interface User {
+export interface User {
     id: string;
     username: string;
     email: string;
@@ -27,13 +27,17 @@ interface User {
     hasPassword: boolean;
 }
 
+interface ProfileProps {
+    user: User;
+    on_user_updated: (user: User) => void;
+}
 
 
-export default function Profile_fields()
+export default function Profile_fields({ user, on_user_updated }: ProfileProps)
 {
 
-    const [edited_user, set_euser] = useState<User | null>(null);
-    const [original_user, set_ouser] = useState<User | null>(null);
+    const [edited_user, set_euser] = useState<User>(user);
+    const [original_user, set_ouser] = useState<User>(user);
     const [error, set_error] = useState("");
     const [success, set_success] = useState("");
 
@@ -51,6 +55,7 @@ export default function Profile_fields()
                 const response = await api.post<User>('/api/users/update_me', {user: edited_user});
                 set_euser(response.data);
                 set_ouser(response.data);
+                on_user_updated(response.data);
                 set_success("Profile updated successfully.");
             }
 
@@ -62,22 +67,22 @@ export default function Profile_fields()
 
 
 
-    useEffect(()=>{
-        async function get_user() {
+    // useEffect(()=>{
+    //     async function get_user() {
 
-            try {
-                set_error("");
-                const response = await api.get<User>('/api/users/me');
-                set_euser(response.data);
-                set_ouser(response.data);
-            }
-            catch{
-                set_error("Could not load your profile.");
-            }
-        }
+    //         try {
+    //             set_error("");
+    //             const response = await api.get<User>('/api/users/me');
+    //             set_euser(response.data);
+    //             set_ouser(response.data);
+    //         }
+    //         catch{
+    //             set_error("Could not load your profile.");
+    //         }
+    //     }
         
-        get_user();
-    }, []);
+    //     get_user();
+    // }, []);
 
  
 
@@ -116,6 +121,7 @@ export default function Profile_fields()
             {error}
         </div>
         <Button onClick={handle_click}> save changes</Button>
+        
         {edited_user.hasPassword ? (<Change_password/>) : (<div> You sign in with Google. There is no password to change here.</div>)}
     </div>
     );

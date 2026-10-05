@@ -3,6 +3,8 @@ import { prisma } from '../../lib/prisma';
 import { AuthenticatedRequest } from '../../middleware/authenticate';
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
+import { unlink } from "node:fs/promises";
+
 
 const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const TRAINING_GOALS = ['BUILD_MUSCLE', 'GAIN_STRENGTH', 'LOSE_FAT', 'IMPROVE_GENERAL_FITNESS', 'IMPROVE_ENDURANCE', 'MAINTAIN_FITNESS'];
@@ -198,3 +200,47 @@ export const change_password = async (req: AuthenticatedRequest, res: Response) 
     }
 
 }
+
+
+
+export const update_avatar = async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.file)
+        return res.status(400).json({ message: "Please select an image." });
+
+    try {
+        const old_avatar = await prisma.user.findUnique ({
+            where: {id :req.userId},
+            select:{avatarUrl:true}
+        });
+        const avatarUrl = "/uploads/avatars/" + req.file.filename;
+
+        const user = await prisma.user.update({
+            where: { id: req.userId },
+            data: { avatarUrl },
+            select: { avatarUrl: true },
+        });
+
+        if (old_avatar && old_avatar.avatarUrl)
+        {
+            const old_url = old_avatar.avatarUrl;
+            if (old_url.startsWith("/uploads/avatars/") && old_url !== avatarUrl)
+            {
+                const filename = old_url.split('/').pop();
+                if (filename)
+                {
+                    // try
+                    // {
+                        await unlink("uploads/avatars/" + filename);
+                    // }catch
+                    // {
+                    //     return res.status(500).json({message: "Could not delete the old avatar."});
+                    // }
+                }
+            }
+        }
+
+        return res.status(200).json({message: "Avatar updated successfully.", avatarUrl: user.avatarUrl});
+    } catch {
+        return res.status(500).json({message: "Could not update your avatar."});
+    }
+};

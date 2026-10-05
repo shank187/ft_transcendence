@@ -28,7 +28,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
-          <Route path="/profile/edit" element={<Edit_profile />} />
+          <Route path="profile/settings" element={<Edit_profile />} />
         </Route>
       </Route>
     </Routes>
