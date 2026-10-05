@@ -61,7 +61,7 @@ function Login()
             Register
         </Button>
     <div className="mx-auto w-full max-w-xl px-8 py-50">
-        <h1 className="mb-6 text-lg font-semibold text-gray-900">
+        <h1 className="mb-6 text-lg font-semibold text-app-text">
             Log in
         </h1>
 

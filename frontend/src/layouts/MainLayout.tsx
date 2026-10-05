@@ -10,11 +10,11 @@ const nav_items = [
 ];
 function MainLayout() {
   return (
-        <div className="min-h-screen bg-gray-100 md:flex">
-            <div className="flex gap-4 p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2 md:border-r md:border-gray-200 md:bg-white">
+        <div className="min-h-screen bg-app-canvas md:flex">
+            <div className="flex gap-4 p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2 md:border-r md:border-app-border md:bg-app-surface">
 
                 {nav_items.map((item)=> (
-                    <NavLink key={item.to} to={item.to} className="rounded-md px-3 py-2 hover:bg-gray-100" >{item.label}</NavLink>
+                    <NavLink key={item.to} to={item.to} className="rounded-md px-3 py-2 hover:bg-app-surface-hover" >{item.label}</NavLink>
                 ))}
             </div>
 
