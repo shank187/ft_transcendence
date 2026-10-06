@@ -7,6 +7,8 @@ const nav_items = [
     { to: '/progress', label: 'Progress' },
     { to: '/social', label: 'Social' },
     { to: '/profile', label: 'Profile' },
+    
+
 ];
 function MainLayout() {
   return (

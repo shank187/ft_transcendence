@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import Root from './pages/Root';
+import LandingPage from './pages/landingPage';
 import Register from './pages/Register';
 import Login from './pages/login';
 import Onboarding from './pages/Onboarding';
@@ -10,12 +10,13 @@ import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
 import PlanDetail from './pages/PlanDetail';
+import GymsearchPage from './features/Gyms/components/GymsearchPage';
 
 function App() {
   return (
     <Routes>
       <Route element={<GuestRoute />}>
-        <Route path="/" element={<Root />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
@@ -26,6 +27,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/gyms" element={<GymsearchPage />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
