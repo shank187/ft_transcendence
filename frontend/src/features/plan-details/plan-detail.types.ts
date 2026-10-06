@@ -8,7 +8,7 @@ export interface planDay
     setCount: number,
 }
 
-export interface planDetail{
+export interface PlanDetail{
     id:string
     name:string,
     description: string | null,
