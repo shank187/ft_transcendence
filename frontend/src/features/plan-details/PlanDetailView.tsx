@@ -5,6 +5,7 @@ import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
 import Button from "../../components/ui/Button"
 import PlanHeader from "./PlanHeader"
+import DayRow from "./DayRow"
 
 export default function PlanDetailView(props: {planId: string})
 {
@@ -46,10 +47,20 @@ export default function PlanDetailView(props: {planId: string})
         <div>
             <PlanHeader
             name={plan.name}
-            descriptions={plan.description}
+            description={plan.description}
             type={plan.type}
-            daysCount={plan.days.length}
+            dayCount={plan.days.length}
             />
+            {plan.days.length === 0 ? (
+                <p>no Workout day Yet.</p>
+            ) : (
+                <ul>
+                    {plan.days.map((day)=>(
+                        <ol key={day.id}><DayRow day={day} /></ol>
+                    ))}
+                </ul>
+            )
+            }
         </div>
     )
 } 
