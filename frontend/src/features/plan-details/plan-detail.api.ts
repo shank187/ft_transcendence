@@ -1,12 +1,16 @@
-import { resolve } from "path";
-import type { planDetail } from "./plan-detail.types";
+import type {PlanDetail } from "./plan-detail.types";
 
-export default async function getPlanDetails(planId: string): Promise<planDetail> {
+
+// FAKE-DATA:
+export default async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
 
     await new Promise((resolve)=> setTimeout(resolve, 500))
+
     if(planId === "fail")
         throw new Error("Failed to load workout, try again")
-    return ({
+
+    if(planId === "missing") return null
+    const plan: PlanDetail = {
         id: planId,
         name: "Push Pull Legs",
         description: "Hypertrophy split, 3 days per week",
@@ -31,6 +35,8 @@ export default async function getPlanDetails(planId: string): Promise<planDetail
             setCount: 0
         },
     ]
-    })
-    
+    }
+    if(planId === "empty")
+        return{...plan, days: []}
+    return plan;
 }
