@@ -6,10 +6,7 @@ import GymsLogos from "./page_comp/gymLogos"
 import Feature from "./page_comp/feature"
 
 
-
-
 function LandingPage(){
-
     return (
         <main>
             {/* <Link to="/login">Log In</Link> */}
@@ -21,5 +18,4 @@ function LandingPage(){
         </main>
     )
 }
-
 export default LandingPage;
