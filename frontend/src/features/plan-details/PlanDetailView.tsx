@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from "react"
 import type {PlanDetail} from "./plan-detail.types"
 import getPlanDetails from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
+import ErrorState from "../../components/states/ErrorState"
+import Button from "../../components/ui/Button"
+import PlanHeader from "./PlanHeader"
 
 export default function PlanDetailView(props: {planId: string})
 {
@@ -25,11 +28,28 @@ export default function PlanDetailView(props: {planId: string})
     useEffect(()=>{
         loadPlan();
     },[loadPlan])
-    if(loading) return <LoadingState message="Loading details..."/>
-        
+
+    if(loading) return <LoadingState message="Loading plan detail..."/>
+    if(error)
+        return(
+            <ErrorState
+            message={error}
+            action={<Button
+                    onClick={loadPlan}
+                    >
+                Retry
+                </Button>}
+            />
+        )
+    if(!plan) return <h1>Plan not found.</h1>
     return(
         <div>
-            
+            <PlanHeader
+            name={plan.name}
+            descriptions={plan.description}
+            type={plan.type}
+            daysCount={plan.days.length}
+            />
         </div>
     )
 } 
