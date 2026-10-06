@@ -21,4 +21,5 @@ function LandingPage(){
         </main>
     )
 }
+
 export default LandingPage;
