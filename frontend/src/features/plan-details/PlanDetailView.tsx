@@ -10,15 +10,21 @@ import Form_input from "../../components/ui/Form_input"
 
 export default function PlanDetailView(props: {planId: string})
 {
+    // plan details page
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string|null>(null)
     const [plan, setPlan] = useState<PlanDetail|null>(null)
    
-    //form of addig a day
+    //form for creating a day
     const [addDayForm, setAddDayVisibility] = useState(false)
     const [dayname, setDayName] = useState("")
     const [nameError, setErrorForm] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
+
+    // menu for renaming/deleting a day
+    const [renamingDayId, setRenamingDayId] = useState<string | null>(null)
+    const [renameName, setRenameName] = useState("")
+    const [dayMenu, setDayMenu] = useState<string | null>(null)
 
     const loadPlan = useCallback( async ()=>{
         setError(null)
@@ -96,7 +102,18 @@ export default function PlanDetailView(props: {planId: string})
                     { [...plan.days]
                     .sort((a, b) => a.dayOrder - b.dayOrder)
                     .map(day => (
-                        <li key={day.id}><DayRow day={day} /></li>
+                        <li key={day.id}>
+                            <DayRow
+                            day={day}
+                            dropDownMenu={dayMenu}
+                            setDropDown={setDayMenu}
+                            onRename={selectedDay => {
+                                setDayMenu(null)
+                                setRenamingDayId(selectedDay.id)
+                                setRenameName(selectedDay.name)
+                            }}
+                            />
+                        </li>
                     ))}
                 </ol>
             )
@@ -123,11 +140,12 @@ export default function PlanDetailView(props: {planId: string})
             {plan.days.length < 7 && !addDayForm &&     
                 <Button 
                     onClick={()=>setAddDayVisibility(true)}
-                    variant="secondary"
+                    variant="primary"
                 >
                     Add day
                 </Button>
             }
+            {plan.days.length >= 7 && (<p>A plan can contain at most 7 days.</p>)}
         </div>
     )
 } 
