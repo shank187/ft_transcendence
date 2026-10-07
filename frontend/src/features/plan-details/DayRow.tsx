@@ -12,6 +12,7 @@ export default function DayRow(
         dropDownMenu: string|null,
         setDropDown: (Daymenu: string | null)=> void
         onRename: (day: PlanDay) => void
+        onDelete: (day: PlanDay) => void 
     }
 ){
 
@@ -39,7 +40,7 @@ export default function DayRow(
         {props.dropDownMenu === day.id && (
         <DropDownMenu actions={[
             { id: `rename-${day.id}`, label: "Rename", onSelect: () => props.onRename(day) },
-            { id: `delete-${day.id}`, label: "Delete", onSelect: () => {}, danger: true },
+            { id: `delete-${day.id}`, label: "Delete", onSelect: () => props.onDelete(day), danger: true },
         ]} />
         )}
         </Card>

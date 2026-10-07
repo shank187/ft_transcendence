@@ -71,3 +71,11 @@ export async function renameWorkoutDay(planId: string, dayId: string, name: stri
     if (name === "fail") throw new Error("Failed to rename your day, try again.")
     return { id: dayId, name, dayOrder: 0, exerciseCount: 0, setCount: 0 } // UI merges only `name`
 }
+
+// FAKE-DATA: real version will be DELETE /api/workout-plans/:planId/days/:dayId (204, no body)
+// Fail trigger: dayId "legs-day-3". The backend will also renumber dayOrder.
+export async function deleteWorkoutDay(planId: string, dayId: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    if (planId === "missing") throw new Error("Plan not found or unavailable")
+    if (dayId === "legs-day-3") throw new Error("Failed to delete your day, try again.")
+}
