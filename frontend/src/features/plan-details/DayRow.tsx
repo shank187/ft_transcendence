@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import DropDownMenu from "../../components/ui/DropdownMenu";
@@ -26,16 +25,16 @@ export default function DayRow(
         <h3>Day {day.dayOrder} · {day.name}</h3>
         <p>{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
         <Button
-        variant="ghost"
-        aria-label={`Actions for ${day.name}`}
-        aria-expanded={props.dropDownMenu === day.id}
-        onClick={() =>
-            props.setDropDown(
-            props.dropDownMenu === day.id ? null : day.id
-            )
-        }
+            variant="ghost"
+            aria-label={`Actions for ${day.name}`}
+            aria-expanded={props.dropDownMenu === day.id}
+            onClick={() =>
+                props.setDropDown(
+                props.dropDownMenu === day.id ? null : day.id
+                )
+            }
         >
-        ⋮
+            ⋮
         </Button>
         {props.dropDownMenu === day.id && (
         <DropDownMenu actions={[
