@@ -1,5 +1,5 @@
 
-export interface planDay
+export interface PlanDay
 {
     id: string,
     name: string,
@@ -13,5 +13,5 @@ export interface PlanDetail{
     name:string,
     description: string | null,
     type: string
-    days: planDay[],
+    days: PlanDay[],
 }
