@@ -1,4 +1,4 @@
-import type {PlanDetail } from "./plan-detail.types";
+import type {PlanDay, PlanDetail } from "./plan-detail.types";
 
 
 // FAKE-DATA:
@@ -39,4 +39,28 @@ export default async function getPlanDetails(planId: string): Promise<PlanDetail
     if(planId === "empty")
         return{...plan, days: []}
     return plan;
+}
+
+// FAKE-DATA:
+// FAKE-DATA: nextOrder is supplied by the UI only for this mock.
+// The real backend will calculate it.
+export async function createWorkoutDay(
+    planId: string,
+    name: string,
+    nextOrder: number
+    ): Promise<PlanDay> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    if (planId === "missing")
+        throw new Error("Plan not found or unavailable")
+    if (name === "fail")
+        throw new Error("Failed to create your day, try again.")
+
+    return {
+        id: crypto.randomUUID(),
+        name,
+        dayOrder: nextOrder,
+        exerciseCount: 0,
+        setCount: 0,
+    }
 }
