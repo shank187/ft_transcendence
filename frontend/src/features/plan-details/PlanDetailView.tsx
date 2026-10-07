@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState} from "react"
 import type {PlanDetail} from "./plan-detail.types"
-import getPlanDetails, { createWorkoutDay } from "./plan-detail.api"
+import getPlanDetails, { createWorkoutDay, renameWorkoutDay } from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
 import Button from "../../components/ui/Button"
 import PlanHeader from "./PlanHeader"
 import DayRow from "./DayRow"
 import Form_input from "../../components/ui/Form_input"
+import Dialog from "../../components/ui/Dialog"
 
 export default function PlanDetailView(props: {planId: string})
 {
@@ -14,7 +15,7 @@ export default function PlanDetailView(props: {planId: string})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string|null>(null)
     const [plan, setPlan] = useState<PlanDetail|null>(null)
-   
+
     //form for creating a day
     const [addDayForm, setAddDayVisibility] = useState(false)
     const [dayname, setDayName] = useState("")
@@ -25,6 +26,34 @@ export default function PlanDetailView(props: {planId: string})
     const [renamingDayId, setRenamingDayId] = useState<string | null>(null)
     const [renameName, setRenameName] = useState("")
     const [dayMenu, setDayMenu] = useState<string | null>(null)
+
+    //rename
+    const [renameError, setRenameError] = useState<string | null>(null)
+
+    const closeRename = () => {
+        setRenamingDayId(null)
+        setRenameError(null)
+    }
+
+// (3) Save
+    const submitRename = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (submitting || !renamingDayId) return
+        const name = renameName.trim()
+        if (name.length === 0 || name.length > 30) { setRenameError("Invalid name"); return }
+        setSubmitting(true)
+        try {
+            await renameWorkoutDay(props.planId, renamingDayId, name)
+            setPlan(previous => previous
+                ? { ...previous, days: previous.days.map(d => d.id === renamingDayId ? { ...d, name } : d) }
+                : previous)
+            closeRename()
+        } catch (err) {
+            setRenameError(err instanceof Error ? err.message : "could not rename day.")
+        } finally {
+            setSubmitting(false)
+        }
+    }
 
     const loadPlan = useCallback( async ()=>{
         setError(null)
@@ -146,6 +175,15 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>
             }
             {plan.days.length >= 7 && (<p>A plan can contain at most 7 days.</p>)}
+            <Dialog open={renamingDayId !== null} title="Rename day" onClose={closeRename}>
+                <form onSubmit={submitRename} noValidate>
+                    <Form_input id="rename-day" label="Day name" type="text"
+                                value={renameName} onChange={setRenameName} />
+                    {renameError && <p className="text-app-danger">{renameError}</p>}
+                    <Button type="button" variant="secondary" onClick={closeRename}>Cancel</Button>
+                    <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
+                </form>
+            </Dialog>
         </div>
     )
 } 

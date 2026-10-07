@@ -64,3 +64,10 @@ export async function createWorkoutDay(
         setCount: 0,
     }
 }
+
+// FAKE-DATA: real version will be PATCH /api/workout-plans/:planId/days/:dayId
+export async function renameWorkoutDay(planId: string, dayId: string, name: string): Promise<PlanDay> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    if (name === "fail") throw new Error("Failed to rename your day, try again.")
+    return { id: dayId, name, dayOrder: 0, exerciseCount: 0, setCount: 0 } // UI merges only `name`
+}
