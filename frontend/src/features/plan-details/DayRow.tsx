@@ -1,10 +1,10 @@
 import Card from "../../components/ui/Card";
-import type { planDay } from "./plan-detail.types";
+import type { PlanDay } from "./plan-detail.types";
 
 
 
 
-export default function DayRow(props: { day: planDay}) {
+export default function DayRow(props: { day: PlanDay}) {
     const day = props.day;
     const exercises = `${day.exerciseCount} ${day.exerciseCount === 1 ? "exercise" : "exercises"}`;
     const sets = `${day.setCount} ${day.setCount === 1 ? "set" : "sets"}`;

@@ -36,7 +36,7 @@ export default function PlanDetailView(props: {planId: string})
             <ErrorState
             message={error}
             action={<Button
-                    onClick={loadPlan}
+                    onClick={() => void loadPlan()}
                     >
                 Retry
                 </Button>}
@@ -54,11 +54,11 @@ export default function PlanDetailView(props: {planId: string})
             {plan.days.length === 0 ? (
                 <p>no Workout day Yet.</p>
             ) : (
-                <ul>
+                <ol>
                     {plan.days.map((day)=>(
-                        <ol key={day.id}><DayRow day={day} /></ol>
+                        <li key={day.id}><DayRow day={day} /></li>
                     ))}
-                </ul>
+                </ol>
             )
             }
         </div>
