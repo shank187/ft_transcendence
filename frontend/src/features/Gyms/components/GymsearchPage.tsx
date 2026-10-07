@@ -13,20 +13,24 @@ function GymsearchPage(){
     const [textSearched, setTextSearched] = useState("");
     const[loading, setLoading] = useState(true);
 
+
     useEffect(()=> {
+        let ignore = false;
         async function fetchGyms(){
-            // setLoading(true);
             if (textSearched === "") {
                 setGymList([]);
                 setLoading(false);
                 return ;
             }
+            setLoading(true);
 
             try
             {
                 const fakeData = await getFakeData(textSearched);
-                setLoading(false);
-                setGymList(fakeData);
+                if (ignore === false){
+                    setLoading(false);
+                    setGymList(fakeData);
+                }
                 // const res = await axios.get("api/gym?search=" + textSearched);
                 // setGymList(res.data);
             }
@@ -38,19 +42,26 @@ function GymsearchPage(){
             }
         }
         fetchGyms();
+        return  function cleanup(){
+            ignore = true;
+        }
     }, [textSearched]);
-    if (loading) {
-        return <LoadingState message="Loading gyms..." />;
-    }
+    // if (loading) {
+    //     return <LoadingState message="Loading gyms..." />;
+    // }
     return (
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
             <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
-            <div>
-                {GymList.map((gym) =>(
-                    <GymCard key={gym.id} gym={gym}/>
-                ))}
-            </div>
+            {loading ? 
+                (<LoadingState message="Loading gyms..." />) 
+                : (
+                <div>
+                    {GymList.map((gym) =>(
+                        <GymCard key={gym.id} gym={gym}/>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }
