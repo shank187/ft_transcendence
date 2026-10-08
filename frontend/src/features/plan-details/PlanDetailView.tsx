@@ -3,6 +3,8 @@ import type {PlanDay, PlanDetail} from "./plan-detail.types"
 import getPlanDetails from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
+import EmptyState from "../../components/states/EmptyState"
+import emptyStateIcon from "../../assets/empty-icon.png"
 import Button from "../../components/ui/Button"
 import PlanHeader from "./PlanHeader"
 import DayRow from "./DayRow"
@@ -95,9 +97,26 @@ export default function PlanDetailView(props: {planId: string})
             type={plan.type}
             dayCount={plan.days.length}
             />
-            {plan.days.length === 0 ? (
-                <p>no Workout day Yet.</p>
-            ) : (
+            {plan.days.length === 0 && !addDayForm && (
+                <EmptyState
+                icon={
+                    <img
+                    src={emptyStateIcon}
+                    alt=""
+                    className="w-32"
+                    />
+                }
+                title="No days yet"
+                description="Add your first day to start planning."
+                action={<Button
+                            className="m-5"
+                            onClick={()=>setAddDayVisibility(true)}
+                        >
+                    Add day
+                </Button>}
+                />
+            )}
+            {plan.days.length > 0 && (
                 <ol className="flex flex-col gap-3">
                     { [...plan.days]
                     .sort((a, b) => a.dayOrder - b.dayOrder)
@@ -119,8 +138,7 @@ export default function PlanDetailView(props: {planId: string})
                         </li>
                     ))}
                 </ol>
-            )
-            }
+            )}
             {addDayForm &&
                 <AddDayForm
                     planId={props.planId}
@@ -129,7 +147,7 @@ export default function PlanDetailView(props: {planId: string})
                     onClose={() => setAddDayVisibility(false)}
                 />
             }
-            {plan.days.length < 7 && !addDayForm &&     
+            {plan.days.length > 0 && plan.days.length < 7 && !addDayForm &&
                 <Button 
                     onClick={()=>setAddDayVisibility(true)}
                     variant="primary"
