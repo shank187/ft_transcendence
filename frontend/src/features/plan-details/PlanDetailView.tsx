@@ -50,6 +50,7 @@ export default function PlanDetailView(props: {planId: string})
         const name = renameName.trim()
         if (name.length === 0 || name.length > 30) { setRenameError("Invalid name"); return }
         setSubmitting(true)
+        setRenameError(null)
         try {
             await renameWorkoutDay(props.planId, renamingDayId, name)
             setPlan(previous => previous
@@ -211,7 +212,7 @@ export default function PlanDetailView(props: {planId: string})
                 </form>
             </Dialog>
             <Dialog open={deletingDayId !== null} title="Confirm Deletion" onClose={closeDayDelete}>
-                deleteDayError && <p className="text-app-danger">{deleteDayError}</p>
+                {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
                 <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting":"Confirm"}</Button>
                 <Button variant="secondary" onClick={closeDayDelete}>Cancel</Button>
             </Dialog>
