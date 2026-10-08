@@ -54,7 +54,8 @@ export async function createWorkoutDay(
     if (planId === "missing")
         throw new Error("Plan not found or unavailable")
     if (name === "fail")
-        throw new Error("Failed to create your day, try again.")
+        throw new Error("Failed to create your day, try again.")    
+
 
     return {
         id: crypto.randomUUID(),
@@ -69,6 +70,8 @@ export async function createWorkoutDay(
 export async function renameWorkoutDay(planId: string, dayId: string, name: string): Promise<PlanDay> {
     await new Promise(resolve => setTimeout(resolve, 500))
     if (name === "fail") throw new Error("Failed to rename your day, try again.")
+    if (name === "fail2")
+        throw new Error("another failure.")
     return { id: dayId, name, dayOrder: 0, exerciseCount: 0, setCount: 0 } // UI merges only `name`
 }
 
