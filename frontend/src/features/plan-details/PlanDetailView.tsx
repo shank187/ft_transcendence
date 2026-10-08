@@ -1,13 +1,14 @@
-import React, {useCallback, useEffect, useState} from "react"
-import type {PlanDetail} from "./plan-detail.types"
-import getPlanDetails, { createWorkoutDay, deleteWorkoutDay, renameWorkoutDay } from "./plan-detail.api"
+import {useCallback, useEffect, useState} from "react"
+import type {PlanDay, PlanDetail} from "./plan-detail.types"
+import getPlanDetails from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
 import Button from "../../components/ui/Button"
 import PlanHeader from "./PlanHeader"
 import DayRow from "./DayRow"
-import Form_input from "../../components/ui/Form_input"
-import Dialog from "../../components/ui/Dialog"
+import AddDayForm from "./AddDayForm"
+import RenameDayDialog from "./RenameDayDialog"
+import DeleteDayDialog from "./DeleteDayDialog"
 
 export default function PlanDetailView(props: {planId: string})
 {
@@ -18,66 +19,41 @@ export default function PlanDetailView(props: {planId: string})
 
     //form for creating a day
     const [addDayForm, setAddDayVisibility] = useState(false)
-    const [dayname, setDayName] = useState("")
-    const [nameError, setErrorForm] = useState<string | null>(null)
-    const [submitting, setSubmitting] = useState(false)
 
     // menu for renaming/deleting a day
     const [dayMenu, setDayMenu] = useState<string | null>(null)
     
     //rename day
     const [renamingDayId, setRenamingDayId] = useState<string | null>(null)
-    const [renameName, setRenameName] = useState("")
-    const [renameError, setRenameError] = useState<string | null>(null)
 
     //delete day 
     const[deletingDayId, setdeletingDayId] = useState<string|null>(null)
-    const [deleteDayError, setDeleteDayError] = useState<string|null>(null)
 
     const closeRename = () => {
         setRenamingDayId(null)
-        setRenameError(null)
     }
     const closeDayDelete = () =>{
         setdeletingDayId(null)
-        setDeleteDayError(null)
     }
 
-// (3) Save
-    const submitRename = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (submitting || !renamingDayId) return
-        const name = renameName.trim()
-        if (name.length === 0 || name.length > 30) { setRenameError("Invalid name"); return }
-        setSubmitting(true)
-        setRenameError(null)
-        try {
-            await renameWorkoutDay(props.planId, renamingDayId, name)
-            setPlan(previous => previous
-                ? { ...previous, days: previous.days.map(d => d.id === renamingDayId ? { ...d, name } : d) }
-                : previous)
-            closeRename()
-        } catch (err) {
-            setRenameError(err instanceof Error ? err.message : "could not rename day.")
-        } finally {
-            setSubmitting(false)
-        }
+    const addDayToPlan = (createdDay: PlanDay) => {
+        setPlan(previous =>
+                previous
+                ? {...previous, days: [...previous.days, createdDay]}
+                :previous
+        )
     }
-    const deleteDay = async ()=>{
-        if(! deletingDayId) return
-            setSubmitting(true)
-        try{
-            const remainingDays = await deleteWorkoutDay(props.planId, deletingDayId);
-            setPlan(previous => previous 
-                ?{...previous, days: remainingDays}
-                : previous )
-            closeDayDelete()
-        }catch(err){
-            setDeleteDayError(err instanceof Error ? err.message : "Cant delete this day")
-        }finally{
-            setSubmitting(false)
-        }
+    const renameDayInPlan = (renamedDay: PlanDay) => {
+        setPlan(previous => previous
+            ? { ...previous, days: previous.days.map(d => d.id === renamedDay.id ? renamedDay : d) }
+            : previous)
     }
+    const replacePlanDays = (remainingDays: PlanDay[]) => {
+        setPlan(previous => previous 
+            ?{...previous, days: remainingDays}
+            : previous )
+    }
+
     const loadPlan = useCallback( async ()=>{
         setError(null)
         setLoading(true)
@@ -89,37 +65,6 @@ export default function PlanDetailView(props: {planId: string})
             setLoading(false)
         }
     }, [props.planId])
-
-    const submitDay =  async (e: React.FormEvent<HTMLFormElement>) =>{
-        e.preventDefault();
-        if(submitting || !plan) return
-        const name = dayname.trim()
-        setErrorForm(null)
-        if( name.length === 0  || name.length  > 30){
-            setErrorForm("Invalid name")
-            return
-        }
-        if (plan && plan.days.length >= 7) {
-            setErrorForm("A plan can contain at most 7 days.")
-            return
-        }
-        setSubmitting(true)
-        try{
-            const createdDay = await createWorkoutDay(props.planId, name);
-            setPlan(previous => 
-                    previous
-                    ? {...previous, days: [...previous.days, createdDay]}
-                    :previous
-            )
-            setAddDayVisibility(false)
-            setDayName("")
-        }catch(err)
-        {
-            setErrorForm(err instanceof Error ? err.message : "could not add day.")
-        }finally{
-            setSubmitting(false)
-        }
-    }
 
     useEffect(()=>{
         loadPlan();
@@ -138,6 +83,10 @@ export default function PlanDetailView(props: {planId: string})
             />
         )
     if(!plan) return <h1>Plan not found.</h1>
+
+    const renamingDay = plan.days.find(d => d.id === renamingDayId)
+    const deletingDay = plan.days.find(d => d.id === deletingDayId)
+
     return(
         <div>
             <PlanHeader
@@ -161,7 +110,6 @@ export default function PlanDetailView(props: {planId: string})
                             onRename={selectedDay => {
                                 setDayMenu(null)
                                 setRenamingDayId(selectedDay.id)
-                                setRenameName(selectedDay.name)
                             }}
                             onDelete={selectedDay => {
                                 setDayMenu(null)
@@ -174,23 +122,12 @@ export default function PlanDetailView(props: {planId: string})
             )
             }
             {addDayForm &&
-                <form onSubmit={submitDay} noValidate>
-                    <Form_input
-                        id="day-name"
-                        label="Enter a day name."
-                        value = {dayname}
-                        onChange={setDayName}
-                        type="text"
-                    />
-                    {nameError && (<p className="text-sm text-app-danger">{nameError}</p>)}
-                    <Button
-                    type="submit"
-                    disabled = {submitting}
-                    >
-                        Save
-                    </Button>
-                    {!submitting && (<Button variant="secondary"  onClick={()=>setAddDayVisibility(false) }>Cancel</Button>)}
-                </form>
+                <AddDayForm
+                    planId={props.planId}
+                    dayCount={plan.days.length}
+                    onAdded={addDayToPlan}
+                    onClose={() => setAddDayVisibility(false)}
+                />
             }
             {plan.days.length < 7 && !addDayForm &&     
                 <Button 
@@ -201,20 +138,22 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>
             }
             {plan.days.length >= 7 && (<p>A plan can contain at most 7 days.</p>)}
-            <Dialog open={renamingDayId !== null} title="Rename the day" onClose={closeRename}>
-                <form onSubmit={submitRename} noValidate>
-                    <Form_input id="rename-day" label="Day name" type="text"
-                                value={renameName} onChange={setRenameName} />
-                    {renameError && <p className="text-app-danger">{renameError}</p>}
-                    <Button type="button" variant="secondary" onClick={closeRename}>Cancel</Button>
-                    <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
-                </form>
-            </Dialog>
-            <Dialog open={deletingDayId !== null} title="Confirm Deletion" onClose={closeDayDelete}>
-                {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
-                <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting":"Confirm"}</Button>
-                <Button variant="secondary" onClick={closeDayDelete}>Cancel</Button>
-            </Dialog>
+            {renamingDay && (
+                <RenameDayDialog
+                    planId={props.planId}
+                    day={renamingDay}
+                    onClose={closeRename}
+                    onRenamed={renameDayInPlan}
+                />
+            )}
+            {deletingDay && (
+                <DeleteDayDialog
+                    planId={props.planId}
+                    day={deletingDay}
+                    onClose={closeDayDelete}
+                    onDeleted={replacePlanDays}
+                />
+            )}
         </div>
     )
 } 
