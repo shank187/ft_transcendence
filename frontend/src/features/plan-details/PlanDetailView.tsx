@@ -90,12 +90,10 @@ export default function PlanDetailView(props: {planId: string})
     const deletingDay = plan.days.find(d => d.id === deletingDayId)
 
     return(
-        <div>
+        <div className="space-y-5">
             <PlanHeader
             name={plan.name}
             description={plan.description}
-            type={plan.type}
-            dayCount={plan.days.length}
             />
             {plan.days.length === 0 && !addDayForm && (
                 <EmptyState
@@ -116,7 +114,7 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>}
                 />
             )}
-            {plan.days.length > 0 && (<h2>Days · {plan.days.length}/7</h2>)}
+            {plan.days.length > 0 && (<h2 className="text-lg font-semibold">Days · {plan.days.length}/7</h2>)}
             {plan.days.length > 0 && (
                 <ol className="flex flex-col gap-3">
                     { [...plan.days]
