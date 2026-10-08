@@ -1,4 +1,4 @@
-import React, { use, useCallback, useEffect, useState} from "react"
+import React, {useCallback, useEffect, useState} from "react"
 import type {PlanDetail} from "./plan-detail.types"
 import getPlanDetails, { createWorkoutDay, deleteWorkoutDay, renameWorkoutDay } from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
@@ -64,13 +64,17 @@ export default function PlanDetailView(props: {planId: string})
     }
     const deleteDay = async ()=>{
         if(! deletingDayId) return
+            setSubmitting(true)
         try{
             await deleteWorkoutDay(props.planId, deletingDayId);
+            setPlan(previous=> previous
+                ? {...previous, days: previous.days.filter(day => day.id !== deletingDayId)}
+            : previous)
+            closeDayDelete()
         }catch(err){
             setDeleteDayError(err instanceof Error ? err.message : "Cant delete this day")
-            //TODO-NEXT: work on deleting the day and re rendering
         }finally{
-            closeDayDelete()
+            setSubmitting(false)
         }
     }
     const loadPlan = useCallback( async ()=>{
@@ -188,9 +192,6 @@ export default function PlanDetailView(props: {planId: string})
                     {!submitting && (<Button variant="secondary"  onClick={()=>setAddDayVisibility(false) }>Cancel</Button>)}
                 </form>
             }
-            {
-                deleteDayError && <p className="text-app-danger">{deleteDayError}</p>
-            }
             {plan.days.length < 7 && !addDayForm &&     
                 <Button 
                     onClick={()=>setAddDayVisibility(true)}
@@ -210,7 +211,8 @@ export default function PlanDetailView(props: {planId: string})
                 </form>
             </Dialog>
             <Dialog open={deletingDayId !== null} title="Confirm Deletion" onClose={closeDayDelete}>
-                <Button variant="danger" onClick={deleteDay} >Confirm</Button>
+                deleteDayError && <p className="text-app-danger">{deleteDayError}</p>
+                <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting":"Confirm"}</Button>
                 <Button variant="secondary" onClick={closeDayDelete}>Cancel</Button>
             </Dialog>
         </div>
