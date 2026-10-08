@@ -14,10 +14,12 @@ export default function DropDownMenu(props:{
     onClose: ()=> void,
 })
 {
+    const { onClose } = props;
+
     useEffect(() => {
         const handleKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                props.onClose();
+                onClose();
             }
         };
 
@@ -26,7 +28,7 @@ export default function DropDownMenu(props:{
         return () => {
             document.removeEventListener("keydown", handleKey);
         };
-    }, [props.onClose]);
+    }, [onClose]);
 
     return(
         <menu>
