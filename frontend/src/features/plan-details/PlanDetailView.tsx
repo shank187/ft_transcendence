@@ -98,7 +98,7 @@ export default function PlanDetailView(props: {planId: string})
             {plan.days.length === 0 ? (
                 <p>no Workout day Yet.</p>
             ) : (
-                <ol>
+                <ol className="flex flex-col gap-3">
                     { [...plan.days]
                     .sort((a, b) => a.dayOrder - b.dayOrder)
                     .map(day => (
