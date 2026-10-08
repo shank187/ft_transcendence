@@ -29,10 +29,11 @@ export default function DeleteDayDialog(props: {
     }
 
     return (
-        <Dialog open={true} title="Confirm Deletion" onClose={props.onClose}>
+        <Dialog open={true} title={`Delete ${props.day.name}?`} onClose={props.onClose}>
+            <p>Past workouts stay in your history.</p>
             {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
-            <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting":"Confirm"}</Button>
             <Button variant="secondary" onClick={props.onClose}>Cancel</Button>
+            <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting...":"Delete day"}</Button>
         </Dialog>
     )
 }
