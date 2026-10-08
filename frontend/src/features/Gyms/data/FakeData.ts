@@ -200,3 +200,16 @@ export async function getFakeData(searchedText : string) : Promise<Gym[]>{
         }, 500);
     })
 }
+
+
+export async function getGymById(id : string): Promise<Gym | undefined >{
+    return new Promise(function(reslove)
+    { 
+        setTimeout(function(){
+            const foundGym = mockGyms.find(function(gym){
+                return gym.id === id;
+            });
+            reslove(foundGym);
+        }, 500);
+    })
+}

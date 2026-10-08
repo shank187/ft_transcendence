@@ -19,7 +19,7 @@ function GymCard({gym} : GymCardPara){
             </div>
             <img src={gym.image} alt={gym.name} className="w-32 h-32 object-cover  border"/>
         </div>
-
     )
 }
+
 export default GymCard;
