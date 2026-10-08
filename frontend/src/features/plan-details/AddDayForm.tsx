@@ -41,8 +41,13 @@ export default function AddDayForm(props: {
         }
     }
 
+    // same as Cancel, which is hidden while submitting
+    const cancelOnEscape = (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Escape" && !submitting) props.onClose()
+    }
+
     return (
-        <form onSubmit={submitDay} noValidate>
+        <form onSubmit={submitDay} onKeyDown={cancelOnEscape} noValidate>
             <Form_input
                 id="day-name"
                 label="Enter a day name."
