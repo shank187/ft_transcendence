@@ -14,6 +14,8 @@ import type {PlanDay, PlanDetail } from "./plan-detail.types";
 // FAKE-DATA: name triggers, on any plan
 //   create "fail"           -> always rejects
 //   rename "fail" / "fail2" -> always rejects
+//   plan rename "fail"      -> always rejects
+// FAKE-DATA: a deleted plan stays deleted (GET returns null) until reload
 
 const FAKE_DELAY_MS = 500
 const MAX_DAYS = 7
@@ -25,6 +27,9 @@ const plans = new Map<string, PlanDetail>()
 // FAKE-DATA: remembers which "flaky" requests already failed once.
 const flakyAttempts = new Set<string>()
 
+// FAKE-DATA: planIds deleted with deletePlan().
+const deletedPlans = new Set<string>()
+
 // FAKE-DATA:
 function wait() {
     return new Promise(resolve => setTimeout(resolve, FAKE_DELAY_MS))
@@ -33,7 +38,7 @@ function wait() {
 // FAKE-DATA: returns the stored plan, seeding it the first time any
 // function (GET or mutation) asks for this planId.
 function findPlan(planId: string): PlanDetail | null {
-    if (planId === "missing") return null
+    if (planId === "missing" || deletedPlans.has(planId)) return null
 
     let plan = plans.get(planId)
     if (!plan) {
@@ -159,4 +164,29 @@ export async function deleteWorkoutDay(planId: string, dayId: string): Promise<P
         .map((d, index) => ({ ...d, dayOrder: index + 1 }))
     plans.set(planId, { ...plan, days: remainingDays })
     return remainingDays.map(copyDay)
+}
+
+// FAKE-DATA: real version will be PATCH /api/workout-plans/:planId
+export async function renamePlan(planId: string, name: string, description: string | null): Promise<PlanDetail> {
+    await wait()
+
+    const plan = findPlanOrThrow(planId)
+    const planName = name.trim()
+    if (planName.length === 0) throw new Error("Plan name is required.")
+    if (planName === "fail") throw new Error("Failed to rename your plan, try again.")
+    failFirstAttempt(planId, `rename-plan:${planName}`, "Failed to rename your plan, try again.")
+
+    const renamedPlan: PlanDetail = { ...plan, name: planName, description: description?.trim() || null }
+    plans.set(planId, renamedPlan)
+    return { ...renamedPlan, days: sortedDays(renamedPlan.days).map(copyDay) }
+}
+
+// FAKE-DATA: real version will be DELETE /api/workout-plans/:planId
+export async function deletePlan(planId: string): Promise<void> {
+    await wait()
+
+    findPlanOrThrow(planId)
+    failFirstAttempt(planId, "delete-plan", "Failed to delete your plan, try again.")
+    plans.delete(planId)
+    deletedPlans.add(planId)
 }
