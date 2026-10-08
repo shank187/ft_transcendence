@@ -11,6 +11,8 @@ import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
 import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
+import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
+
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/gyms" element={<GymsearchPage />} />
+          <Route path="/gyms/:id" element={<GymDetailsPage />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
