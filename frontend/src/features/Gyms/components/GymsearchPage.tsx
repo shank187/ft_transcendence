@@ -55,13 +55,16 @@ function GymsearchPage(){
             <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
             {loading ? 
                 (<LoadingState message="Loading gyms..." />) 
-                : (
-                <div>
+                // : GymList.length === 0 && textSearched!= "" ? (
+                //     <div className="text-[#ffffff] text-center mt-4">
+                //         <p>No gyms found for "{textSearched}".</p>
+                //     </div>)
+                :(<div>
                     {GymList.map((gym) =>(
                         <GymCard key={gym.id} gym={gym}/>
                     ))}
-                </div>
-            )}
+                </div>)
+            }
         </div>
     )
 }
