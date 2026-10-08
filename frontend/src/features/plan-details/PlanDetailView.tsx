@@ -55,6 +55,11 @@ export default function PlanDetailView(props: {planId: string})
             ?{...previous, days: remainingDays}
             : previous )
     }
+    const renamePlanInPage = (renamedPlan: PlanDetail) => {
+        setPlan(previous => previous
+            ? { ...previous, name: renamedPlan.name, description: renamedPlan.description }
+            : previous)
+    }
 
     const loadPlan = useCallback( async ()=>{
         setError(null)
@@ -92,8 +97,10 @@ export default function PlanDetailView(props: {planId: string})
     return(
         <div className="space-y-5">
             <PlanHeader
+            planId={props.planId}
             name={plan.name}
             description={plan.description}
+            onRenamed={renamePlanInPage}
             />
             {plan.days.length === 0 && !addDayForm && (
                 <EmptyState
