@@ -38,10 +38,13 @@ export default function DayRow(
             ⋮
         </Button>
         {props.dropDownMenu === day.id && (
-        <DropDownMenu actions={[
-            { id: `rename-${day.id}`, label: "Rename", onSelect: () => props.onRename(day) },
-            { id: `delete-${day.id}`, label: "Delete", onSelect: () => props.onDelete(day), danger: true },
-        ]} />
+        <DropDownMenu
+            actions={[
+                { id: `rename-${day.id}`, label: "Rename", onSelect: () => props.onRename(day) },
+                { id: `delete-${day.id}`, label: "Delete", onSelect: () => props.onDelete(day), danger: true },
+            ]}
+            onClose={()=>props.setDropDown(null)}  
+        />
         )}
         </Card>
     );
