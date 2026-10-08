@@ -51,7 +51,7 @@ export default function DayRow(
                 <p>{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
             </div>
             <div className="flex items-center gap-2">
-                {/* TODO(UI 4/7): open the day editor */}
+                {/* TODO(UI 3/7): open the day editor */}
                 <Button variant="secondary" className="border border-app-border" disabled>
                     Edit
                 </Button>
