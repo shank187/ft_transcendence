@@ -155,7 +155,7 @@ export default function PlanDetailView(props: {planId: string})
                     Add day
                 </Button>
             }
-            {plan.days.length >= 7 && (<p>A plan can contain at most 7 days.</p>)}
+            {plan.days.length >= 7 && (<p>Maximum 7 days per plan reached.</p>)}
             {renamingDay && (
                 <RenameDayDialog
                     planId={props.planId}

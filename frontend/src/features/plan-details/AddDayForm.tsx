@@ -25,7 +25,7 @@ export default function AddDayForm(props: {
             return
         }
         if (props.dayCount >= 7) {
-            setErrorForm("A plan can contain at most 7 days.")
+            setErrorForm("Maximum 7 days per plan reached.")
             return
         }
         setSubmitting(true)
