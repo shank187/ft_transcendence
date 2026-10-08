@@ -16,6 +16,7 @@ export default function DeleteDayDialog(props: {
 
     const deleteDay = async ()=>{
         setSubmitting(true)
+        setDeleteDayError(null)
         try{
             const remainingDays = await deleteWorkoutDay(props.planId, props.day.id);
             props.onDeleted(remainingDays)
