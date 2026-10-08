@@ -7,7 +7,7 @@ import type { User } from "./Profile_fields";
 
 interface AvatarProps {
     user: User;
-    on_avatar_updated: (avatarUrl: string) => void;
+    on_avatar_updated: (avatarUrl: string | null) => void;
 }
 
 export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
@@ -15,9 +15,10 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
     const [file, set_file] = useState<File | null> (null);
     const [error, set_error] = useState("");
     const [preview, set_preview] = useState("");
-
+    
     const [success, set_success] = useState("");
     const [is_uploading, set_is_uploading] = useState(false);
+    const [delet_is_uploading, set_delet_is_uploading] = useState(false);
 
     function hundle_file_change(event: ChangeEvent<HTMLInputElement>)
     {
@@ -79,8 +80,7 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
             const form_data = new FormData();
             form_data.append("avatar", file);
 
-            const response = await api.post<{ avatarUrl: string }>("/api/users/me/avatar", form_data);
-            console.log("Avatar upload response:", response.data);
+            const response = await api.post("/api/users/me/avatar", form_data);
             on_avatar_updated(response.data.avatarUrl);
             set_file(null);
             set_success("Avatar uploaded successfully.");
@@ -89,6 +89,33 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
                 set_error(error.response?.data.message || "Could not upload your avatar.");
         } finally {
             set_is_uploading(false);
+        }
+    }
+
+
+    async function delet_avatar()
+    {
+        if(delet_is_uploading)
+            return;
+        set_error("");
+        set_success("");
+
+
+        try{
+            set_delet_is_uploading(true);
+
+            const response = await api.delete("/api/users/me/avatar/delete");
+
+            on_avatar_updated(null);
+            set_file(null);
+            set_preview("");
+            set_success(response.data.message);
+        }catch(error)
+        {
+            set_error(error.response?.data.message || "Could not delete your avatar.");
+        }finally
+        {
+            set_delet_is_uploading(false);
         }
     }
 
@@ -121,6 +148,7 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
 
         <div className="text-sm text-green-700">{success}</div>
         <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
+        <Button onClick={delet_avatar}> remove avatar </Button>
     </div>
 
     );
