@@ -116,6 +116,7 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>}
                 />
             )}
+            {plan.days.length > 0 && (<h2>Days · {plan.days.length}/7</h2>)}
             {plan.days.length > 0 && (
                 <ol className="flex flex-col gap-3">
                     { [...plan.days]
