@@ -33,17 +33,17 @@ export default function Edit_profile() {
     if (!user)
         return <div>{error || "Loading..."}</div>;
     return (
-    <div className="w-full max-w-5xl py-6 pl-12 pr-6">
+    <div className="w-full  py-6 pl-12 pr-6">
         <div className="mb-6 text-xl font-bold">
             Edit your profile
         </div>
 
         <div className="flex flex-col gap-10 md:flex-row">
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 md:mt-30">
                <Profile_fields user={user} on_user_updated={set_user}/>
             </div>
 
-            <div className="w-full md:ml-auto md:w-64 md:shrink-0">
+            <div className="w-full md:ml-auto md:w-64 md:shrink-0 md:translate-x-6">
                 <Avatar_upload
                 user={user}
                 on_avatar_updated={(avatarUrl) => {

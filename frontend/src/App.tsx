@@ -9,7 +9,7 @@ import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
-import Edit_profile from './pages/PrivateProfile';
+import Edit_profile from "./pages/PrivateProfile";
 
 function App() {
   return (
