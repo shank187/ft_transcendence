@@ -227,15 +227,7 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
             {
                 const filename = old_url.split('/').pop();
                 if (filename)
-                {
-                    // try
-                    // {
-                        await unlink("uploads/avatars/" + filename);
-                    // }catch
-                    // {
-                    //     return res.status(500).json({message: "Could not delete the old avatar."});
-                    // }
-                }
+                    await unlink("uploads/avatars/" + filename);
             }
         }
 
@@ -244,3 +236,29 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
         return res.status(500).json({message: "Could not update your avatar."});
     }
 };
+
+
+
+export const delete_avatar  = async(req :AuthenticatedRequest, res:Response)=>
+{
+    const avatar = await prisma.user.findUnique ({
+        where :{id :req.userId},
+        select :{avatarUrl :true}
+    });
+
+    if (!avatar)
+    return res.status(404).json({ message: "User not found." });
+
+    if (!avatar.avatarUrl){
+        return res.status(200).json({message: "You already have no avatar.", avatarUrl: null});}
+    
+    const filename = avatar?.avatarUrl.split('/').pop();
+    if (filename)
+        await unlink("uploads/avatars/" + filename);
+
+    await prisma.user.update({
+        where: { id: req.userId },
+        data: { avatarUrl: null }
+    });
+    return res.status(200).json({message: "Avatar removed successfully."});
+}

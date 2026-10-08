@@ -20,7 +20,7 @@ function Onboarding(){
     const [err_msg, set_err_msg] = useState('');
     const [is_submitting, set_is_submitting] = useState(false);
 
-    const [form_data, set_form_data] = useState({displayName: '', bio: '', experienceLevel: '', primaryGoal: '', unitSystem: '', weightKg: ''});
+    const [form_data, set_form_data] = useState({displayName: '', bio: '', experienceLevel: '', primaryGoal: '', unitSystem: 'METRIC', weightKg: ''});
     const { setUser } = useAuth();
     const navigate = useNavigate();
 
