@@ -64,26 +64,6 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
         }
 
     }
-
-
-
-    // useEffect(()=>{
-    //     async function get_user() {
-
-    //         try {
-    //             set_error("");
-    //             const response = await api.get<User>('/api/users/me');
-    //             set_euser(response.data);
-    //             set_ouser(response.data);
-    //         }
-    //         catch{
-    //             set_error("Could not load your profile.");
-    //         }
-    //     }
-        
-    //     get_user();
-    // }, []);
-
  
 
     if (!edited_user)
