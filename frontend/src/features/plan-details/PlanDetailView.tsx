@@ -67,10 +67,10 @@ export default function PlanDetailView(props: {planId: string})
         if(! deletingDayId) return
             setSubmitting(true)
         try{
-            await deleteWorkoutDay(props.planId, deletingDayId);
-            setPlan(previous=> previous
-                ? {...previous, days: previous.days.filter(day => day.id !== deletingDayId)}
-            : previous)
+            const remainingDays = await deleteWorkoutDay(props.planId, deletingDayId);
+            setPlan(previous => previous 
+                ?{...previous, days: remainingDays}
+                : previous )
             closeDayDelete()
         }catch(err){
             setDeleteDayError(err instanceof Error ? err.message : "Cant delete this day")
@@ -105,8 +105,7 @@ export default function PlanDetailView(props: {planId: string})
         }
         setSubmitting(true)
         try{
-            const nextOrder = Math.max(0, ...plan.days.map(day=>day.dayOrder)) + 1
-            const createdDay = await createWorkoutDay(props.planId, name, nextOrder);
+            const createdDay = await createWorkoutDay(props.planId, name);
             setPlan(previous => 
                     previous
                     ? {...previous, days: [...previous.days, createdDay]}
