@@ -40,15 +40,19 @@ export default function RenamePlanDialog(props: {
     }
 
     return (
-        <Dialog open={true} title="Rename the plan" onClose={props.onClose}>
+        <Dialog isWorking={submitting} open={true} title="Rename the plan" onClose={props.onClose}>
             <form onSubmit={submitRename} noValidate>
-                <Form_input id="rename-plan-name" label="Plan name" type="text"
-                            value={name} onChange={setName} />
-                <Form_input id="rename-plan-description" label="Description (optional)" type="text"
-                            value={description} onChange={setDescription} required={false} />
-                {error && <p className="text-app-danger">{error}</p>}
-                <Button type="button" variant="secondary" onClick={props.onClose}>Cancel</Button>
-                <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
+                <div className="flex flex-col gap-2 mt-3">
+                    <Form_input id="rename-plan-name" label="Plan name" type="text"
+                                value={name} onChange={setName} />
+                    <Form_input id="rename-plan-description" label="Description (optional)" type="text"
+                                value={description} onChange={setDescription} required={false} />
+                    {error && <p className="text-app-danger">{error}</p>}
+                </div>
+                <div className="flex gap-1 mt-3">
+                    <Button type="submit" className="flex-2"  disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
+                    <Button type="button" className="border border-app-border flex-1" variant="secondary" disabled={submitting} onClick={props.onClose}>Cancel</Button>
+                </div>
             </form>
         </Dialog>
     )

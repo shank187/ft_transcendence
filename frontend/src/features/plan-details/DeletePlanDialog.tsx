@@ -28,11 +28,14 @@ export default function DeletePlanDialog(props: {
     }
 
     return (
-        <Dialog open={true} title={`Delete ${props.name}?`} onClose={props.onClose}>
+        <Dialog isWorking={submitting} open={true} title={`Delete ${props.name}?`} onClose={props.onClose}>
             <p>Past workouts stay in your history.</p>
             {deletePlanError && <p className="text-app-danger">{deletePlanError}</p>}
-            <Button variant="secondary" onClick={props.onClose}>Cancel</Button>
-            <Button variant="danger" disabled={submitting} onClick={confirmDelete} >{submitting?"Deleting...":"Delete plan"}</Button>
+            <div className="flex justify-end gap-2 pt-2">
+                <Button disabled={submitting} variant="secondary" className="border border-app-border" onClick={props.onClose}>Cancel</Button>
+                <Button variant="danger" disabled={submitting} onClick={confirmDelete} >{submitting?"Deleting...":"Delete plan"}</Button>
+
+            </div>
         </Dialog>
     )
 }
