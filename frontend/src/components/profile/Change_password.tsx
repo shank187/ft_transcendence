@@ -3,6 +3,7 @@ import { useState } from "react";
 import Profile_input_field from "./Profile_input_field";
 import api from "../../features/auth/axiosInstance";
 import Button from '../ui/Button';
+import { isAxiosError } from "axios";
 
 export default function Change_password() {
     const [current_password, set_current_password] = useState("");
@@ -42,9 +43,11 @@ export default function Change_password() {
             set_confirm_password("");
             set_success("Password updated successfully.");
 
-        }catch (error)
-        {
-            set_error(error.response?.data.message || "Could not update your password.");
+        }catch (error) {
+            if (isAxiosError<{ message: string }>(error))
+                set_error(error.response?.data?.message || "Could not update your password.");
+            else
+                set_error("Could not update your password.");
         }finally {
             set_isSaving(false);
         }
