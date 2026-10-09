@@ -49,7 +49,7 @@ export default function RenamePlanDialog(props: {
                                 value={description} onChange={setDescription} required={false} />
                     {error && <p className="text-app-danger">{error}</p>}
                 </div>
-                <div className="flex gap-1 mt-3">
+                <div className="flex gap-2 mt-3">
                     <Button type="submit" className="flex-2"  disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
                     <Button type="button" className="border border-app-border flex-1" variant="secondary" disabled={submitting} onClick={props.onClose}>Cancel</Button>
                 </div>
