@@ -12,7 +12,8 @@ function GymsearchPage(){
     const [GymList  , setGymList] = useState<Gym[]>([]);//emptyy array of Gym type object 
     const [textSearched, setTextSearched] = useState("");
     const[loading, setLoading] = useState(true);
-
+    const [city, setCity] = useState("");
+    const [verified, setVerified]= useState(true);
 
     useEffect(()=> {
         let ignore = false;
@@ -26,7 +27,7 @@ function GymsearchPage(){
 
             try
             {
-                const fakeData = await getFakeData(textSearched);
+                const fakeData = await getFakeData(textSearched, city, verified);
                 if (ignore === false){
                     setLoading(false);
                     setGymList(fakeData);
@@ -45,7 +46,7 @@ function GymsearchPage(){
         return  function cleanup(){
             ignore = true;
         }
-    }, [textSearched]);
+    }, [textSearched, city, verified]);
     // if (loading) {
     //     return <LoadingState message="Loading gyms..." />;
     // }
@@ -53,12 +54,15 @@ function GymsearchPage(){
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
             <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
+
+
+            
             {loading ? 
                 (<LoadingState message="Loading gyms..." />) 
-                // : GymList.length === 0 && textSearched!= "" ? (
-                //     <div className="text-[#ffffff] text-center mt-4">
-                //         <p>No gyms found for "{textSearched}".</p>
-                //     </div>)
+                : GymList.length === 0 && textSearched!= "" ? (
+                    <div className="text-[#ffffff] text-center mt-4">
+                        <p>No gyms found for "{textSearched}".</p>
+                    </div>)
                 :(<div>
                     {GymList.map((gym) =>(
                         <GymCard key={gym.id} gym={gym}/>
@@ -68,4 +72,5 @@ function GymsearchPage(){
         </div>
     )
 }
+
 export default GymsearchPage; 
