@@ -32,9 +32,9 @@ export default function DeleteDayDialog(props: {
         <Dialog isWorking={submitting} open={true} title={`Delete ${props.day.name}?`} onClose={props.onClose}>
             <p>Past workouts stay in your history.</p>
             {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
-            <div className="flex justify-end gap-2 mt-2">
-                <Button variant="secondary" className="border border-app-border" disabled={submitting} onClick={props.onClose}>Cancel</Button>
-                <Button variant="danger" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting...":"Delete day"}</Button>
+            <div className="flex gap-2 mt-3">
+                <Button variant="secondary" className="border border-app-border flex-1" disabled={submitting} onClick={props.onClose}>Cancel</Button>
+                <Button variant="danger" className="flex-1" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting...":"Delete day"}</Button>
             </div>
         </Dialog>
     )

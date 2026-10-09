@@ -134,7 +134,6 @@ export async function createWorkoutDay(
 // FAKE-DATA: real version will be PATCH /api/workout-plans/:planId/days/:dayId
 export async function renameWorkoutDay(planId: string, dayId: string, name: string): Promise<PlanDay> {
     await wait()
-    await new Promise(()=>{})
 
     const plan = findPlanOrThrow(planId)
     const dayName = validName(name)
@@ -154,7 +153,6 @@ export async function renameWorkoutDay(planId: string, dayId: string, name: stri
 // returning 200 with the remaining days, renumbered 1..n and sorted by dayOrder.
 export async function deleteWorkoutDay(planId: string, dayId: string): Promise<PlanDay[]> {
     await wait()
-    await new Promise(()=>{})
 
     const plan = findPlanOrThrow(planId)
     if (!plan.days.some(d => d.id === dayId)) throw new Error("Day not found")

@@ -41,7 +41,7 @@ export default function RenameDayDialog(props: {
                 <Form_input id="rename-day" label="Day name" type="text"
                             value={renameName} onChange={setRenameName} />
                 {renameError && <p className="text-app-danger">{renameError}</p>}
-            <div className="flex gap-1 mt-3">
+            <div className="flex gap-2 mt-3">
                     <Button type="button" className="border border-app-border flex-1" variant="secondary" disabled={submitting} onClick={props.onClose}>Cancel</Button>
                     <Button type="submit" className="flex-1" disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
                 </div>
