@@ -189,14 +189,31 @@ const mockGyms: Gym[] = [
 
 
 
-export async function getFakeData(searchedText : string) : Promise<Gym[]>{
+export async function getFakeData(searchedText : string, city: string, verifiedOnly:boolean) : Promise<Gym[]>{
     return new Promise(function(resolve)
     {
         setTimeout(function(){
-            const filtredGyms = mockGyms.filter(function(gym){
-                return gym.name.toLowerCase().includes(searchedText.toLocaleLowerCase());
-            })
-            resolve(filtredGyms);
+            // const filtredGyms = mockGyms.filter(function(gym){
+            //     return gym.name.toLowerCase().includes(searchedText.toLocaleLowerCase());
+            let filtredData = mockGyms;
+
+            if (searchedText != ""){
+                // console.log("ddddd");
+                filtredData = filtredData.filter(function(gym){
+                    return gym.name.toLocaleLowerCase().includes(searchedText.toLocaleLowerCase());
+                })
+            }
+            if (city != ""){
+                filtredData = filtredData.filter(function(gym) {
+                    return gym.city === city;
+                })
+            }
+            if (verifiedOnly){
+                filtredData = filtredData.filter(function(gym){
+                    return gym.verified === true;
+                })
+            }
+            resolve(filtredData);
         }, 500);
     })
 }
