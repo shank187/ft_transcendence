@@ -46,7 +46,7 @@ export default function DayRow(
 
     return (
         <Card className="flex flex-col gap-3">
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row items-start justify-between">
                 <div className="min-w-0 wrap-break-word">
                     <h3>Day {day.dayOrder} · {day.name}</h3>
                     <p>{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
@@ -77,7 +77,7 @@ export default function DayRow(
             </div>
             <div className="flex items-center gap-2">
                 {/* TODO(UI 3/7): open the day editor */}
-                <Button variant="secondary" className="border border-app-border flex-1 min-h-7" disabled>
+                <Button variant="secondary" className="border border-app-border flex-1 min-h-11" disabled>
                     Edit
                 </Button>
                 {/* TODO(UI 5/7): start a workout from this day */}
