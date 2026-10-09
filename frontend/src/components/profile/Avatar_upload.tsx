@@ -4,6 +4,8 @@ import {useState , useEffect} from "react";
 import type { ChangeEvent } from "react";
 import api from "../../features/auth/axiosInstance";
 import type { User } from "./Profile_fields";
+import { isAxiosError } from "axios";
+
 
 interface AvatarProps {
     user: User;
@@ -85,9 +87,14 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
             set_file(null);
             set_success("Avatar uploaded successfully.");
             
-        } catch (error){
+        }
+        catch (error) {
+            if (isAxiosError<{ message: string }>(error))
                 set_error(error.response?.data.message || "Could not upload your avatar.");
-        } finally {
+            else
+                set_error("Could not upload your avatar.");
+        }
+        finally {
             set_is_uploading(false);
         }
     }
@@ -110,9 +117,11 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
             set_file(null);
             set_preview("");
             set_success(response.data.message);
-        }catch(error)
-        {
-            set_error(error.response?.data.message || "Could not delete your avatar.");
+        }catch (error) {
+            if (isAxiosError<{ message: string }>(error))
+                set_error(error.response?.data.message || "Could not delete your avatar.");
+            else
+                set_error("Could not delete your avatar.");
         }finally
         {
             set_delet_is_uploading(false);

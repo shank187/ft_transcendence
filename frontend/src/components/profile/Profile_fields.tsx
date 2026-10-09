@@ -4,6 +4,7 @@ import Form_select from "../ui/Form_select";
 import Profile_input_field from "./Profile_input_field";
 import Button from '../ui/Button';
 import Change_password from "./Change_password";
+import { isAxiosError } from "axios";
 
 
 import {EXPERIENCE_LEVELS, TRAINING_GOALS} from '../../pages/Onboarding'
@@ -60,7 +61,10 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
             }
 
         }catch (error) {
-                set_error(error.response?.data.message || "Could not save your profile.");
+            if (isAxiosError<{ message: string }>(error))
+                set_error(error.response?.data?.message || "Could not save your profile.");
+            else
+                set_error("Could not save your profile.");
         }
 
     }
