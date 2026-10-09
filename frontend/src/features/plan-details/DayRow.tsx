@@ -45,20 +45,12 @@ export default function DayRow(
     }, [isMenuOpen, setDropDown]);
 
     return (
-        <Card className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 break-words">
-                <h3>Day {day.dayOrder} · {day.name}</h3>
-                <p>{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
-            </div>
-            <div className="flex items-center gap-2">
-                {/* TODO(UI 3/7): open the day editor */}
-                <Button variant="secondary" className="border border-app-border" disabled>
-                    Edit
-                </Button>
-                {/* TODO(UI 5/7): start a workout from this day */}
-                <Button variant="primary" disabled>
-                    ▶ Start
-                </Button>
+        <Card className="flex flex-col gap-3">
+            <div className="flex flex-row justify-between">
+                <div className="min-w-0 wrap-break-word">
+                    <h3>Day {day.dayOrder} · {day.name}</h3>
+                    <p>{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
+                </div>
                 <div ref={menuWrapper} className="relative">
                     <Button
                         variant="ghost"
@@ -82,6 +74,17 @@ export default function DayRow(
                     </div>
                     )}
                 </div>
+            </div>
+            <div className="flex items-center gap-2">
+                {/* TODO(UI 3/7): open the day editor */}
+                <Button variant="secondary" className="border border-app-border flex-1 min-h-7" disabled>
+                    Edit
+                </Button>
+                {/* TODO(UI 5/7): start a workout from this day */}
+                <Button variant="primary" className="flex-1 min-h-11" disabled>
+                    ▶ Start
+                </Button>
+
             </div>
         </Card>
     );
