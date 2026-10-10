@@ -36,7 +36,7 @@ function App() {
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
-          <Route path="/workouts/plans/:planId/days/:dayID" element={<DayEditor />} />
+          <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/progress" element={<Progress />} />
         </Route>
       </Route>
