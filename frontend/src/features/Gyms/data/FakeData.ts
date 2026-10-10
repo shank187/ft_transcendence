@@ -34,7 +34,7 @@ const mockGyms: Gym[] = [
         name : "Apex Studio",
         description : "A modern gym with state-of-the-art equipment.",
         address : "123 Fitness St.",
-        city : "London",
+        city : "khouribga",
         image : "https://example.com/images/apex-studio.jpg",
         phone : "+44 20 1234 5678",
         website : "https://apexstudio.com",
@@ -50,7 +50,7 @@ const mockGyms: Gym[] = [
         name : "Peak Motion",
         description : "A high-energy gym with a variety of classes.",
         address : "456 Workout Ave.",
-        city : "Manchester",
+        city : "khouribga",
         image : "https://example.com/images/peak-motion.jpg",
         phone : "+44 161 234 5678",
         website : "https://peakmotion.com",
@@ -65,7 +65,7 @@ const mockGyms: Gym[] = [
         name : "Iron Harbor",
         description : "A traditional gym with a focus on strength training.",
         address : "789 Muscle Blvd.",
-        city : "Birmingham",
+        city : "casa",
         image : "https://example.com/images/iron-harbor.jpg",
         phone : "+44 121 234 5678",
         website : "https://ironharbor.com",
@@ -81,7 +81,7 @@ const mockGyms: Gym[] = [
         name : "Flex Factory",
         description : "A boutique gym with personalized training programs.",
         address : "321 Strength Ln.",
-        city : "Leeds",
+        city : "casa",
         image : "https://example.com/images/flex-factory.jpg",
         phone : "+44 113 234 5678",
         website : "https://flexfactory.com",
@@ -96,7 +96,7 @@ const mockGyms: Gym[] = [
         name : "Cardio Central",
         description : "A cardio-focused gym with a variety of machines.",
         address : "654 Endurance Rd.",
-        city : "Liverpool",
+        city : "casa",
         image : "https://example.com/images/cardio-central.jpg",
         phone : "+44 151 234 5678",
         website : "https://cardiocentral.com",
@@ -112,7 +112,7 @@ const mockGyms: Gym[] = [
         name : "Strength Haven",
         description : "A strength training gym with a focus on free weights.",
         address : "987 Power St.",
-        city : "Bristol",
+        city : "beni mellal",
         image : "https://example.com/images/strength-haven.jpg",
         phone : "+44 117 234 5678",
         website : "https://strengthhaven.com",
@@ -128,7 +128,7 @@ const mockGyms: Gym[] = [
         name : "Zen Fitness",
         description : "A wellness-focused gym with yoga and meditation classes.",
         address : "159 Mindful Way",
-        city : "Cambridge",
+        city : "beni mellal",
         image : "https://example.com/images/zen-fitness.jpg",
         phone : "+44 1223 234 5678",
         website : "https://zenfitness.com",
@@ -143,7 +143,7 @@ const mockGyms: Gym[] = [
         name : "HIIT Hub",
         description : "A high-intensity interval training gym with group classes.",
         address : "753 Cardio Blvd.",
-        city : "Sheffield",
+        city : "kenitra",
         image : "https://example.com/images/hiit-hub.jpg",
         phone : "+44 114 234 5678",
         website : "https://hiithub.com",
@@ -158,7 +158,7 @@ const mockGyms: Gym[] = [
         name : "CrossFit Corner",
         description : "A CrossFit gym with a focus on functional fitness.",
         address : "852 Strength St.",
-        city : "Nottingham",
+        city : "kenitra",
         image : "https://example.com/images/crossfit-corner.jpg",
         phone : "+44 115 234 5678",
         website : "https://crossfitcorner.com",
@@ -174,7 +174,7 @@ const mockGyms: Gym[] = [
         name : "Pilates Place",
         description : "A Pilates studio with a variety of classes and equipment.",
         address : "951 Core St.",
-        city : "Oxford",
+        city : "kenitra",
         image : "https://example.com/images/pilates-place.jpg",
         phone : "+44 1865 234 5678",
         website : "https://pilatesplace.com",
@@ -189,7 +189,7 @@ const mockGyms: Gym[] = [
 
 
 
-export async function getFakeData(searchedText : string, city: string, verifiedOnly:boolean) : Promise<Gym[]>{
+export async function getFakeData(searchedText : string, city: string, verifiedOnly:boolean | null) : Promise<Gym[]>{
     return new Promise(function(resolve)
     {
         setTimeout(function(){
@@ -197,20 +197,20 @@ export async function getFakeData(searchedText : string, city: string, verifiedO
             //     return gym.name.toLowerCase().includes(searchedText.toLocaleLowerCase());
             let filtredData = mockGyms;
 
-            if (searchedText != ""){
+            if (searchedText !== ""){
                 // console.log("ddddd");
                 filtredData = filtredData.filter(function(gym){
                     return gym.name.toLocaleLowerCase().includes(searchedText.toLocaleLowerCase());
                 })
             }
-            if (city != ""){
+            if (city !== ""){
                 filtredData = filtredData.filter(function(gym) {
                     return gym.city === city;
                 })
             }
-            if (verifiedOnly){
+            if (verifiedOnly !== null){
                 filtredData = filtredData.filter(function(gym){
-                    return gym.verified === true;
+                    return gym.verified === verifiedOnly;
                 })
             }
             resolve(filtredData);
