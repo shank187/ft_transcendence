@@ -7,6 +7,12 @@ import { create_session } from './session.service';
 
 import {refreshCookieName,refreshCookieOptions} from './cookie.config';
 
+
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+if (!FRONTEND_URL)
+    throw new Error("FRONTEND_URL is not configured");
+
 const googleClient = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -96,13 +102,11 @@ export const googleCallback = async (req: Request, res: Response) => {
         res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
 
         if (!user.onboardingCompletedAt)
-            return res.redirect('http://localhost:5173/onboarding');
+            return res.redirect(`${FRONTEND_URL}/onboarding`);
 
-        return res.redirect('http://localhost:5173/home');
+        return res.redirect(`${FRONTEND_URL}/home`);
     }
     catch {
-        return res.redirect(
-            'http://localhost:5173/login?error=google'
-        );
+        return res.redirect(`${FRONTEND_URL}/login?error=google`);
     }
 };
