@@ -13,6 +13,7 @@ import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
 import Progress from './pages/Progress';
+import DayEditor from './pages/DayEditor';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
+          <Route path="/workouts/plans/:planId/days/:dayID" element={<DayEditor />} />
           <Route path="/progress" element={<Progress />} />
         </Route>
       </Route>
