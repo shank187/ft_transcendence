@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import type { DayDetail } from "./day-editor.types"
 import getWorkoutDay from "./day-editor.api"
 import ErrorState from "../../components/states/ErrorState"
 import { Link } from "react-router-dom"
 import NotFoundState from "../../components/states/NotFoundState"
 import Button from "../../components/ui/Button"
+import LoadingState from "../../components/states/LoadingState"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -12,7 +13,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const [DayError, setDayError] = useState<string|null>(null)
     const [dayLoading, setDayLoading] = useState(true)
 
-    const loadDayPlan = async ()=>{
+    const loadDayPlan = useCallback (async ()=>{
         setDayError(null)
         setDayLoading(true)
         try{
@@ -22,12 +23,13 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         }finally{
             setDayLoading(false)
         }
-    }
+    },[])
+
     useEffect(() =>{
         loadDayPlan()
-    },[props.planId, props.dayId])
+    },[props.planId, props.dayId, loadDayPlan])
 
-    if(dayLoading) return <h1>Loading</h1>
+    if(dayLoading) return <LoadingState message="Loading Workout day..."/>
     if(DayError)
         return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary">Retry</Button>} message={DayError}/>)
     if(!dayDetail) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
