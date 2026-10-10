@@ -110,7 +110,7 @@ export const update_me = async (req: AuthenticatedRequest, res: Response) =>{
             where :{ id: req.userId},
             data :{
                 displayName: user.displayName.trim(),
-                bio: user.bio.trim(),
+                bio: user.bio?.trim() || null,
                 experienceLevel: user.experienceLevel,
                 primaryGoal: user.primaryGoal,
                 unitSystem: user.unitSystem,
@@ -129,10 +129,16 @@ export const update_me = async (req: AuthenticatedRequest, res: Response) =>{
                 unitSystem: true,
                 weightKg: true,
                 heightCm: true,
-                onboardingCompletedAt: true
+                onboardingCompletedAt: true,
+                passwordHash: true
             },
         });
-        return res.status(200).json(updated_user);
+        const { passwordHash, ...profile } = updated_user;
+
+        return res.status(200).json({
+            ...profile,
+            hasPassword: Boolean(passwordHash)
+        });
     }catch
     {
         return res.status(500).json({ message: "Could not update your profile."});
@@ -252,13 +258,23 @@ export const delete_avatar  = async(req :AuthenticatedRequest, res:Response)=>
     if (!avatar.avatarUrl){
         return res.status(200).json({message: "You already have no avatar.", avatarUrl: null});}
     
-    const filename = avatar?.avatarUrl.split('/').pop();
-    if (filename)
-        await unlink("uploads/avatars/" + filename);
+    if (avatar.avatarUrl.startsWith("/uploads/avatars/"))
+    {
+        const filename = avatar.avatarUrl.split('/').pop();
+
+        if (filename) {
+            try {
+                await unlink("uploads/avatars/" + filename);
+            } catch (error){
+                if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
+                    return res.status(500).json({message: "Could not remove your avatar."});
+            }
+        }
+    }
 
     await prisma.user.update({
         where: { id: req.userId },
         data: { avatarUrl: null }
     });
-    return res.status(200).json({message: "Avatar removed successfully."});
+    return res.status(200).json({message: "Avatar removed successfully.", avatarUrl: null});
 }

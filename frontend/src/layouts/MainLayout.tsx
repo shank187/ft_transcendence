@@ -55,13 +55,17 @@ function MainLayout() {
             <div className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-5 border-t border-app-border bg-app-surface md:hidden">
 
                 {mobile_nav_items.map((item)=> (
-                    <NavLink key={item.to} to={item.to} className="min-w-0 py-4 text-center text-xs" >{item.label}</NavLink>
+                    <NavLink key={item.to} to={item.to} onClick={() => set_more(false)} className="min-w-0 py-4 text-center text-xs" >{item.label}</NavLink>
                 ))}
 
-                {more && (
-                    more_nav_items.map((item)=> (
-                    <NavLink key={item.to} to={item.to} className="min-w-0 py-4 text-center text-xs" >{item.label}</NavLink>
-                )))}
+               {more && (<div className="absolute bottom-full right-2 mb-2 w-44 rounded-lg border border-app-border bg-app-surface p-2">
+                        {more_nav_items.map((item) => (
+                            <NavLink key={item.to} to={item.to} onClick={() => set_more(false)} className="block rounded-md px-3 py-3 text-sm hover:bg-app-surface-hover">
+                                {item.label}
+                            </NavLink>
+                        ))}
+                    </div>
+                )}
 
                 <button type="button" onClick={add_more} className="py-4 text-center text-xs">
                    {more ? "Less" : "More"}
