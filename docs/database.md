@@ -1,112 +1,94 @@
-# Development Workflow
+# Database
 
-## One bounded task
+## Status rule
 
-Start from one acceptance criterion, not an entire slice.
+`backend/prisma/schema.prisma` and `backend/prisma/migrations/` are authoritative. This file explains the model and its invariants; if it disagrees with the schema, the schema wins and this file must be fixed.
 
-```text
-inspect → understand contract → implement smallest vertical step → verify → peer review → document → explain/recode
-```
+## Stack and access
 
-## Before coding
-
-```bash
-git fetch origin --prune
-git status -sb
-git branch --show-current
-git rev-parse --short HEAD
-```
-
-- Start from the current shared base agreed by the team.
-- Preserve uncommitted and teammate work.
-- Confirm Trello ownership and dependencies.
-- Inspect executable sources before trusting dated documentation.
-- Use a focused branch such as `feature/workouts-home`.
-
-After the 17 September history cleanup, teammates with old clones must resynchronize with cleaned `main` before pushing. Do not merge old secret-containing history back into active branches.
-
-## Vertical slice standard
-
-A meaningful feature normally crosses:
-
-```text
-React UI → API request → Express route/controller → service rule → Prisma → PostgreSQL → response/UI state
-```
-
-Do not build broad layers with no user-visible/testable flow.
-
-## Pull requests
-
-- One coherent behavior per PR where practical
-- Explain problem, scope, affected contract, verification, and remaining risk
-- Keep unrelated formatting/refactors out
-- Request peer review for security, auth, schema, transactions, shared UI, and cross-slice DTOs
-- Do not claim tests/build/runtime checks that were not run
-
-## Environment and secrets
-
-- `.env` stays local and ignored.
-- `.env.example` lists required names but contains no real credentials.
-- Public port numbers and service names are normally safe configuration.
-- Passwords, JWT keys, tokens, API keys, certificates/private keys, and deployment credentials are secrets.
-- A bootstrap command may create `.env` once but must not overwrite existing values.
-- Compose must fail clearly when required security values are absent; do not rely on `change_me` fallbacks.
-
-S1/shared owns the bootstrap, Compose injection, and CI/Gitleaks implementation. The Technical Lead reviews the contract without absorbing ownership.
-
-## Verification matrix
-
-For each flow, test only relevant rows but cover deliberate behavior:
-
-| Area | Checks |
-|---|---|
-| Build/static | frontend build/lint, backend TypeScript build, Prisma validate |
-| Happy path | expected request, persistence, render/navigation |
-| Input failure | empty/malformed/out-of-range data |
-| Auth | unauthenticated and expired/invalid state |
-| Ownership | user A cannot access/mutate user B resource |
-| Lifecycle | closed/completed resource rejects invalid mutation |
-| Repetition | double-click/retry/repeated completion is safe |
-| Concurrency | simultaneous starts/reorders/completion where relevant |
-| UX | loading, error, empty, success, final state, refresh |
-| Browser | Chrome console clean; Firefox/Edge module evidence |
-
-Typical commands:
+- PostgreSQL 15 (Docker Compose service `postgres`, data in the `pgdata` volume)
+- Prisma ORM; the backend reaches the database only through `backend/src/lib/prisma.ts`
+- `DATABASE_URL` is built by Compose from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`, which are required and have no fallback
+- The frontend never accesses PostgreSQL directly
 
 ```bash
-cd frontend && npm run build && npm run lint
-cd backend && npm run build && npm run prisma:validate
-docker compose config
-git diff --check
-git status -sb
+cd backend
+npm run prisma:validate   # schema check
+npm run prisma:generate   # regenerate client after schema changes
+npm run prisma:migrate    # create/apply a dev migration
 ```
 
-## Learning/evaluation loop
+## Domains
 
-For every significant pattern:
+One shared database. Features extend the existing schema; they do not create parallel user, equipment, or workout-history entities.
 
-1. Build the bounded real feature.
-2. Trace the request/data flow.
-3. Explain one failure case and one design decision.
-4. Recode the important mechanism from a blank scratch example without copying.
-5. Practice one small requirement change.
+```text
+Identity        User, Session, Role*, UserRole*
+Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, Facility*, GymFacility*, GymReview*
+Exercises (S3)  MuscleGroup, Exercise, ExerciseSecondaryMuscle, ExerciseEquipment
+Planning (S3)   WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutExerciseSet
+Execution (S3)  WorkoutSession, WorkoutSessionExercise, WorkoutSet
+Social (S4)     Friendship, Conversation, ConversationMember, Message
+Shared          Notification*, Media*, ApiKey*
+```
 
-Use AI for bounded explanation/review and verify its output. Do not merge code a contributor cannot explain or modify.
+`*` Present in the schema but not required by the frozen V1 scope in `docs/SCOPE_AND_VALIDATION.md`. Do not build features on them before the validation gate is green. Likewise, the `RECOMMENDED` plan type and `supersetGroup` exist in the schema, but recommended templates and complex supersets are deferred.
 
-## Priority language
+## Identity
 
-- **Must finish before 16–20 November:** frozen core, 14-point modules, mandatory requirements, integration/security correctness
-- **Should finish:** work directly supporting validation, integration, documentation, or evaluation evidence
-- **Defer:** bonuses and polish that do not remove a core blocker
+- `User` is the single account entity. `passwordHash` is null for Google-only accounts; `googleId` is unique when present.
+- Onboarding fields (`experienceLevel`, `primaryGoal`, `unitSystem`, `heightCm`, `weightKg`) live on `User`; `onboardingCompletedAt` marks completion.
+- `Session` stores refresh-token sessions as `tokenHash` (never the raw token), with `expiresAt` and `revokedAt`.
 
-## Current S3 order — dated 17 September 2026
+## Exercises and equipment
 
-1. Protected `/workouts` page and route bridge
-2. Working Workouts entry points and smallest owned custom-plan flow
-3. Plan/day/exercise/set planning vertical slice
-4. Empty/planned session start with snapshot and ownership
-5. Type-aware set logging/completion
-6. History/basic PR completion contract with S5
-7. Required catalog recovery/search hardening before final validation
+- `Exercise.type` (`ExerciseType`) decides which set fields apply (weight/reps/duration/distance).
+- Exercises reference `MuscleGroup` (one primary, many secondary) and the canonical S2 `Equipment` through `ExerciseEquipment`. S3 must not create a second equipment vocabulary.
+- `WorkoutExercise` and `WorkoutSessionExercise` reference `Exercise` with `onDelete: Restrict`, so an exercise used in a plan or history cannot be deleted.
 
-Re-estimate from live GitHub/Trello evidence; this order is not permission to implement multiple steps at once.
+## Workout planning vs execution
+
+```text
+Planning (reusable intent)                 Execution (history)
+WorkoutPlan                                WorkoutSession  (userId, status, startedAt, completedAt)
+  └─ WorkoutDay      (dayOrder)              └─ WorkoutSessionExercise  (order, restSeconds, supersetGroup)
+       └─ WorkoutExercise (order)                 └─ WorkoutSet  (planned* snapshot + performed values)
+            └─ WorkoutExerciseSet (target*)
+```
+
+Enforced by the Prisma schema / PostgreSQL:
+
+- `WorkoutPlan.userId` is nullable and `type` defaults to `CUSTOM`. Nothing in the schema ties `type` to whether `userId` is set.
+- Ordering is unique per parent: `(workoutPlanId, dayOrder)`, `(workoutDayId, order)`, `(workoutExerciseId, setNumber)`, `(workoutSessionId, order)`, `(workoutSessionExerciseId, setNumber)`.
+- Deleting a plan cascades its days/exercises/sets, but `WorkoutSession.workoutDayId` is `SetNull`, so the session rows survive.
+- `WorkoutSet` has separate columns for planned values (`plannedWeight/Reps/Duration/Distance`) and performed values (`weight/reps/duration/distance`), plus a nullable `completedAt`.
+- `WorkoutSession.status` is limited to `IN_PROGRESS`, `COMPLETED`, or `CANCELLED`, and `(userId, status)` is indexed.
+- `WorkoutSession.bodyWeightKg` is a nullable column for a body-weight snapshot.
+
+Service/application rules (not schema constraints):
+
+- `CUSTOM` plans belong to the authenticated user; owned-plan queries filter by `req.userId`;
+- reordering several rows runs in one transaction;
+- closed (`COMPLETED`/`CANCELLED`) sessions reject further mutation;
+- at most one `IN_PROGRESS` session per user (check inside the start transaction);
+- starting a planned workout copies targets and configuration into the session atomically;
+- `completedAt = null` is treated as "set not done";
+- repeated completion must not double-count S5 rewards.
+
+## Migrations
+
+Current migrations, in order:
+
+```text
+20260818200150_init_fitness_schema
+20260902104928_workout_architecture
+20260904110100_add_exercise_catalog_media
+20260909141126_add_refresh_token
+20260913120639_remove_user_refresh_token
+20260914101847_add_google_auth
+```
+
+- Never edit an applied migration; add a new one.
+- Never reset shared data without explicit team authorization.
+- Discuss schema changes that affect another slice's contract (identity, equipment, completed-session data) before merging.
+- Do not add fields speculatively; add them with the feature that uses them.

@@ -1,0 +1,4 @@
+# Require approval from an eligible code owner when main's ruleset requires it.
+# Aymane and Abdelhamid review each other's PRs; either may review other teammates.
+# Keep both owners on the same line. This also covers changes to CODEOWNERS.
+* @shank187 @Abdelhamid-9v

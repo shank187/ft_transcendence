@@ -67,7 +67,24 @@ Frozen workout routes:
 /workouts/session/:id
 ```
 
-These are target routes; check `frontend/src/App.tsx` before claiming implementation. At the 17 September checkpoint, only `/home` and `/exercises` are registered inside the protected layout, and `/workouts` is the active bridge task. `/exercises` is a temporary implemented route; the frozen UX nests it under `/workouts/exercises` when navigation is integrated.
+These are target routes; check `frontend/src/App.tsx` before claiming implementation. At the 30 September checkpoint, the protected layout registers `/home`, `/workouts` (the user's plan list, backed by `GET /api/workout-plans`), and `/workouts/new-plan` (placeholder page). The temporary `/exercises` route was removed; `frontend/src/pages/Exercises.tsx` and the catalog still exist but are not routed until the catalog re-enters the frozen `/workouts/exercises` path or the plan exercise picker. `/workouts/new-plan` is the working create-plan route and replaces the earlier `/workouts/plans/new` proposal above; keep it unless there is a concrete reason to change it.
+
+## Frontend structure and styling
+
+```text
+frontend/src/
+  pages/            route-level components; thin, usually render one feature component
+  features/<name>/  one folder per feature: <name>.api.ts, <name>.types.ts, feature components
+  components/ui/    shared primitives (Button, Card, Form_input, Form_select, Or_divider)
+  components/states/ shared LoadingState / ErrorState / EmptyState
+  layouts/          MainLayout: authenticated shell (nav + <Outlet />)
+  styles/globals.css design tokens (@theme) and global resets
+```
+
+- Styling is Tailwind utilities using the `app-*` tokens defined in `styles/globals.css` (`bg-app-canvas`, `bg-app-surface`, `border-app-border`, `text-app-text`, `text-app-text-secondary`, `text-app-text-muted`, `text-app-primary`, `text-app-danger`).
+- The app is dark-only (`color-scheme: dark`). New code should not use raw Tailwind palette colors such as `text-gray-900` or `bg-white`; `globals.css` does not remap them, so they render with Tailwind's default (light-theme) values. If a needed color is missing, add an `app-*` token instead of hardcoding it.
+- No per-component CSS files; shared visuals go into `components/ui`.
+- Feature API modules call the backend through the shared Axios instance in `features/auth/axiosInstance.ts`.
 
 ## Backend organization
 

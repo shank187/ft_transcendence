@@ -12,7 +12,7 @@ function Card({
     className = '',
     ...props
 }: CardProps)
-{
+{  
 return(
         <div
             className={`
@@ -28,5 +28,4 @@ return(
         </div>
     )
 }
-
 export default Card

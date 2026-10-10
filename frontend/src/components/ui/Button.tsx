@@ -12,6 +12,9 @@ const variantClasses = {
 
     ghost:
         'bg-transparent text-app-text hover:bg-app-surface',
+
+    danger:
+        'bg-app-danger text-app-canvas hover:brightness-110',
 } as const
 
 type ButtonVariant = keyof typeof variantClasses

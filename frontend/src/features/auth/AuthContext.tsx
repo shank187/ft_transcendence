@@ -82,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode })
     bootstrapSession();
     }, []);
 
-    
     if (loading)
         return <div>Loading...</div>;
 
