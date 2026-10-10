@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws'
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
 import jwt from "jsonwebtoken";
 import { getFriendsId , areUsersFriends} from "../friends/friends.service";
-import { storeMessage } from "./chat.service"
+import { storeMessage, setReadMessageTime } from "./chat.service"
 
 export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
 
@@ -14,6 +14,9 @@ function isValidMessage(message: unknown): message is ClientMessage {
         }
         else if ("type" in message && message.type === "authenticate")
             return ("token" in message && typeof message.token === "string")
+        else if ("type" in message && message.type === "readMessage")
+            return ("target" in message && typeof message.target === "string" && 
+                    "messageId" in message && typeof message.messageId === "string")
     }
     return false
 }
@@ -25,18 +28,32 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
         userId: ws.userId,
         status: status
     }
-    friends.forEach( friendId => {
-        if (!connectedUsers.has(friendId))
-            return
-        if (connectedUsers.get(friendId)?.size !== 0)
-            connectedUsers.get(friendId)?.forEach( Socket => {
-                Socket.send(JSON.stringify(response))
-            })
+    const onlineFriendIds = friends.filter(friend =>
+        connectedUsers.has(friend)
+    )
+
+    onlineFriendIds.forEach( friendId => {
+        connectedUsers.get(friendId)?.forEach( Socket => {
+            Socket.send(JSON.stringify(response))
+        })
     }
     )
 }
 
+async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
+    const friends = await getFriendsId(ws.userId)
 
+    const onlineFriendIds = friends.filter(friendId =>
+        connectedUsers.has(friendId)
+    )
+
+    const response: ServerMessage = {
+        type: "presence_snapshot",
+        onlineUserIds: onlineFriendIds
+    }
+
+    ws.send(JSON.stringify(response))
+}
 
 export function initializeChat(wss: WebSocketServer) {
     wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
@@ -85,6 +102,7 @@ export function initializeChat(wss: WebSocketServer) {
                     if (!connectedUsers.has(ws.userId))
                         connectedUsers.set(ws.userId, new Set)
                     connectedUsers.get(ws.userId)?.add(ws)
+                    await sendPresenceSnapshot(ws)
                     if (connectedUsers.get(ws.userId)?.size === 1)
                         await handlePresence(ws, "online")
                     return
@@ -101,6 +119,28 @@ export function initializeChat(wss: WebSocketServer) {
                 ws.send(JSON.stringify(response))
                 return
             }
+            else if (message.type === "readMessage") {
+                if (!( await areUsersFriends(message.target, ws.userId)) || message.target === ws.userId) {
+                    const response : ServerMessage = {
+                        type: "error",
+                        message: "You can only read messages from accepted friends"
+                    }
+                    ws.send(JSON.stringify(response))
+                    return
+                }
+                const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
+                if (response.type === "error") {
+                    connectedUsers.get(ws.userId)?.forEach( toSocket => {
+                        toSocket.send(JSON.stringify(response))
+                    })
+                }
+                else {
+                    connectedUsers.get(message.target)?.forEach( toSocket => {
+                        toSocket.send(JSON.stringify(response))
+                    })
+                }
+                return
+            }
             else if (message.type === "message") {
                 if (message.to === ws.userId) {
                     const response : ServerMessage = {
@@ -113,25 +153,28 @@ export function initializeChat(wss: WebSocketServer) {
                 if (!( await areUsersFriends(message.to, ws.userId))) {
                     const response : ServerMessage = {
                         type: "error",
-                        message: "You can only message accepted friends 1 "
+                        message: "You can only message accepted friends"
                     }
                     ws.send(JSON.stringify(response))
                     return
                 }
                 const msgRecord = await storeMessage(message.to, message.content, ws.userId)
-                if (connectedUsers.has(message.to)) {
-                    const response : ServerMessage = {
-                        type: "message",
-                        from: ws.userId,
-                        content: message.content,
-                        messageId: msgRecord.id,
-                        conversationId: msgRecord.conversationId,
-                        createdAt: msgRecord.createdAt
-                    }
-                    connectedUsers.get(message.to)?.forEach( toSocket => {
-                        toSocket.send(JSON.stringify(response))
-                    })
+                const response : ServerMessage = {
+                    type: "message",
+                    from: ws.userId,
+                    to: message.to,
+                    content: message.content,
+                    messageId: msgRecord.id,
+                    conversationId: msgRecord.conversationId,
+                    createdAt: msgRecord.createdAt,
+                    readAt: null
                 }
+                connectedUsers.get(message.to)?.forEach( toSocket => {
+                    toSocket.send(JSON.stringify(response))
+                })
+                connectedUsers.get(ws.userId)?.forEach(toSocket => {
+                    toSocket.send(JSON.stringify(response))
+                })
                 console.log(
                     `Message received from user ${ws.userId}`
                 );

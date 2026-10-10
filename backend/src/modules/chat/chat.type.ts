@@ -14,20 +14,31 @@ export type ClientMessage =
         type: "authenticate"
         token: string
     } 
+    | {
+        type: "readMessage"
+        target: string
+        messageId: string
+    }
 
 export type ServerMessage =
     | {
-        type: "message";
-        from: string;
-        content: string;
-        messageId: string;
-        conversationId: string;
-        createdAt: string;
+        type: "message"
+        from: string
+        to: string
+        content: string
+        messageId: string
+        conversationId: string
+        createdAt: string
+        readAt: string | null
     }
     | {
         type: "presence";
         userId: string;
         status: "online" | "offline";
+    }
+    | {
+        type: "presence_snapshot"
+        onlineUserIds: string[]
     }
     | {
         type: "error";
@@ -36,3 +47,10 @@ export type ServerMessage =
     | {
         type: "authenticated"
     }
+    | {
+        type: "readMessage"
+        readAt: string
+        conversationId: string
+        messageId: string
+    }
+    
