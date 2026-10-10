@@ -1,5 +1,22 @@
 import { prisma } from "../../lib/prisma"
 
+export async function getFriendsForUser(userId: string) {
+    const friendIds = await getFriendsId(userId)
+    const friendsList = await prisma.user.findMany({
+        where : {
+            id : { in: friendIds}
+        },
+        select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+            lastSeenAt: true
+        }
+    })
+    return friendsList
+}
+
 export async function areUsersFriends(userA: string, userB: string)  {
     const friendship = await prisma.friendship.findFirst({
         where: {
