@@ -31,5 +31,11 @@ export interface DayDetail {             // WorkoutDay + plan name
     exercises: DayExercise[]
 }
 
-export type TargetPatch = Partial<Pick<PlannedSet,
-    "targetWeight" | "targetReps" | "targetDuration" | "targetDistance">>
+export type SetTargets = Pick<PlannedSet,
+    "setType" | "targetWeight" | "targetReps" | "targetDuration" | "targetDistance">
+
+// Array position is the order: exercise i gets order i + 1, set j gets
+// setNumber j + 1. The client never sends order, setNumber or row ids.
+export interface SaveDayBody {
+    exercises: { exerciseId: string; restSeconds: number | null; sets: SetTargets[] }[]
+}

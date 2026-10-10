@@ -3,21 +3,24 @@ import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import DropDownMenu from "../../components/ui/DropdownMenu";
 import type { PlanDay } from "./plan-detail.types";
-
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { buttonClasses } from "../../components/ui/button-classes";
 
 
 
 export default function DayRow(
     props:{
         day: PlanDay,
+        planId: string,
         dropDownMenu: string|null,
         setDropDown: (Daymenu: string | null)=> void
         onRename: (day: PlanDay) => void
         onDelete: (day: PlanDay) => void
     }
 ){
-
-
+    
+    const navigate = useNavigate() 
     const day = props.day;
     const exercises = `${day.exerciseCount} ${day.exerciseCount === 1 ? "exercise" : "exercises"}`;
     const sets = `${day.setCount} ${day.setCount === 1 ? "set" : "sets"}`;
@@ -76,15 +79,16 @@ export default function DayRow(
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                {/* TODO(UI 3/7): open the day editor */}
-                <Button variant="secondary" className="border border-app-border flex-1 min-h-11" disabled>
+                <Link
+                    to={`/workouts/plans/${props.planId}/days/${day.id}`}
+                    className={buttonClasses("secondary", "border border-app-border flex-1 min-h-11")}
+                >
                     Edit
-                </Button>
+                </Link>
                 {/* TODO(UI 5/7): start a workout from this day */}
                 <Button variant="primary" className="flex-1 min-h-11" disabled>
                     ▶ Start
                 </Button>
-
             </div>
         </Card>
     );

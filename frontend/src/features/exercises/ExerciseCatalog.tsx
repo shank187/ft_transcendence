@@ -41,25 +41,10 @@ function ExerciseCatalog() {
     }, [page])
 
 
-    if(loading && exercises.length === 0)
-        return(
-            <section>
-                <h1>Loading Exercises...</h1>
-            </section>
-        )
-    if (error && exercises.length === 0)
-        return(
-            <section>
-                <h1>{error}</h1>
-                
-            </section>
-        )
-    if (exercises.length === 0)
-        return(
-            <section>
-                <h1>No Exercises Found.</h1>
-            </section>
-        )
+    if(loading && exercises.length === 0) return <h1>Loading Exercises...</h1>
+    if (error && exercises.length === 0) return <h1>{error}</h1>                
+    if (exercises.length === 0) return <h1>No Exercises Found.</h1>
+
     return (
         <section>
         <h1>Exercises</h1>

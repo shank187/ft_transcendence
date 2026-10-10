@@ -130,6 +130,7 @@ export default function PlanDetailView(props: {planId: string})
                         <li key={day.id}>
                             <DayRow
                             day={day}
+                            planId={props.planId}
                             dropDownMenu={dayMenu}
                             setDropDown={setDayMenu}
                             onRename={selectedDay => {
