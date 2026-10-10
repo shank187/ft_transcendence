@@ -3,7 +3,6 @@ import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import DropDownMenu from "../../components/ui/DropdownMenu";
 import type { PlanDay } from "./plan-detail.types";
-import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { buttonClasses } from "../../components/ui/button-classes";
 
@@ -19,7 +18,7 @@ export default function DayRow(
         onDelete: (day: PlanDay) => void
     }
 ){
-    
+
     const day = props.day;
     const exercises = `${day.exerciseCount} ${day.exerciseCount === 1 ? "exercise" : "exercises"}`;
     const sets = `${day.setCount} ${day.setCount === 1 ? "set" : "sets"}`;

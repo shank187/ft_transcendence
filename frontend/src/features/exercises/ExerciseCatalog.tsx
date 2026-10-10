@@ -3,6 +3,7 @@ import { getExercises } from './exercise.api'
 import type {Exercise}  from './exercise.types'
 import ExerciseCard from "./ExerciseCard"
 import Button from '../../components/ui/Button'
+import ErrorState from '../../components/states/ErrorState'
 
 const PAGE_SIZE = 12
 
@@ -42,7 +43,15 @@ function ExerciseCatalog() {
 
 
     if(loading && exercises.length === 0) return <h1>Loading Exercises...</h1>
-    if (error && exercises.length === 0) return <h1>{error}</h1>                
+    if (error && exercises.length === 0)
+        return (
+            <ErrorState
+            message={error}
+            action={<Button onClick={() => void loadExercises()} variant='secondary'>
+                Retry
+                </Button>}
+            />
+        )
     if (exercises.length === 0) return <h1>No Exercises Found.</h1>
 
     return (
