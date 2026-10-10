@@ -232,8 +232,14 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
             if (old_url.startsWith("/uploads/avatars/") && old_url !== avatarUrl)
             {
                 const filename = old_url.split('/').pop();
-                if (filename)
-                    await unlink("uploads/avatars/" + filename);
+                if (filename) {
+                    try {
+                        await unlink("uploads/avatars/" + filename);
+                    } catch (error) {
+                        if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
+                            throw error;
+                    }
+                }
             }
         }
 
