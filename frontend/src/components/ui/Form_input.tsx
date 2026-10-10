@@ -3,11 +3,12 @@ type FormInputProps = {
     label: string;
     type: "email" | "password" | "text" | "number";
     value: string;
-    onChange: (value: string) => void;
+    onChange?: (value: string) => void;
+    readOnly?: boolean;
     required?: boolean;
 };
 
-function Form_input({ id, label, type, value, onChange , required = true}: FormInputProps) {
+function Form_input({ id, label, type, value, onChange , required = true ,readOnly = false}: FormInputProps) {
     return (
         <div>
             <label htmlFor={id} className="sr-only">
@@ -18,9 +19,10 @@ function Form_input({ id, label, type, value, onChange , required = true}: FormI
                 type={type}
                 placeholder={label}
                 value={value}
-                onChange={(event) => onChange(event.target.value)}
+                onChange={(event) => onChange?.(event.target.value)}
                 className="w-full rounded-2xl border border-app-border px-4 py-4 text-app-text placeholder:text-app-text-muted focus:border-app-text-secondary focus:outline-none"
                 required={required}
+                readOnly={readOnly}
             />
         </div>
     );
