@@ -20,7 +20,6 @@ export default function DayRow(
     }
 ){
     
-    const navigate = useNavigate() 
     const day = props.day;
     const exercises = `${day.exerciseCount} ${day.exerciseCount === 1 ? "exercise" : "exercises"}`;
     const sets = `${day.setCount} ${day.setCount === 1 ? "set" : "sets"}`;
