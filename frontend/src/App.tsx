@@ -14,6 +14,7 @@ import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
 import Progress from './pages/Progress';
 import DayEditor from './pages/DayEditor';
+import NotFound from './pages/NotFound';
 
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
           <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
     </Routes>
