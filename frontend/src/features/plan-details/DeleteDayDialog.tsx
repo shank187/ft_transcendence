@@ -1,0 +1,41 @@
+import { useState } from "react"
+import type { PlanDay } from "./plan-detail.types"
+import { deleteWorkoutDay } from "./plan-detail.api"
+import Button from "../../components/ui/Button"
+import Dialog from "../../components/ui/Dialog"
+
+export default function DeleteDayDialog(props: {
+    planId: string
+    day: PlanDay
+    onClose: () => void
+    onDeleted: (remainingDays: PlanDay[]) => void
+})
+{
+    const [deleteDayError, setDeleteDayError] = useState<string|null>(null)
+    const [submitting, setSubmitting] = useState(false)
+
+    const deleteDay = async ()=>{
+        setSubmitting(true)
+        setDeleteDayError(null)
+        try{
+            const remainingDays = await deleteWorkoutDay(props.planId, props.day.id);
+            props.onDeleted(remainingDays)
+            props.onClose()
+        }catch(err){
+            setDeleteDayError(err instanceof Error ? err.message : "Cant delete this day")
+        }finally{
+            setSubmitting(false)
+        }
+    }
+
+    return (
+        <Dialog isWorking={submitting} open={true} title={`Delete ${props.day.name}?`} onClose={props.onClose}>
+            <p>Past workouts stay in your history.</p>
+            {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
+            <div className="flex gap-2 mt-3">
+                <Button variant="secondary" className="border border-app-border flex-1" disabled={submitting} onClick={props.onClose}>Cancel</Button>
+                <Button variant="danger" className="flex-1" disabled={submitting} onClick={deleteDay} >{submitting?"Deleting...":"Delete day"}</Button>
+            </div>
+        </Dialog>
+    )
+}
