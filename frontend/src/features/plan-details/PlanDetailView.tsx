@@ -11,6 +11,9 @@ import DayRow from "./DayRow"
 import AddDayForm from "./AddDayForm"
 import RenameDayDialog from "./RenameDayDialog"
 import DeleteDayDialog from "./DeleteDayDialog"
+import NotFoundState from "../../components/states/NotFoundState"
+import { Link } from "react-router-dom"
+import { buttonClasses } from "../../components/ui/button-classes"
 
 export default function PlanDetailView(props: {planId: string})
 {
@@ -89,7 +92,19 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>}
             />
         )
-    if(!plan) return <h1>Plan not found.</h1>
+    if(!plan)
+        return(
+            <NotFoundState
+            title="Plan not found."
+            description="It may have been deleted."
+            action={<Link
+                    to="/workouts"
+                    className={buttonClasses("secondary", "mt-4 min-h-11")}
+                    >
+                Back to my plans
+                </Link>}
+            />
+        )
 
     const renamingDay = plan.days.find(d => d.id === renamingDayId)
     const deletingDay = plan.days.find(d => d.id === deletingDayId)
