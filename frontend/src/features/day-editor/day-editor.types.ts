@@ -18,7 +18,7 @@ export interface DayExercise {           // WorkoutExercise
     id: string
     order: number
     restSeconds: number | null
-    exercise: { id: string; name: string; type: ExerciseType; primaryMuscle: string }
+    exerciseSummary: ExerciseSummary
     sets: PlannedSet[]
 }
 
@@ -29,6 +29,33 @@ export interface DayDetail {             // WorkoutDay + plan name
     planId: string
     planName: string
     exercises: DayExercise[]
+}
+
+export interface ExerciseSummary {
+    id: string
+    name: string
+    type: ExerciseType
+    primaryMuscle: string
+}
+
+
+
+export interface DraftSet{
+    key: string,
+    setType: SetType,
+    Weight: string,
+    Reps: string,
+    Duration: string,
+    Distance: string,
+}
+
+
+
+export interface DraftExercise{
+    key: string,
+    restSeconds: String,
+    exerciseSummary: ExerciseSummary
+    sets: DraftSet[]
 }
 
 export type SetTargets = Pick<PlannedSet,
