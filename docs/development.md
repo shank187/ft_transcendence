@@ -41,6 +41,8 @@ See the [Team PR Guide](pr-guide.md).
 
 Each PR delivers one clear, useful, testable task.
 
+Request peer review for security, auth, schema, transactions, shared UI, and cross-slice DTOs.
+
 ## Environment and secrets
 
 - `.env` stays local and ignored.
