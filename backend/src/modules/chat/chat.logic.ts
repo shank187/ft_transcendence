@@ -26,7 +26,7 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
 
     if (!userId) return
     const friends = await getFriendsId(userId)
-    const isOnline = connectedUsers.has(userId)``
+    const isOnline = connectedUsers.has(userId)
     
     if (status === "online" && !isOnline) return
     if (status === "offline" && isOnline) return
