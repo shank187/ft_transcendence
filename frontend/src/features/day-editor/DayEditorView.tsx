@@ -9,6 +9,7 @@ import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
 import { toDraft } from "./day-editor.draft"
+import Card from "../../components/ui/Card"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -68,6 +69,37 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         <Button disabled>Add Exercises</Button>
                     }
                     />
+            }
+            {draft.length > 0 &&
+                <ol>
+                    {draft.map((exercise, ix)=>(
+                        <li key={exercise.key}>
+                            <Card>
+                                {/* header of exercise card */}
+                                <div className="flex gap-3 border">
+                                    <div className="border border-app-border p-2 px-3 rounded">{ix + 1}</div>
+                                    <div>
+                                        <h1>{exercise.exerciseSummary.name}</h1>
+                                        <p>{exercise.exerciseSummary.type}.{exercise.exerciseSummary.primaryMuscle}</p>
+                                        <p>{exercise.restSeconds}</p>
+                                    </div>
+                                </div>
+                                <ol>
+                                    {exercise.sets.map((set, iy)=>(
+                                        <li key={set.key}>
+                                            <div className="flex justify-baseline">
+                                                <div className="border border-app-border p-2 px-3 rounded">{iy + 1}</div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </Card>
+
+                        </li>
+                        ))
+                    }
+                </ol>
+
             }
                 
         </div>
