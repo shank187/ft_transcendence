@@ -7,7 +7,8 @@ import userRoutes from './modules/users/users.routes';
 import exerciseRouter from "./modules/exercises/exercise.route";
 import workoutRouter from "./modules/workouts/workout.route"
 import progressRouter from "./modules/progress/progress.route";
-
+import friendsRoutes from "./modules/friends/friends.routes";
+import conversationsRoutes from "./modules/chat/chat.router";
 
 
 const app = express();
@@ -29,5 +30,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/workout-plans', workoutRouter)
 
 app.use("/api/progress", progressRouter);
+
+app.use('/api/friends', friendsRoutes);
+app.use('/api/conversations', conversationsRoutes);
+
 
 export default app;
