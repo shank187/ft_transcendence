@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws'
+import WebSocket, { WebSocketServer } from 'ws'
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
 import jwt from "jsonwebtoken";
 import { getFriendsId , areUsersFriends} from "../friends/friends.service";
@@ -22,10 +22,17 @@ function isValidMessage(message: unknown): message is ClientMessage {
 }
 
 async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "offline") {
-    const friends = await getFriendsId(ws.userId)
+    const userId = ws.userId
+
+    if (!userId) return
+    const friends = await getFriendsId(userId)
+    const isOnline = connectedUsers.has(userId)``
+    
+    if (status === "online" && !isOnline) return
+    if (status === "offline" && isOnline) return
     const response: ServerMessage = {
         type: "presence",
-        userId: ws.userId,
+        userId: userId,
         status: status
     }
     const onlineFriendIds = friends.filter(friend =>
@@ -41,7 +48,10 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
 }
 
 async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
-    const friends = await getFriendsId(ws.userId)
+    const userId = ws.userId
+
+    if (!userId) return
+    const friends = await getFriendsId(userId)
 
     const onlineFriendIds = friends.filter(friendId =>
         connectedUsers.has(friendId)
@@ -59,42 +69,47 @@ export function initializeChat(wss: WebSocketServer) {
     wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
         console.log(`client connected.`)
         ws.on('message', async rawData => {
-            let message: unknown
             try {
-                message = JSON.parse(rawData.toString())
-            } catch {
-                const response: ServerMessage = {
-                    type: "error",
-                    message: "Invalid JSON"
-                }
-                ws.send(JSON.stringify(response))
-                return
-            }
-            if (!isValidMessage(message)) {
-                const response: ServerMessage = {
-                    type: "error",
-                    message: "Invalid message"
-                }
-                ws.send(JSON.stringify(response))
-                return
-            }
-            if (!ws.userId) {
-                if (message.type !== "authenticate") {
-                    ws.close(1008, "Authentication required");
+                let message: unknown
+                try {
+                    message = JSON.parse(rawData.toString())
+                } catch {
+                    const response: ServerMessage = {
+                        type: "error",
+                        message: "Invalid JSON"
+                    }
+                    ws.send(JSON.stringify(response))
                     return
                 }
-                try {
-                    const secret = process.env.JWT_SECRET
-                    if (!secret) {
-                        ws.close(1011, "Server configuration error");
+                if (!isValidMessage(message)) {
+                    const response: ServerMessage = {
+                        type: "error",
+                        message: "Invalid message"
+                    }
+                    ws.send(JSON.stringify(response))
+                    return
+                }
+                if (!ws.userId) {
+                    if (message.type !== "authenticate") {
+                        ws.close(1008, "Authentication required");
                         return
                     }
-                    const decoded = jwt.verify(message.token, secret)
-                    if (typeof decoded === "string" || typeof decoded.userId !== "string") {
-                        ws.close(1008, "Invalid access token");
-                        return
+                    try {
+                        const secret = process.env.JWT_SECRET
+                        if (!secret) {
+                            ws.close(1011, "Server configuration error");
+                            return
+                        }
+                        const decoded = jwt.verify(message.token, secret)
+                        if (typeof decoded === "string" || typeof decoded.userId !== "string") {
+                            ws.close(1008, "Invalid access token");
+                            return
+                        }
+                        ws.userId = decoded.userId;
+                    } catch {
+                            ws.close(1008, "Invalid or expired access token");
+                            return;
                     }
-                    ws.userId = decoded.userId;
                     const response: ServerMessage = {
                         type: "authenticated",
                     }
@@ -102,90 +117,120 @@ export function initializeChat(wss: WebSocketServer) {
                     if (!connectedUsers.has(ws.userId))
                         connectedUsers.set(ws.userId, new Set)
                     connectedUsers.get(ws.userId)?.add(ws)
-                    await sendPresenceSnapshot(ws)
-                    if (connectedUsers.get(ws.userId)?.size === 1)
-                        await handlePresence(ws, "online")
+                    if (connectedUsers.get(ws.userId)?.size === 1) {
+                        try {
+                            await handlePresence(ws, "online")
+                        } catch (error) {
+                            console.error("Failed to notify friends:", error)
+                        }
+                    }
+                    try {
+                        if (ws.readyState !== WebSocket.OPEN) return
+                        await sendPresenceSnapshot(ws)
+                    } catch (error) {
+                        console.error("Failed to load presence snapshot:", error)
+                    
+                        if (ws.readyState === WebSocket.OPEN) {
+                            const response: ServerMessage = {
+                                type: "error",
+                                message: "Failed to load friends' online status"
+                            }
+                        
+                            ws.send(JSON.stringify(response))
+                        }
+                    }
                     return
-                } catch {
-                    ws.close(1008, "Invalid or expired access token");
-                    return;
                 }
-            }
-            else if (message.type === "authenticate") {
-                const response: ServerMessage = {
-                    type: "error",
-                    message: "Already authenticated"
-                }
-                ws.send(JSON.stringify(response))
-                return
-            }
-            else if (message.type === "readMessage") {
-                if (!( await areUsersFriends(message.target, ws.userId)) || message.target === ws.userId) {
-                    const response : ServerMessage = {
+                else if (message.type === "authenticate") {
+                    const response: ServerMessage = {
                         type: "error",
-                        message: "You can only read messages from accepted friends"
+                        message: "Already authenticated"
                     }
                     ws.send(JSON.stringify(response))
                     return
                 }
-                const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
-                if (response.type === "error") {
-                    connectedUsers.get(ws.userId)?.forEach( toSocket => {
+                else if (message.type === "readMessage") {
+                    if (!( await areUsersFriends(message.target, ws.userId)) || message.target === ws.userId) {
+                        const response : ServerMessage = {
+                            type: "error",
+                            message: "You can only read messages from accepted friends"
+                        }
+                        ws.send(JSON.stringify(response))
+                        return
+                    }
+                    const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
+                    if (response.type === "error") {
+                        connectedUsers.get(ws.userId)?.forEach( toSocket => {
+                            toSocket.send(JSON.stringify(response))
+                        })
+                    }
+                    else {
+                        connectedUsers.get(message.target)?.forEach( toSocket => {
+                            toSocket.send(JSON.stringify(response))
+                        })
+                    }
+                    return
+                }
+                else if (message.type === "message") {
+                    if (message.to === ws.userId) {
+                        const response : ServerMessage = {
+                            type: "error",
+                            message: "You can't message yourself"
+                        }
+                        ws.send(JSON.stringify(response))
+                        return
+                    }
+                    if (!( await areUsersFriends(message.to, ws.userId))) {
+                        const response : ServerMessage = {
+                            type: "error",
+                            message: "You can only message accepted friends"
+                        }
+                        ws.send(JSON.stringify(response))
+                        return
+                    }
+                    const msgRecord = await storeMessage(message.to, message.content, ws.userId)
+                    const response : ServerMessage = {
+                        type: "message",
+                        from: ws.userId,
+                        to: message.to,
+                        content: message.content,
+                        messageId: msgRecord.id,
+                        conversationId: msgRecord.conversationId,
+                        createdAt: msgRecord.createdAt.toISOString(),
+                        readAt: null
+                    }
+                    connectedUsers.get(message.to)?.forEach( toSocket => {
                         toSocket.send(JSON.stringify(response))
                     })
-                }
-                else {
-                    connectedUsers.get(message.target)?.forEach( toSocket => {
+                    connectedUsers.get(ws.userId)?.forEach(toSocket => {
                         toSocket.send(JSON.stringify(response))
                     })
+                    console.log(
+                        `Message received from user ${ws.userId}`
+                    );
                 }
-                return
-            }
-            else if (message.type === "message") {
-                if (message.to === ws.userId) {
+            } catch (error) {
+                console.error("WebSocket message processing failed:", error)
+                if (ws.readyState === WebSocket.OPEN) {
                     const response : ServerMessage = {
                         type: "error",
-                        message: "You can't message yourself"
+                        message: "Internal server error"
                     }
                     ws.send(JSON.stringify(response))
-                    return
                 }
-                if (!( await areUsersFriends(message.to, ws.userId))) {
-                    const response : ServerMessage = {
-                        type: "error",
-                        message: "You can only message accepted friends"
-                    }
-                    ws.send(JSON.stringify(response))
-                    return
-                }
-                const msgRecord = await storeMessage(message.to, message.content, ws.userId)
-                const response : ServerMessage = {
-                    type: "message",
-                    from: ws.userId,
-                    to: message.to,
-                    content: message.content,
-                    messageId: msgRecord.id,
-                    conversationId: msgRecord.conversationId,
-                    createdAt: msgRecord.createdAt,
-                    readAt: null
-                }
-                connectedUsers.get(message.to)?.forEach( toSocket => {
-                    toSocket.send(JSON.stringify(response))
-                })
-                connectedUsers.get(ws.userId)?.forEach(toSocket => {
-                    toSocket.send(JSON.stringify(response))
-                })
-                console.log(
-                    `Message received from user ${ws.userId}`
-                );
-            }
-        })
+    }})
         ws.on('close', async (code, reason) => {
-            if (ws.userId) {
-                connectedUsers.get(ws.userId)?.delete(ws)
-                if (connectedUsers.get(ws.userId)?.size === 0) {
-                        await handlePresence(ws, "offline")
-                        connectedUsers.delete(ws.userId)
+            const userId = ws.userId
+            if (!userId) return
+            const sockets = connectedUsers.get(userId)
+            if (!sockets) return
+            sockets.delete(ws)
+            if (sockets.size === 0) {
+                connectedUsers.delete(userId)
+                try {
+                    await handlePresence(ws, "offline")
+                } catch (error) {
+                    console.error("Failed to broadcast offline presence:", error)
                 }
             }
             console.log(`connection closed with ${code} and reason: ${reason}`)
