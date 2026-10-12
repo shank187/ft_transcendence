@@ -1,4 +1,4 @@
-import type { DayDetail, DayExercise, SaveDayBody, SetTargets, SetType } from "./day-editor.types";
+import type { DayDetail, DayExercise, ExerciseSummary, SaveDayBody, SetTargets, SetType } from "./day-editor.types";
 
 // FAKE-DATA: in-memory mock of /api/workout-plans/:planId/days/:dayId.
 // State resets on every page reload.
@@ -20,7 +20,7 @@ const MAX_EXERCISES = 20
 const MAX_SETS = 1000
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
-type CatalogExercise = DayExercise["exercise"]
+type CatalogExercise = ExerciseSummary
 
 // FAKE-DATA: stands in for the Exercise table.
 const catalog = new Map<string, CatalogExercise>([
@@ -94,7 +94,7 @@ function copyDay(day: DayDetail): DayDetail {
         ...day,
         exercises: exercises.map(e => ({
             ...e,
-            exercise: { ...e.exercise },
+            exerciseSummary: { ...e.exerciseSummary },
             sets: [...e.sets].sort((a, b) => a.setNumber - b.setNumber).map(s => ({ ...s })),
         })),
     }
@@ -159,7 +159,7 @@ function buildExercises(body: SaveDayBody): DayExercise[] {
         id: crypto.randomUUID(),
         order: index + 1,
         restSeconds: item.restSeconds,
-        exercise: { ...catalog.get(item.exerciseId)! },
+        exerciseSummary: { ...catalog.get(item.exerciseId)! },
         sets: item.sets.map((set, setIndex) => ({
             id: crypto.randomUUID(),
             setNumber: setIndex + 1,

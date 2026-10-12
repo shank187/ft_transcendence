@@ -43,7 +43,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 <Link to={`/workouts/plans/${dayDetail.planId}`} className="self-start text-sm text-app-text-secondary hover:text-app-text" > <span>‹ </span>
                     {dayDetail.planName}
                 </Link>
-                <h1 className="break-words text-[28px] font-semibold">{dayDetail.name}</h1>
+                <h1 className="wrap-break-word text-[28px] font-semibold">{dayDetail.name}</h1>
             </header>
             {dayDetail.exercises.length === 0 &&
                     <EmptyState
