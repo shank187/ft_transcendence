@@ -93,6 +93,6 @@ For each meaningful flow verify success, failure, unauthorized ownership, repeat
 
 Every contributor must be able to trace their request/data flow, explain one failure case, justify one decision, and perform one small modification. AI-generated work must be reviewed, tested, understood, and independently recoded when it covers a pattern being learned.
 
-## Dated implementation checkpoint — 30 September 2026
+## Dated implementation checkpoint — 12 October 2026
 
-`main` is `177c75a`. Auth/onboarding (including Google OAuth and session check), the protected shell, `/home`, protected `/workouts` (owned plan list) and placeholder `/workouts/new-plan`, the paginated catalog API (UI currently unrouted), shared Button/Card/state components, and workout schema foundation exist. `GET /api/workout-plans` (owned plans, `feature/workout-plans-get`) is pending merge. Current S3 work: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan. Catalog recovery remains required before validation but is not the current blocker.
+`main` is `ce25a96`. Merged S3: My Plans with the real `GET /api/workout-plans`, Create Plan at `/workouts/new-plan` (POST still fake), and the plan page with days at `/workouts/plans/:planId` (fake API, PR #25). In progress on `feature/s3-ui-day-editor`: the Workout Day editor at `/workouts/plans/:planId/days/:dayId`, which saves the whole day with one `PUT /api/workout-plans/:planId/days/:dayId/exercises` (backend replaces the day's exercises and sets in one transaction). Phase 0 fixtures (User A / User B isolation) are still open. Catalog recovery remains required before validation.

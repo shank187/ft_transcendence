@@ -43,17 +43,17 @@ export interface ExerciseSummary {
 export interface DraftSet{
     key: string,
     setType: SetType,
-    Weight: string,
-    Reps: string,
-    Duration: string,
-    Distance: string,
+    weight: string,
+    reps: string,
+    duration: string,
+    distance: string,
 }
 
 
 
 export interface DraftExercise{
     key: string,
-    restSeconds: String,
+    restSeconds: string,
     exerciseSummary: ExerciseSummary
     sets: DraftSet[]
 }
