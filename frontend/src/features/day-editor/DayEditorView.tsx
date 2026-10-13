@@ -7,7 +7,7 @@ import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { toDraft } from "./day-editor.draft"
+import { moveExercise, removeExercise, toDraft } from "./day-editor.draft"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link } from "react-router-dom"
 
@@ -21,7 +21,14 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     // draft states
     const [draft, setDraft] = useState<DraftExercise[]>([])
     
-    
+    const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
+        setDraft(prev => moveExercise(prev, key, direction))
+    }
+    const removeExerciseCard = (key: DraftExercise["key"])=>{
+        setDraft(prev => removeExercise(prev, key))
+    }
+
+
     const loadDayPlan = useCallback (async ()=>{
         setDayError(null)
         setDayLoading(true)
@@ -73,8 +80,14 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 <ol>
                     {draft.map((exercise, i)=>(
                         <li key={exercise.key}>
-                            <WorkoutExerciseCard exercise={exercise} position={i+1}/>
-
+                            <WorkoutExerciseCard
+                            exercise={exercise}
+                            onRemove={removeExerciseCard}
+                            onMove={moveExerciseCard}
+                            position={i+1}
+                            isFirst={i === 0}
+                            isLast= {i === draft.length - 1}
+                            />
                         </li>
                         ))
                     }
