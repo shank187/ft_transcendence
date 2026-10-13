@@ -13,7 +13,13 @@ export default function SetRow(props:
         <div className="flex">
             <p className="w-11">{props.label}</p>
             {props.fields.map((field)=>(
-                <span key={field.key} className="w-22" aria-label={field.label}>{set[field.key]}</span>
+                <span
+                key={field.key}
+                className="w-22"
+                aria-label={field.label}
+                >
+                    {set[field.key] === "" ? "–" : set[field.key]}
+                </span>
             ))}
         </div>
     )
