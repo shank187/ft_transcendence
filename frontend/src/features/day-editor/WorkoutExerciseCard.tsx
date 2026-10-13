@@ -14,9 +14,9 @@ export default function WorkoutExerciseCard(props: { exercise: DraftExercise, po
             <div className="flex gap-3 border">
                 <div className="border border-app-border p-2 px-3 rounded">{props.position}</div>
                 <div>
-                    <h1>{exercise.exerciseSummary.name}</h1>
-                    <p>{type}.{primary}</p>
-                    <p>{exercise.restSeconds}</p>
+                    <h2>{exercise.exerciseSummary.name}</h2>
+                    <p>{type} · {primary}</p>
+                    <p>{exercise.restSeconds === "" ? "No rest timer" : `Rest ${exercise.restSeconds} s`}</p>
                 </div>
             </div>
             <div className="flex gap-2 text-xs text-app-text-muted" aria-hidden="true">
