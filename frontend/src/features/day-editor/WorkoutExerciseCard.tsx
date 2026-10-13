@@ -1,6 +1,7 @@
 import Card from "../../components/ui/Card"
 import type { DraftExercise } from "./day-editor.types"
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL } from "./exercise-fields"
+import SetRow from "./SetRow"
 
 export default function WorkoutExerciseCard(props: { exercise: DraftExercise, position: number }) {
     const { exercise } = props
@@ -28,7 +29,7 @@ export default function WorkoutExerciseCard(props: { exercise: DraftExercise, po
             <ol>
                 {exercise.sets.map((set, i) => (
                     <li key={set.key}>
-                        {/* TODO 3: <SetRow set={set} label={String(i + 1)} fields={fields} /> */}
+                        <SetRow set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
                     </li>
                 ))}
             </ol>
