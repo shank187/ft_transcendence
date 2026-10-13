@@ -9,6 +9,7 @@ import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
 import { toDraft } from "./day-editor.draft"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
+import { Link } from "react-router-dom"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -47,7 +48,11 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     return(
         <div>
-
+            <header className="flex flex-col gap-5">
+                <Link to={`/workouts/plans/${day.planId}`} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
+                <h1 className="text-[28px] font-semibold">{day.name}</h1>
+            </header>
+    
             {draft.length === 0 &&
                     <EmptyState
                     title="No exercises to show."
