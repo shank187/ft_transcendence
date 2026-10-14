@@ -1,6 +1,6 @@
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
-import type { DraftExercise } from "./day-editor.types"
+import type { DraftExercise} from "./day-editor.types"
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL } from "./exercise-fields"
 import SetRow from "./SetRow"
 
@@ -9,10 +9,13 @@ export default function WorkoutExerciseCard(props: {
     position: number ,
     onRemove: (key : DraftExercise["key"]) => void
     onMove: (key : DraftExercise["key"], direction: -1|1) => void
+    onAddSet: (key: string) => void
+    onRemoveSet: (exkey: string, setkey: string) => void
     isFirst: boolean
     isLast: boolean
 }
 ) {
+
     const { exercise } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
     const type = EXERCISE_TYPE_LABEL[exercise.exerciseSummary.type]
@@ -45,10 +48,13 @@ export default function WorkoutExerciseCard(props: {
             <ol>
                 {exercise.sets.map((set, i) => (
                     <li key={set.key}>
-                        <SetRow set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
+                        <SetRow exkey={exercise.key} onRemoveSet={props.onRemoveSet} set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
                     </li>
                 ))}
             </ol>
+            <div>
+                <Button onClick={()=> props.onAddSet(exercise.key)}>+ Add set</Button>
+            </div>
         </Card>
     )
 }
