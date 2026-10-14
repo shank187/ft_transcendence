@@ -1,6 +1,7 @@
+import { useId } from "react"
 import Button from "../../components/ui/Button"
 import type { DraftSet } from "./day-editor.types"
-import type { SetField } from "./exercise-fields"
+import type { FieldKey, SetField } from "./exercise-fields"
 
 export default function SetRow(props:
     {
@@ -9,23 +10,30 @@ export default function SetRow(props:
         fields: SetField[]
         exkey: string,
         onRemoveSet: (exkey: string, setkey: string) => void
+        onFieldChange: (exkey: string, setkey: string, field: FieldKey, value: string) => void
     })
 {
     const {set} = props
+    const id = useId()
     return(
         <div className="flex">
             <p className="w-11">{props.label}</p>
             {props.fields.map((field)=>(
-                <span
-                key={field.key}
-                className="w-22"
-                aria-label={field.label}
-                >
-                    {set[field.key] === "" ? "–" : set[field.key]}
-                </span>
+                <div key={field.key} className="w-22">
+                    <label htmlFor={`${id}-${field.key}`} className="sr-only">
+                        {`Set ${props.label} ${field.key}`}
+                    </label>
+                    <input
+                    id={`${id}-${field.key}`}
+                    type="text"
+                    inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
+                    className="w-full"
+                    value={set[field.key]}
+                    onChange={(e)=> props.onFieldChange(props.exkey, set.key, field.key, e.target.value)}
+                    />
+                </div>
             ))}
-                        <Button variant="danger" onClick={()=> props.onRemoveSet(props.exkey, set.key)}>D</Button>
-
+            <Button variant="danger" aria-label={`Remove set ${props.label}`} onClick={()=> props.onRemoveSet(props.exkey, set.key)}>D</Button>
         </div>
     )
 }
