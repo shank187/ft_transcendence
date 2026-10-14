@@ -1,4 +1,5 @@
 import type { DayExercise, DraftExercise, DraftSet } from "./day-editor.types";
+import type { FieldKey } from "./exercise-fields";
 
 
 export function moveExercise(draft: DraftExercise[], key: string, direction: 1 | -1) : DraftExercise[]
@@ -55,6 +56,19 @@ export function removeDraftSet(draft: DraftExercise[], exKey: string, setKey: st
     if (setIndex === -1)
         return draft
     return draft.map((e, i) =>(i === exIndex? {...e, sets: e.sets.filter((_, i) =>(i !== setIndex))}  :e))
+}
+
+export function updateSetField(draft: DraftExercise[], exKey: string, setKey: string, field: FieldKey, value: string): DraftExercise[]
+{
+    const exIndex = draft.findIndex(e => e.key === exKey)
+    if (exIndex === -1)
+        return draft
+    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
+    if (setIndex === -1)
+        return draft
+    return draft.map((e, i) => (i === exIndex
+        ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, [field]: value} : s))}
+        : e))
 }
 
 export function toDraft(exercises: DayExercise[]): DraftExercise[]
