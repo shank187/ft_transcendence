@@ -1,4 +1,4 @@
-import type { DayExercise, DraftExercise, DraftSet } from "./day-editor.types";
+import type { DayExercise, DraftExercise, DraftSet, SaveDayBody } from "./day-editor.types";
 import { EXERCISE_FIELDS, type FieldKey, type SetField } from "./exercise-fields";
 
 
@@ -132,4 +132,21 @@ export function isDraftValid(draft: DraftExercise[]): boolean
 {
     return draft.every(e => e.sets.every(s =>
         Object.keys(validateSet(s, EXERCISE_FIELDS[e.exerciseSummary.type])).length === 0))
+}
+
+export function toSaveBody(draft: DraftExercise[]): SaveDayBody
+{
+    return {
+        exercises: draft.map(e => ({
+            exerciseId: e.exerciseSummary.id,
+            restSeconds: toNumber(e.restSeconds),
+            sets: e.sets.map(s => ({
+                setType: s.setType,
+                targetWeight: toNumber(s.weight),
+                targetReps: toNumber(s.reps),
+                targetDuration: toNumber(s.duration),
+                targetDistance: toNumber(s.distance),
+            })),
+        })),
+    }
 }
