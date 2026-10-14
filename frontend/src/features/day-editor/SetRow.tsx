@@ -1,3 +1,4 @@
+import Button from "../../components/ui/Button"
 import type { DraftSet } from "./day-editor.types"
 import type { SetField } from "./exercise-fields"
 
@@ -6,6 +7,8 @@ export default function SetRow(props:
         label: string
         set: DraftSet
         fields: SetField[]
+        exkey: string,
+        onRemoveSet: (exkey: string, setkey: string) => void
     })
 {
     const {set} = props
@@ -21,6 +24,8 @@ export default function SetRow(props:
                     {set[field.key] === "" ? "–" : set[field.key]}
                 </span>
             ))}
+                        <Button variant="danger" onClick={()=> props.onRemoveSet(props.exkey, set.key)}>D</Button>
+
         </div>
     )
 }

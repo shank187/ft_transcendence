@@ -25,7 +25,37 @@ export function removeExercise(draft: DraftExercise[], key: string): DraftExerci
     return next
 }
 
+function newDraftSet(): DraftSet {
+    return{
+        key: crypto.randomUUID(),
+        setType: "NORMAL",
+        weight: "",
+        reps: "",
+        duration: "",
+        distance: ""
+    }
+}
 
+export function addDraftSet(draft: DraftExercise[], key: string): DraftExercise[]
+{
+    const index = draft.findIndex(e=>e.key === key)
+    if(index === -1)
+        return draft
+    const newSet = newDraftSet()
+    const next = draft.map<DraftExercise>((e, i)=>(i === index? {...e, sets:[...e.sets, newSet]}: e))
+    return next
+}
+
+export function removeDraftSet(draft: DraftExercise[], exKey: string, setKey: string): DraftExercise[]
+{
+    const exIndex = draft.findIndex(e => e.key === exKey)
+    if (exIndex === -1)
+        return draft
+    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
+    if (setIndex === -1)
+        return draft
+    return draft.map((e, i) =>(i === exIndex? {...e, sets: e.sets.filter((_, i) =>(i !== setIndex))}  :e))
+}
 
 export function toDraft(exercises: DayExercise[]): DraftExercise[]
 {
