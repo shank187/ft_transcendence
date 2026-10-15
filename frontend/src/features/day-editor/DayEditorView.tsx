@@ -11,6 +11,8 @@ import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link } from "react-router-dom"
+import Dialog from "../../components/ui/Dialog"
+import { buttonClasses } from "../../components/ui/button-classes"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -26,6 +28,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState<string|null>(null)
     
+    //leaving dialog
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
     const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
         setDraft(prev => moveExercise(prev, key, direction))
     }
@@ -80,26 +85,48 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         }
     },[props.planId, props.dayId,])
 
+
     useEffect(() =>{
         loadDayPlan()
     },[loadDayPlan])
+
+    const isDirty = day ? JSON.stringify(toSaveBody(draft)) !== JSON.stringify(toSaveBody(toDraft(day.exercises))) : false
+
+    const onclickLeaving = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>)=>{
+        if(isDirty){
+            e.preventDefault()
+            setIsDialogOpen(true);
+        }
+    }
+
+    const oncloseLeaveDialog = ()=>{
+        setIsDialogOpen(false)
+    }
+
+    useEffect(()=>{
+        if(!isDirty)
+            return
+        const handleLeaving = (event: BeforeUnloadEvent)=>{
+            event.preventDefault()
+        }
+        window.addEventListener("beforeunload", handleLeaving)
+        return ()=> window.removeEventListener("beforeunload", handleLeaving)
+    }, [isDirty])
 
     if(dayLoading) return <LoadingState message="Loading Workout day..."/>
     if(dayError)
         return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary">Retry</Button>} message={dayError}/>)
     if(!day) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
 
-    const isDirty = JSON.stringify(toSaveBody(draft)) !== JSON.stringify(toSaveBody(toDraft(day.exercises)))
     const isValid = isDraftValid(draft)
 
 
     return(
         <div>
             <header className="flex flex-col gap-5">
-                <Link to={`/workouts/plans/${day.planId}`} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
+                <Link  onClick={onclickLeaving} to={`/workouts/plans/${day.planId}`} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
                 <h1 className="text-[28px] font-semibold">{day.name}</h1>
             </header>
-    
             {draft.length === 0 &&
                     <EmptyState
                     title="No exercises to show."
@@ -139,7 +166,6 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 </fieldset>
 
             }
-
             {(isDirty || !isValid) &&
                 <div className="flex flex-col gap-2">
                     {saveError &&
@@ -154,7 +180,15 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     </div>
                 </div>
             }
-                
+            {isDialogOpen &&
+                <Dialog isWorking={false} title="Leave without saving?" open={true} onClose={oncloseLeaveDialog}>
+                    <p>Your changes to this day will be lost.</p>
+                    <div className="flex gap-3">
+                        <Link className={buttonClasses("danger",  "border border-app-border flex-1 min-h-11")} to={`/workouts/plans/${day.planId}`} >Leave</Link>
+                        <Button variant="secondary" className="flex-1" onClick={oncloseLeaveDialog}>Keep editing</Button>
+                    </div>
+                </Dialog>
+            }
         </div>
     )
 }
