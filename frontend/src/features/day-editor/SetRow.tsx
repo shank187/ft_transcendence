@@ -18,10 +18,11 @@ export default function SetRow(props:
     const id = useId()
     const errors = validateSet(set, props.fields)
     return(
-        <div className="flex">
-            <p className="w-11">{props.label}</p>
+        <div className="flex items-start gap-2">
+            {/* STYLE: Figma makes the set number a button that opens the set menu (Remove set, set types). Planned for UI 6/7; until then it stays a label next to its own Remove set button. */}
+            <p className="flex size-11 shrink-0 items-center justify-center rounded-md border border-app-border bg-app-surface-hover text-sm font-medium">{props.label}</p>
             {props.fields.map((field)=>(
-                <div key={field.key} className="w-22">
+                <div key={field.key} className="flex w-22 shrink-0 flex-col gap-1">
                     <label htmlFor={`${id}-${field.key}`} className="sr-only">
                         {`Set ${props.label} ${field.key}`}
                     </label>
@@ -29,7 +30,7 @@ export default function SetRow(props:
                     id={`${id}-${field.key}`}
                     type="text"
                     inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
-                    className="w-full"
+                    className="h-11 w-full rounded-md border border-app-border bg-app-canvas text-center text-sm font-medium aria-invalid:border-app-danger"
                     aria-invalid={errors[field.key] ? true : undefined}
                     aria-describedby={errors[field.key] ? `${id}-${field.key}-error` : undefined}
                     value={set[field.key]}
@@ -40,7 +41,7 @@ export default function SetRow(props:
                     }
                 </div>
             ))}
-            <Button variant="danger" aria-label={`Remove set ${props.label}`} onClick={()=> props.onRemoveSet(props.exKey, set.key)}>D</Button>
+            <Button variant="danger" aria-label={`Remove set ${props.label}`} onClick={()=> props.onRemoveSet(props.exKey, set.key)} className="size-11 shrink-0">D</Button>
         </div>
     )
 }
