@@ -12,8 +12,8 @@ export default function WorkoutExerciseCard(props: {
     onRemove: (key : DraftExercise["key"]) => void
     onMove: (key : DraftExercise["key"], direction: -1|1) => void
     onAddSet: (key: string) => void
-    onRemoveSet: (exkey: string, setkey: string) => void
-    onFieldChange: (exkey: string, setkey: string, field: FieldKey, value: string) => void
+    onRemoveSet: (exKey: string, setKey: string) => void
+    onFieldChange: (exKey: string, setkey: string, field: FieldKey, value: string) => void
     onChangeRest: (exKey: string, value: string)=> void
     isFirst: boolean
     isLast: boolean
@@ -30,11 +30,11 @@ export default function WorkoutExerciseCard(props: {
     const primary = exercise.exerciseSummary.primaryMuscle
     const name = exercise.exerciseSummary.name
 
-    const restTimeErr = validateRest(exercise.restSeconds)
+    const restError = validateRest(exercise.restSeconds)
 
     return (
         <Card>
-            <div className="flex gap-3 border">
+            <div className="flex gap-3">
                 <div className="border border-app-border p-2 px-3 rounded">{props.position}</div>
                 <div>
                     <h2>{exercise.exerciseSummary.name}</h2>
@@ -45,8 +45,8 @@ export default function WorkoutExerciseCard(props: {
                         type="text"
                         className="w-full"
                         value={exercise.restSeconds}
-                        aria-invalid = {restTimeErr ? true : undefined}
-                        aria-describedby={restTimeErr? restErrorId: undefined}
+                        aria-invalid = {restError ? true : undefined}
+                        aria-describedby={restError? restErrorId: undefined}
                         onChange={(e)=> {
                             props.onChangeRest(exercise.key, e.target.value)
                         }}
@@ -54,7 +54,7 @@ export default function WorkoutExerciseCard(props: {
                     <label htmlFor={restId} className="sr-only">
                         {`Rest time for ${name}, in seconds`}
                     </label>
-                    {restTimeErr && <p id={restErrorId} className="text-xs text-app-danger">{restTimeErr}</p>}
+                    {restError && <p id={restErrorId} className="text-xs text-app-danger">{restError}</p>}
                 </div>
                 <div>
                     <Button disabled={props.isFirst} aria-label={`Move ${name} up`} onClick={() => props.onMove(exercise.key, -1)}>Move up</Button>
@@ -73,7 +73,7 @@ export default function WorkoutExerciseCard(props: {
             <ol>
                 {exercise.sets.map((set, i) => (
                     <li key={set.key}>
-                        <SetRow exkey={exercise.key} onRemoveSet={props.onRemoveSet} onFieldChange={props.onFieldChange} set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
+                        <SetRow exKey={exercise.key} onRemoveSet={props.onRemoveSet} onFieldChange={props.onFieldChange} set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
                     </li>
                 ))}
             </ol>

@@ -7,7 +7,7 @@ import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRestTime, updateSetField } from "./day-editor.draft"
+import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link } from "react-router-dom"
@@ -51,8 +51,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setDraft(prev => updateSetField(prev, exKey, setKey, field, value))
     }
 
-    const changeRestTimer = (exKey: string, value :string) =>{
-        setDraft(prev => updateRestTime(prev, exKey, value))
+    const changeRest = (exKey: string, value :string) =>{
+        setDraft(prev => updateRest(prev, exKey, value))
     }
 
     const saveDay = async ()=>{
@@ -94,16 +94,17 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         loadDayPlan()
     },[loadDayPlan])
 
+    // Compare save bodies, not drafts, so typing a value back by hand counts as clean.
     const isDirty = day ? JSON.stringify(toSaveBody(draft)) !== JSON.stringify(toSaveBody(toDraft(day.exercises))) : false
 
-    const onclickLeaving = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>)=>{
+    const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>)=>{
         if(isDirty){
             e.preventDefault()
             setIsDialogOpen(true);
         }
     }
 
-    const oncloseLeaveDialog = ()=>{
+    const closeLeaveDialog = ()=>{
         setIsDialogOpen(false)
     }
 
@@ -122,13 +123,14 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary">Retry</Button>} message={dayError}/>)
     if(!day) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
 
+    const planPath = `/workouts/plans/${day.planId}`
     const isValid = isDraftValid(draft)
 
 
     return(
         <div>
             <header className="flex flex-col gap-5">
-                <Link  onClick={onclickLeaving} to={`/workouts/plans/${day.planId}`} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
+                <Link  onClick={handleBackClick} to={planPath} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
                 <h1 className="text-[28px] font-semibold">{day.name}</h1>
             </header>
             {draft.length === 0 &&
@@ -155,7 +157,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                                 <WorkoutExerciseCard
                                 onAddSet={addSet}
                                 onRemoveSet={removeSet}
-                                onChangeRest={changeRestTimer}
+                                onChangeRest={changeRest}
                                 onFieldChange={changeSetField}
                                 exercise={exercise}
                                 onRemove={removeExerciseCard}
@@ -186,11 +188,11 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 </div>
             }
             {isDialogOpen &&
-                <Dialog isWorking={false} title="Leave without saving?" open={true} onClose={oncloseLeaveDialog}>
+                <Dialog isWorking={false} title="Leave without saving?" open={true} onClose={closeLeaveDialog}>
                     <p>Your changes to this day will be lost.</p>
                     <div className="flex gap-3">
-                        <Link className={buttonClasses("danger",  "border border-app-border flex-1 min-h-11")} to={`/workouts/plans/${day.planId}`} >Leave</Link>
-                        <Button variant="secondary" className="flex-1" onClick={oncloseLeaveDialog}>Keep editing</Button>
+                        <Link className={buttonClasses("danger",  "border border-app-border flex-1 min-h-11")} to={planPath} >Leave</Link>
+                        <Button variant="secondary" className="flex-1" onClick={closeLeaveDialog}>Keep editing</Button>
                     </div>
                 </Dialog>
             }

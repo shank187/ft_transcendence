@@ -73,7 +73,7 @@ export function updateSetField(draft: DraftExercise[], exKey: string, setKey: st
         : e))
 }
 
-export function updateRestTime(draft: DraftExercise[], exKey: string, value: string): DraftExercise[]{
+export function updateRest(draft: DraftExercise[], exKey: string, value: string): DraftExercise[]{
     const exIndex = draft.findIndex(e =>e.key === exKey)
     if(exIndex === -1)
             return draft
