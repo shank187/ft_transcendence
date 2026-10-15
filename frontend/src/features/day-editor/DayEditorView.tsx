@@ -120,7 +120,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     if(dayLoading) return <LoadingState message="Loading Workout day..."/>
     if(dayError)
-        return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary">Retry</Button>} message={dayError}/>)
+        return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary" className="min-h-11">Retry</Button>} message={dayError}/>)
     if(!day) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
 
     const planPath = `/workouts/plans/${day.planId}`
@@ -128,9 +128,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
 
     return(
-        <div>
-            <header className="flex flex-col gap-5">
-                <Link  onClick={handleBackClick} to={planPath} className="self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
+        <div className="flex w-full max-w-[640px] flex-col gap-4">
+            <header className="flex flex-col gap-2">
+                <Link  onClick={handleBackClick} to={planPath} className="inline-flex min-h-11 items-center self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
                 <h1 className="text-[28px] font-semibold">{day.name}</h1>
             </header>
             {draft.length === 0 &&
@@ -145,13 +145,13 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     }
                     action={
                         // TODO(UI 4/7): open the exercise picker
-                        <Button disabled>Add Exercises</Button>
+                        <Button disabled className="min-h-11">Add Exercises</Button>
                     }
                     />
             }
             {draft.length > 0 &&
-                <fieldset disabled={saving}>
-                    <ol>
+                <fieldset disabled={saving} className="min-w-0">
+                    <ol className="flex flex-col gap-3">
                         {draft.map((exercise, i)=>(
                             <li key={exercise.key}>
                                 <WorkoutExerciseCard
@@ -174,17 +174,15 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
             }
             {(isDirty || !isValid) &&
-                <div className="flex flex-col gap-2">
-                    {saveError &&
-                        <div role="alert" className="flex gap-2">
-                            <p className="text-app-danger">{saveError}</p>
-                            <Button variant="secondary" disabled={saving || !isValid} onClick={()=> void saveDay()}>Retry</Button>
-                        </div>
+                <div className="sticky bottom-16 flex items-center gap-3 rounded-lg border border-app-border bg-app-surface-raised px-4 py-3 md:bottom-4">
+                    {saveError && isValid
+                        ? <p role="alert" className="min-w-0 flex-1 text-sm font-medium text-app-danger">{saveError}</p>
+                        : <p className={`min-w-0 flex-1 text-sm font-medium ${isValid ? "text-app-text-secondary" : "text-app-danger"}`}>
+                            {saving ? "Saving…" : isValid ? "Unsaved changes" : "Fix the fields in red to save"}
+                        </p>
                     }
-                    <div className="flex gap-2">
-                        <Button disabled={saving || !isValid} onClick={()=> void saveDay()}>{saving ? "Saving..." : "Save"}</Button>
-                        <Button variant="secondary" disabled={saving} onClick={discardChanges}>Discard</Button>
-                    </div>
+                    <Button variant="ghost" disabled={saving} onClick={discardChanges} className="min-h-11 shrink-0">Discard</Button>
+                    <Button disabled={saving || !isValid} onClick={()=> void saveDay()} className="min-h-11 shrink-0">{saving ? "Saving..." : "Save"}</Button>
                 </div>
             }
             {isDialogOpen &&
@@ -192,7 +190,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     <p>Your changes to this day will be lost.</p>
                     <div className="flex gap-3">
                         <Link className={buttonClasses("danger",  "border border-app-border flex-1 min-h-11")} to={planPath} >Leave</Link>
-                        <Button variant="secondary" className="flex-1" onClick={closeLeaveDialog}>Keep editing</Button>
+                        <Button variant="secondary" className="flex-1 min-h-11" onClick={closeLeaveDialog}>Keep editing</Button>
                     </div>
                 </Dialog>
             }
