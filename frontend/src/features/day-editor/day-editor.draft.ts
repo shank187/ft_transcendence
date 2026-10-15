@@ -37,6 +37,8 @@ function newDraftSet(): DraftSet {
     }
 }
 
+
+
 export function addDraftSet(draft: DraftExercise[], key: string): DraftExercise[]
 {
     const index = draft.findIndex(e=>e.key === key)
@@ -70,6 +72,14 @@ export function updateSetField(draft: DraftExercise[], exKey: string, setKey: st
         ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, [field]: value} : s))}
         : e))
 }
+
+export function updateRestTime(draft: DraftExercise[], exKey: string, value: string): DraftExercise[]{
+    const exIndex = draft.findIndex(e =>e.key === exKey)
+    if(exIndex === -1)
+            return draft
+    return draft.map((exercise, i) => (i === exIndex)?{...exercise, restSeconds: value}:exercise)
+}
+
 
 export function toDraft(exercises: DayExercise[]): DraftExercise[]
 {
@@ -117,6 +127,13 @@ const FIELD_RULES: Record<FieldKey, { isValid: (value: number) => boolean, messa
     distance: { isValid: v => v > 0 && isDecimalBetween(v, 0, 1000000, 1), message: "Distance must be between 0 and 1000000 m." },
 }
 
+export function validateRest(value: string): string | null
+{
+    const result = toNumber(value)
+    if(result !== null && !isWholeBetween(result, 1, 1000))
+        return "Rest time should be between 1 and 1000 sec"
+    return null
+}
 export function validateSet(set: DraftSet, fields: SetField[]): Partial<Record<FieldKey, string>>
 {
     const errors: Partial<Record<FieldKey, string>> = {}
