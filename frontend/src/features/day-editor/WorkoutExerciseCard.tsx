@@ -39,7 +39,7 @@ export default function WorkoutExerciseCard(props: {
                 <div>
                     <h2>{exercise.exerciseSummary.name}</h2>
                     <p>{type} · {primary}</p>
-                    <p>Rest: {exercise.restSeconds === "" ? "No rest timer" : `Rest ${exercise.restSeconds}s`}</p>
+                    <p>{exercise.restSeconds === "" ? "No rest timer" : `Rest ${exercise.restSeconds}s`}</p>
                     <input
                         id={restId}
                         type="text"
