@@ -1,8 +1,10 @@
+import { useId } from "react"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
 import type { DraftExercise} from "./day-editor.types"
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, type FieldKey } from "./exercise-fields"
 import SetRow from "./SetRow"
+import { validateRest } from "./day-editor.draft"
 
 export default function WorkoutExerciseCard(props: {
     exercise: DraftExercise,
@@ -12,16 +14,23 @@ export default function WorkoutExerciseCard(props: {
     onAddSet: (key: string) => void
     onRemoveSet: (exkey: string, setkey: string) => void
     onFieldChange: (exkey: string, setkey: string, field: FieldKey, value: string) => void
+    onChangeRest: (exKey: string, value: string)=> void
     isFirst: boolean
     isLast: boolean
 }
 ) {
+    const id = useId()
+
+    const restId = `${id}-rest`
+    const restErrorId = `${id}-rest-error`
 
     const { exercise } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
     const type = EXERCISE_TYPE_LABEL[exercise.exerciseSummary.type]
     const primary = exercise.exerciseSummary.primaryMuscle
     const name = exercise.exerciseSummary.name
+
+    const restTimeErr = validateRest(exercise.restSeconds)
 
     return (
         <Card>
@@ -30,7 +39,22 @@ export default function WorkoutExerciseCard(props: {
                 <div>
                     <h2>{exercise.exerciseSummary.name}</h2>
                     <p>{type} · {primary}</p>
-                    <p>{exercise.restSeconds === "" ? "No rest timer" : `Rest ${exercise.restSeconds} s`}</p>
+                    <p>Rest: {exercise.restSeconds === "" ? "No rest timer" : `Rest ${exercise.restSeconds}s`}</p>
+                    <input
+                        id={restId}
+                        type="text"
+                        className="w-full"
+                        value={exercise.restSeconds}
+                        aria-invalid = {restTimeErr ? true : undefined}
+                        aria-describedby={restTimeErr? restErrorId: undefined}
+                        onChange={(e)=> {
+                            props.onChangeRest(exercise.key, e.target.value)
+                        }}
+                    />
+                    <label htmlFor={restId} className="sr-only">
+                        {`Rest time for ${name}, in seconds`}
+                    </label>
+                    {restTimeErr && <p id={restErrorId} className="text-xs text-app-danger">{restTimeErr}</p>}
                 </div>
                 <div>
                     <Button disabled={props.isFirst} aria-label={`Move ${name} up`} onClick={() => props.onMove(exercise.key, -1)}>Move up</Button>
@@ -59,3 +83,4 @@ export default function WorkoutExerciseCard(props: {
         </Card>
     )
 }
+

@@ -14,7 +14,7 @@ export default function SetRow(props:
         onFieldChange: (exkey: string, setkey: string, field: FieldKey, value: string) => void
     })
 {
-    const {set} = props
+    const {set} = props 
     const id = useId()
     const errors = validateSet(set, props.fields)
     return(

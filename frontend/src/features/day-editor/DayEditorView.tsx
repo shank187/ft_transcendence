@@ -7,7 +7,7 @@ import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateSetField } from "./day-editor.draft"
+import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRestTime, updateSetField } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link } from "react-router-dom"
@@ -49,6 +49,10 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     const changeSetField = (exKey: string, setKey: string, field: FieldKey, value: string) =>{
         setDraft(prev => updateSetField(prev, exKey, setKey, field, value))
+    }
+
+    const changeRestTimer = (exKey: string, value :string) =>{
+        setDraft(prev => updateRestTime(prev, exKey, value))
     }
 
     const saveDay = async ()=>{
@@ -151,6 +155,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                                 <WorkoutExerciseCard
                                 onAddSet={addSet}
                                 onRemoveSet={removeSet}
+                                onChangeRest={changeRestTimer}
                                 onFieldChange={changeSetField}
                                 exercise={exercise}
                                 onRemove={removeExerciseCard}
