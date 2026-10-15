@@ -147,7 +147,8 @@ export function validateSet(set: DraftSet, fields: SetField[]): Partial<Record<F
 
 export function isDraftValid(draft: DraftExercise[]): boolean
 {
-    return draft.every(e => e.sets.every(s =>
+    
+    return draft.every(e => validateRest(e.restSeconds) === null  && e.sets.every(s =>
         Object.keys(validateSet(s, EXERCISE_FIELDS[e.exerciseSummary.type])).length === 0))
 }
 
