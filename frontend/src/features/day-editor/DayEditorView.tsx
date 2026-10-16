@@ -209,8 +209,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     <p className="text-sm text-app-text-secondary">You have unsaved changes.</p>
                     <div className="flex gap-2 justify-end">
                         <Button className="min-h-11"   disabled={saving || !isValid} onClick={() => void saveAndLeave()} >{saving ?"Saving":"Save"}</Button>
-                        <Button variant="ghost" disabled={saving || !isValid} className="min-h-11 border border-app-border" onClick={closeLeaveDialog}>Keep editing</Button>
-                        <Button disabled={saving || !isValid} className={buttonClasses("secondary", "min-h-11 border border-app-danger")} onClick={()=>navigate(planPath)} >Leave Anyway</Button>
+                        <Button variant="ghost" disabled={saving} className="min-h-11 border border-app-border" onClick={closeLeaveDialog}>Keep editing</Button>
+                        <Button disabled={saving} className={buttonClasses("secondary", "min-h-11 border border-app-danger")} onClick={()=>navigate(planPath)} >Leave Anyway</Button>
                     </div>
                 </Dialog>
             }
