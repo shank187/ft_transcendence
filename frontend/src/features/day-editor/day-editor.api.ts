@@ -175,7 +175,6 @@ function buildExercises(body: SaveDayBody): DayExercise[] {
 // FAKE-DATA: real version will be GET /api/workout-plans/:planId/days/:dayId
 export default async function getWorkoutDay(planId: string, dayId: string): Promise<DayDetail | null> {
     await wait()
-
     if (dayId === "fail")
         throw new Error("Failed to load day, try again.")
 

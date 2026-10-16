@@ -10,7 +10,7 @@ import emptyStateIcon from "../../assets/empty-icon.png"
 import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../components/ui/Dialog"
 import { buttonClasses } from "../../components/ui/button-classes"
 
@@ -30,6 +30,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     
     //leaving dialog
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+    const navigate = useNavigate()
 
     const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
         setDraft(prev => moveExercise(prev, key, direction))
@@ -55,20 +57,28 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setDraft(prev => updateRest(prev, exKey, value))
     }
 
-    const saveDay = async ()=>{
+    const planPath = `/workouts/plans/${props.planId}`
+
+    const saveDay = async () : Promise<boolean>=>{
         setSaveError(null)
         setSaving(true)
         try{
             const result = await saveWorkoutDay(props.planId, props.dayId, toSaveBody(draft))
             setDay(result)
             setDraft(toDraft(result.exercises))
+            setSaving(false)
+            return true
         }catch(err){
             setSaveError(err instanceof Error ? err.message: "Failed to save the workout day.")
-        }finally{
             setSaving(false)
+            return false
         }
     }
-
+    const saveAndLeave = async()=>{
+        const ok = await saveDay()
+        if (ok)  navigate(planPath)
+        else closeLeaveDialog()
+    }
     const discardChanges = ()=>{
         if(!day) return
         setSaveError(null)
@@ -123,7 +133,6 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary" className="min-h-11">Retry</Button>} message={dayError}/>)
     if(!day) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
 
-    const planPath = `/workouts/plans/${day.planId}`
     const isValid = isDraftValid(draft)
 
 
@@ -186,11 +195,12 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 </div>
             }
             {isDialogOpen &&
-                <Dialog isWorking={false} title="Leave without saving?" open={true} onClose={closeLeaveDialog}>
-                    <p>Your changes to this day will be lost.</p>
-                    <div className="flex gap-3">
-                        <Link className={buttonClasses("danger",  "border border-app-border flex-1 min-h-11")} to={planPath} >Leave</Link>
-                        <Button variant="secondary" className="flex-1 min-h-11" onClick={closeLeaveDialog}>Keep editing</Button>
+                <Dialog isWorking={saving} title={`Save changes to ${day.name}?`} open={true} onClose={closeLeaveDialog}>
+                    <p className="text-sm text-app-text-secondary">You have unsaved changes.</p>
+                    <div className="flex gap-2 justify-end">
+                        <Button className="min-h-11"   disabled={saving || !isValid} onClick={() => void saveAndLeave()} >{saving ?"Saving":"Save"}</Button>
+                        <Button variant="ghost" disabled={saving || !isValid} className="min-h-11 border border-app-border" onClick={closeLeaveDialog}>Keep editing</Button>
+                        <Button disabled={saving || !isValid} className={buttonClasses("secondary", "min-h-11 border border-app-danger")} onClick={()=>navigate(planPath)} >Leave Anyway</Button>
                     </div>
                 </Dialog>
             }
