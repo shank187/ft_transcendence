@@ -1,8 +1,8 @@
 import { useId } from "react"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
-import type { DraftExercise} from "./day-editor.types"
-import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, type FieldKey } from "./exercise-fields"
+import type { DraftExercise, SetType} from "./day-editor.types"
+import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, SET_TYPE_LETTER, type FieldKey } from "./exercise-fields"
 import SetRow from "./SetRow"
 import { validateRest } from "./day-editor.draft"
 
@@ -15,6 +15,9 @@ export default function WorkoutExerciseCard(props: {
     onRemoveSet: (exKey: string, setKey: string) => void
     onFieldChange: (exKey: string, setkey: string, field: FieldKey, value: string) => void
     onChangeRest: (exKey: string, value: string)=> void
+    onSetTypeChange: (exKey: string, setKey: string, setType: SetType) => void
+    openSetMenu: string | null
+    setOpenSetMenu: (setKey: string | null) => void
     isFirst: boolean
     isLast: boolean
 }
@@ -75,7 +78,19 @@ export default function WorkoutExerciseCard(props: {
                 <ol className="flex flex-col gap-3">
                     {exercise.sets.map((set, i) => (
                         <li key={set.key}>
-                            <SetRow exKey={exercise.key} onRemoveSet={props.onRemoveSet} onFieldChange={props.onFieldChange} set={set} label={set.setType === "NORMAL" ? String(i + 1) : "X"} fields={fields} />
+                            <SetRow
+                            exKey={exercise.key}
+                            onRemoveSet={props.onRemoveSet}
+                            onFieldChange={props.onFieldChange}
+                            onSetTypeChange={props.onSetTypeChange}
+                            isMenuOpen={props.openSetMenu === set.key}
+                            setOpenSetMenu={props.setOpenSetMenu}
+                            set={set}
+                            label={set.setType === "NORMAL"
+                                ? String(exercise.sets.slice(0, i + 1).filter(s => s.setType === "NORMAL").length)
+                                : SET_TYPE_LETTER[set.setType]}
+                            fields={fields}
+                            />
                         </li>
                     ))}
                 </ol>

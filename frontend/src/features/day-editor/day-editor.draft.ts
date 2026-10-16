@@ -1,4 +1,4 @@
-import type { DayExercise, DraftExercise, DraftSet, SaveDayBody } from "./day-editor.types";
+import type { DayExercise, DraftExercise, DraftSet, SaveDayBody, SetType } from "./day-editor.types";
 import { EXERCISE_FIELDS, type FieldKey, type SetField } from "./exercise-fields";
 
 
@@ -70,6 +70,19 @@ export function updateSetField(draft: DraftExercise[], exKey: string, setKey: st
         return draft
     return draft.map((e, i) => (i === exIndex
         ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, [field]: value} : s))}
+        : e))
+}
+
+export function updateSetType(draft: DraftExercise[], exKey: string, setKey: string, setType: SetType): DraftExercise[]
+{
+    const exIndex = draft.findIndex(e => e.key === exKey)
+    if (exIndex === -1)
+        return draft
+    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
+    if (setIndex === -1)
+        return draft
+    return draft.map((e, i) => (i === exIndex
+        ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, setType} : s))}
         : e))
 }
 
