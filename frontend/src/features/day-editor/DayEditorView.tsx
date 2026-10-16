@@ -138,7 +138,19 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     if(dayLoading) return <LoadingState message="Loading Workout day..."/>
     if(dayError)
         return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary" className="min-h-11">Retry</Button>} message={dayError}/>)
-    if(!day) return(<NotFoundState title="Workout day not Found."></NotFoundState>)
+    if(!day)
+        return(
+            <NotFoundState
+            title="Workout day not found."
+            description="It may have been deleted."
+            action={<Link
+                    to={planPath}
+                    className={buttonClasses("secondary", "mt-4 min-h-11")}
+                    >
+                Back to the plan
+                </Link>}
+            />
+        )
 
     const isValid = isDraftValid(draft)
 
