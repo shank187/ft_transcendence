@@ -140,11 +140,19 @@ const FIELD_RULES: Record<FieldKey, { isValid: (value: number) => boolean, messa
     distance: { isValid: v => v > 0 && isDecimalBetween(v, 0, 1000000, 1), message: "Distance must be between 0 and 1000000 m." },
 }
 
+// Number() also accepts "1e2" or "0x10", so only plain digits with an optional decimal part are allowed
+const PLAIN_NUMBER = /^\d+(\.\d+)?$/
+
+function isPlainNumber(value: string): boolean
+{
+    return PLAIN_NUMBER.test(value.trim())
+}
+
 // Same rule and message as validateBody in day-editor.api.ts.
 export function validateRest(value: string): string | null
 {
     const result = toNumber(value)
-    if(result !== null && !isWholeBetween(result, 0, 3600))
+    if(result !== null && (!isPlainNumber(value) || !isWholeBetween(result, 0, 3600)))
         return "Rest must be between 0 and 3600 seconds."
     return null
 }
@@ -153,7 +161,7 @@ export function validateSet(set: DraftSet, fields: SetField[]): Partial<Record<F
     const errors: Partial<Record<FieldKey, string>> = {}
     for (const field of fields) {
         const value = toNumber(set[field.key])
-        if (value !== null && !FIELD_RULES[field.key].isValid(value))
+        if (value !== null && (!isPlainNumber(set[field.key]) || !FIELD_RULES[field.key].isValid(value)))
             errors[field.key] = FIELD_RULES[field.key].message
     }
     return errors
