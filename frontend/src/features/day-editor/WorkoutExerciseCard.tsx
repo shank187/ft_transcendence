@@ -49,6 +49,7 @@ export default function WorkoutExerciseCard(props: {
                                 <input
                                     id={restId}
                                     type="text"
+                                    inputMode="numeric"
                                     placeholder="–"
                                     className="h-6 w-12 rounded-sm border border-app-border bg-app-canvas text-center text-app-text placeholder:text-app-text-muted aria-invalid:border-app-danger"
                                     value={exercise.restSeconds}
