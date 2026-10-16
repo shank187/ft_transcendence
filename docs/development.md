@@ -37,11 +37,11 @@ Do not build broad layers with no user-visible/testable flow.
 
 ## Pull requests
 
-- One coherent behavior per PR where practical
-- Explain problem, scope, affected contract, verification, and remaining risk
-- Keep unrelated formatting/refactors out
-- Request peer review for security, auth, schema, transactions, shared UI, and cross-slice DTOs
-- Do not claim tests/build/runtime checks that were not run
+See the [Team PR Guide](pr-guide.md).
+
+Each PR delivers one clear, useful, testable task.
+
+Request peer review for security, auth, schema, transactions, shared UI, and cross-slice DTOs.
 
 ## Environment and secrets
 
