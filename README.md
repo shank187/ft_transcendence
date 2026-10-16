@@ -111,6 +111,8 @@ cd frontend && npm run build && npm run lint
 cd backend && npm run build && npm run prisma:validate
 ```
 
+Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.example` to `backend/.env` and fill it first.
+
 ## Architecture and documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — system boundaries, slices, request flow, and contracts
