@@ -145,8 +145,11 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
                 e.currentTarget.src = "/default-avatar.png";
         }}/>
 
-        <input type="file" accept="image/jpeg,image/png" onChange={hundle_file_change} disabled={is_uploading}/>
+        <input id="avatar-file" type="file" accept="image/jpeg,image/png" onChange={hundle_file_change} disabled={is_uploading} className="sr-only"/>
 
+        <label htmlFor="avatar-file" className="bg-app-primary px-4 py-2 rounded-md text-app-canvas">
+            Choose photo
+        </label>
         <div className="text-sm text-red-700">{error}</div>
         <div className="text-sm">{file?.name}</div>
 
