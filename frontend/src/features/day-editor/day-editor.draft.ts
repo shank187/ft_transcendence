@@ -140,11 +140,12 @@ const FIELD_RULES: Record<FieldKey, { isValid: (value: number) => boolean, messa
     distance: { isValid: v => v > 0 && isDecimalBetween(v, 0, 1000000, 1), message: "Distance must be between 0 and 1000000 m." },
 }
 
+// Same rule and message as validateBody in day-editor.api.ts.
 export function validateRest(value: string): string | null
 {
     const result = toNumber(value)
-    if(result !== null && !isWholeBetween(result, 1, 1000))
-        return "Rest time should be between 1 and 1000 sec"
+    if(result !== null && !isWholeBetween(result, 0, 3600))
+        return "Rest must be between 0 and 3600 seconds."
     return null
 }
 export function validateSet(set: DraftSet, fields: SetField[]): Partial<Record<FieldKey, string>>
