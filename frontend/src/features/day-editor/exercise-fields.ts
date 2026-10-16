@@ -1,4 +1,4 @@
-import type { ExerciseType } from "./day-editor.types"
+import type { ExerciseType, SetType } from "./day-editor.types"
 
 export type FieldKey = "weight" | "reps" | "duration" | "distance"
 export interface SetField { key: FieldKey; label: string }
@@ -17,4 +17,13 @@ export const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {
     WEIGHT_REPS: "Weight + reps", BODYWEIGHT_REPS: "Reps", WEIGHTED_BODYWEIGHT: "Added weight + reps",
     ASSISTED_BODYWEIGHT: "Assistance + reps", DURATION: "Time", WEIGHT_DURATION: "Weight + time",
     DISTANCE_DURATION: "Distance + time",
+}
+
+export const SET_TYPE_LABEL: Record<SetType, string> = {
+    NORMAL: "Normal", WARMUP: "Warm-up", DROP: "Drop", FAILURE: "Failure",
+}
+
+// no NORMAL here, normal sets show their number counted among normal sets only
+export const SET_TYPE_LETTER: Record<Exclude<SetType, "NORMAL">, string> = {
+    WARMUP: "W", DROP: "D", FAILURE: "F",
 }

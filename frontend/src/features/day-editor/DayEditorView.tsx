@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import type { DayDetail, DraftExercise } from "./day-editor.types"
+import type { DayDetail, DraftExercise, SetType } from "./day-editor.types"
 import getWorkoutDay, { saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../components/states/ErrorState"
 import NotFoundState from "../../components/states/NotFoundState"
@@ -7,7 +7,7 @@ import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField } from "./day-editor.draft"
+import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
@@ -31,6 +31,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     //leaving dialog
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
+    // key of the set whose menu is open, so only one menu opens at a time
+    const [openSetMenu, setOpenSetMenu] = useState<string|null>(null)
+
     const navigate = useNavigate()
 
     const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
@@ -51,6 +54,10 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     const changeSetField = (exKey: string, setKey: string, field: FieldKey, value: string) =>{
         setDraft(prev => updateSetField(prev, exKey, setKey, field, value))
+    }
+
+    const changeSetType = (exKey: string, setKey: string, setType: SetType) =>{
+        setDraft(prev => updateSetType(prev, exKey, setKey, setType))
     }
 
     const changeRest = (exKey: string, value :string) =>{
@@ -168,6 +175,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                                 onRemoveSet={removeSet}
                                 onChangeRest={changeRest}
                                 onFieldChange={changeSetField}
+                                onSetTypeChange={changeSetType}
+                                openSetMenu={openSetMenu}
+                                setOpenSetMenu={setOpenSetMenu}
                                 exercise={exercise}
                                 onRemove={removeExerciseCard}
                                 onMove={moveExerciseCard}
