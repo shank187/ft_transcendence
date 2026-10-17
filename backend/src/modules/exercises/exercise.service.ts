@@ -1,9 +1,14 @@
 import { prisma } from "../../lib/prisma";
+import type { Prisma } from "@prisma/client";
 
-
-export async function getExercises(page: number, limit: number) {
+export async function getExercises(page: number, limit: number, search ?: string) {
     const skip = (page - 1) * limit;
+    const where: Prisma.ExerciseWhereInput = {}
+    if(search){
+        where.name = { contains: search, mode: "insensitive"}
+    }
     const results = await prisma.exercise.findMany({
+        where,
         skip,
         take: limit,
         orderBy: {
@@ -40,7 +45,7 @@ export async function getExercises(page: number, limit: number) {
             imageUrl: true,
         },
     });
-    const total = await prisma.exercise.count()
+    const total = await prisma.exercise.count({where})
     const totalPages = Math.ceil(total/ limit);
     // DTO
     const cleanExercises = results.map((exercise) => {
