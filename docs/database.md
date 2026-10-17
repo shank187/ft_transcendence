@@ -22,6 +22,8 @@ npm run prisma:migrate    # create/apply a dev migration
 
 One shared database. Features extend the existing schema; they do not create parallel user, equipment, or workout-history entities.
 
+See [Database relationship maps](database-relationships.md) for focused planning, execution, and catalog diagrams, foreign keys, cardinality, and deletion rules.
+
 ```text
 Identity        User, Session, Role*, UserRole*
 Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, Facility*, GymFacility*, GymReview*
