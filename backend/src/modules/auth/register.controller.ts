@@ -8,6 +8,7 @@ import { sign_access_token } from './token.service';
 import { create_session } from './session.service';
 
 import { prisma } from '../../lib/prisma';
+import { error } from 'console';
 
 
 
@@ -41,6 +42,9 @@ export const register = async (req: Request, res: Response) => {
 
     username = username.trim();
     email = email.trim().toLowerCase();
+    
+    if (username.length < 3 || username.length > 30)
+        return res.status(200).json({success: false, error: "Username must be between 3 and 30 characters."});
 
 
 

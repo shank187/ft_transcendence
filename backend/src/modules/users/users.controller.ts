@@ -1,4 +1,4 @@
-import {Response} from 'express';
+import {Response,  NextFunction} from 'express';
 import { prisma } from '../../lib/prisma';
 import { AuthenticatedRequest } from '../../middleware/authenticate';
 import bcrypt from "bcrypt";
@@ -10,6 +10,36 @@ const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const TRAINING_GOALS = ['BUILD_MUSCLE', 'GAIN_STRENGTH', 'LOSE_FAT', 'IMPROVE_GENERAL_FITNESS', 'IMPROVE_ENDURANCE', 'MAINTAIN_FITNESS'];
 const UNIT_SYSTEMS = ['METRIC', 'IMPERIAL'];
 
+
+
+export const validate_onboarding = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const {displayName, bio, experienceLevel, primaryGoal, unitSystem, weightKg, heightCm} = req.body;
+
+    if (typeof displayName !== "string" || displayName.trim().length < 1 || displayName.trim().length > 50)
+        return res.status(400).json({ message: "Display name must be between 1 and 50 characters." });
+
+    if (bio !== null && bio !== undefined && (typeof bio !== "string" || bio.length > 300))
+        return res.status(400).json({ message: "Bio must be text with at most 300 characters." });
+
+    if (typeof experienceLevel !== "string" || !EXPERIENCE_LEVELS.includes(experienceLevel))
+        return res.status(400).json({ message: "Invalid experience level." });
+
+    if (typeof primaryGoal !== "string" || !TRAINING_GOALS.includes(primaryGoal))
+        return res.status(400).json({ message: "Invalid primary goal." });
+
+    if (typeof unitSystem !== "string" || !UNIT_SYSTEMS.includes(unitSystem))
+        return res.status(400).json({ message: "Invalid unit system." });
+
+    if (weightKg !== null && weightKg !== undefined && (typeof weightKg !== "number" || !Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500))
+        return res.status(400).json({ message: "Weight must be between 20 and 500 kg." });
+
+    if (heightCm !== null && heightCm !== undefined && (typeof heightCm !== "number" || !Number.isFinite(heightCm) || heightCm < 20 || heightCm > 300))
+        return res.status(400).json({ message: "Height must be between 20 and 300 cm." });
+
+    next();
+};
+
+
 export const updateOnboarding = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId;
     const { displayName, bio, experienceLevel, primaryGoal, unitSystem, heightCm, weightKg } = req.body;
@@ -18,23 +48,6 @@ export const updateOnboarding = async (req: AuthenticatedRequest, res: Response)
         if (!userId)
             return res.status(401).json({ message: "Unauthorized" });
 
-        if (!displayName || displayName.trim().length === 0)
-            return res.status(400).json({ message: "Display name is required" });
-
-        if (!EXPERIENCE_LEVELS.includes(experienceLevel))
-            return res.status(400).json({ message: "Invalid experience level" });
-
-        if (!TRAINING_GOALS.includes(primaryGoal))
-            return res.status(400).json({ message: "Invalid primary goal" });
-
-        if (!UNIT_SYSTEMS.includes(unitSystem))
-            return res.status(400).json({ message: "Invalid unit system" });
-
-        if (heightCm && (heightCm < 20 || heightCm > 300))
-            return res.status(400).json({ message: "Height must be between 20 and 300 cm" });
-
-        if (weightKg && (weightKg < 20 || weightKg > 500))
-            return res.status(400).json({ message: "Weight must be between 20 and 500 kg" });
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
