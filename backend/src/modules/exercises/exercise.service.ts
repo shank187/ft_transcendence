@@ -1,12 +1,20 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 
-export async function getExercises(page: number, limit: number, search ?: string) {
+export async function getExercises(page: number, limit: number, search ?: string, muscle ?: string, equipment?: string) {
+
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
     if(search){
         where.name = { contains: search, mode: "insensitive"}
     }
+    if(muscle){
+        where.primaryMuscleGroupId = muscle;
+    }
+    if(equipment){
+        where.equipment = {some:{equipmentId: equipment}}
+    }
+    
     const results = await prisma.exercise.findMany({
         where,
         skip,

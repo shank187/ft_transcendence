@@ -5,10 +5,14 @@ export async function getExercisesController(req: Request, res: Response) {
     const rawPage = typeof req.query.page === 'string' ? req.query.page : '1';
     const rawLimit = typeof req.query.limit === 'string' ? req.query.limit : '12';
     const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const rawMuscle = typeof req.query.muscle === 'string' ? req.query.muscle.trim() : '';
+    const rawEquipment = typeof req.query.equipment === 'string' ? req.query.equipment.trim() : '';
 
     const page = Number(rawPage)
     const limit = Number(rawLimit)
     const search = rawSearch.length > 0 ? rawSearch : undefined
+    const equipment = rawSearch.length > 0 ? rawEquipment : undefined
+    const muscle = rawSearch.length > 0 ? rawMuscle : undefined
     
     if (
         !Number.isInteger(page) ||
@@ -22,6 +26,6 @@ export async function getExercisesController(req: Request, res: Response) {
         });
     }
 
-    const exercises = await getExercises(page, limit, search);
+    const exercises = await getExercises(page, limit, search, muscle, equipment);
     res.status(200).json(exercises)
 }

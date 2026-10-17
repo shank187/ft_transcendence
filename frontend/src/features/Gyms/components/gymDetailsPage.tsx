@@ -28,6 +28,8 @@ function GymDetailsPage() {
         }
         getGymDetails();
     }, [id]);
+
+
     if (loading)
         return <LoadingState message="Loading gym info..." />;
     if (!gym)
