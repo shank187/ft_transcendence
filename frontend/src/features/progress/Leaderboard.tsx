@@ -5,14 +5,14 @@ type LeaderboardEntry = {
 };
 
 export const fakeLeaderboard: LeaderboardEntry[] = [
-    { id: "aymen", username: "Aymen", xp: 5200 },
+    { id: "aymen", username: "Aymen", xp: 10000 },
     { id: "mohhamed", username: "Mohhamed", xp: 9000 },
     { id: "ziad", username: "Ziad", xp: 4300 },
     { id: "abdlhamid", username: "Abdlhamid", xp: 3900 },
     { id: "mehdi", username: "Mehdi", xp: 3500 },
     { id: "nour", username: "Nour", xp: 3100 },
     { id: "hamza", username: "Hamza", xp: 2700 },
-    { id: "khadija", username: "Khadija", xp: 2300 },
+    { id: "khadija", username: "Khadija", xp: 9000 },
 ];
 
 type LeaderboardProps = {
