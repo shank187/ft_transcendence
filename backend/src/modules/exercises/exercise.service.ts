@@ -8,7 +8,7 @@ export async function getExercises(list: ListQuery): Promise<GetExercisesReturn>
     if (muscle && !(await prisma.muscleGroup.findUnique({ where: { id: muscle }, select: { id: true } })))
         return { ok: false, message: "Invalid Muscle" }
     if(equipment && !await prisma.equipment.findUnique({where:{id: equipment} , select:{id: true}}))
-            return{ok: false , message: "Invalid equipment"}
+            return{ok: false , message: "Invalid Equipment"}
 
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
