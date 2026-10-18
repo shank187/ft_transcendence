@@ -1,7 +1,10 @@
 import { prisma } from "../../lib/prisma";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { ListQuery } from "./exercise.types";
 
-export async function getExercises(page: number, limit: number, search ?: string, muscle ?: string, equipment?: string) {
+export async function getExercises(list: ListQuery) {
+
+    const {page , limit , search ,  muscle , equipment} = list;
 
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
@@ -75,4 +78,35 @@ export async function getExercises(page: number, limit: number, search ?: string
         total,
         totalPages,
     };
+}
+
+
+export async function getExercisesFilters(){
+    const whereMuscle : Prisma.MuscleGroupWhereInput = {primaryExercises : {some : {}}}
+    const whereEquipment : Prisma.EquipmentWhereInput = {exerciseLinks: {some: {}}}
+
+    const muscleDb = await prisma.muscleGroup.findMany({
+        where: whereMuscle,
+        orderBy:{
+            name: "asc"
+        },
+        select:{
+            id: true,
+            name: true,
+        }
+    })
+    const equipmentDb = await prisma.equipment.findMany({
+        where: whereEquipment,
+        orderBy:{
+            name: "asc"
+        },
+        select:{
+            id: true,
+            name: true,
+        }
+    })
+    return{
+        muscles: muscleDb,
+        equipments: equipmentDb
+    }
 }

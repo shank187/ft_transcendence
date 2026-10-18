@@ -1,0 +1,2 @@
+export type ListQuery = { page: number; limit: number; search?: string; muscle?: string; equipment?: string }
+export type ParseListQueryReturn = { ok: true; value: ListQuery } | { ok: false; message: string }

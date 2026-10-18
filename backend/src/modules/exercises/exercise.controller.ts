@@ -1,31 +1,24 @@
-import { getExercises } from "./exercise.service";
+import { parseListQuery } from "./exercise.query";
+import { getExercises, getExercisesFilters } from "./exercise.service";
 import type { Request, Response } from "express";
 
-export async function getExercisesController(req: Request, res: Response) {
-    const rawPage = typeof req.query.page === 'string' ? req.query.page : '1';
-    const rawLimit = typeof req.query.limit === 'string' ? req.query.limit : '12';
-    const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : '';
-    const rawMuscle = typeof req.query.muscle === 'string' ? req.query.muscle.trim() : '';
-    const rawEquipment = typeof req.query.equipment === 'string' ? req.query.equipment.trim() : '';
 
-    const page = Number(rawPage)
-    const limit = Number(rawLimit)
-    const search = rawSearch.length > 0 ? rawSearch : undefined
-    const equipment = rawEquipment.length > 0 ? rawEquipment : undefined
-    const muscle = rawMuscle.length > 0 ? rawMuscle : undefined
+
+export async function getExercisesController(req: Request, res: Response) {
+
     
-    if (
-        !Number.isInteger(page) ||
-        !Number.isInteger(limit) ||
-        page < 1 ||
-        limit < 1||
-        limit > 50
-    ){
+    const check = parseListQuery(req.query)
+    if (check.ok === false){
         return res.status(400).json({
-            message: 'Invalid Pagination parameteres'
+            message: check.message
         });
     }
-
-    const exercises = await getExercises(page, limit, search, muscle, equipment);
+    const exercises = await getExercises(check.value);
     res.status(200).json(exercises)
+}
+
+export async function getExercisesFiltersController(_req: Request, res: Response)
+{
+    const filters = await getExercisesFilters()
+    res.status(200).json(filters)
 }
