@@ -33,6 +33,13 @@ export default function Progress() {
     const level = Math.floor(totalXp / XP_PER_LEVEL);
     const levelXp = totalXp % XP_PER_LEVEL;
     const xpPercentage = (levelXp / XP_PER_LEVEL) * 100;
+    const leaderboardEntries = user
+        ? [
+              ...fakeLeaderboard,
+              { id: user.id, username: user.username, xp: totalXp },
+          ].sort((a, b) => b.xp - a.xp)
+        : fakeLeaderboard;
+    const leaderboardWinner = leaderboardEntries[0];
 
     return (
         <section className="flex min-h-full flex-col px-6 py-10">
@@ -67,10 +74,13 @@ export default function Progress() {
                 </div>
             </div>
             <div className="mt-6 flex w-full flex-col items-stretch gap-6 md:flex-row">
-                <Leaderboard username={user?.username ?? null} xp={totalXp} />
+                <Leaderboard
+                    entries={leaderboardEntries}
+                    currentUserId={user?.id ?? null}
+                />
                 <GymBroOfTheMonth
-                    username={fakeLeaderboard[0].username}
-                    xp={fakeLeaderboard[0].xp}
+                    username={leaderboardWinner.username}
+                    xp={leaderboardWinner.xp}
                 />
             </div>
         </section>
