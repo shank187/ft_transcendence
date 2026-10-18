@@ -5,19 +5,19 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
 {
   // set queries to Default
     if(q.muscle !== undefined && typeof q.muscle !== "string"){
-        return {ok:false, message: "Invalide Muscle"}
+        return {ok:false, message: "Invalid Muscle"}
     }
     if(q.search !== undefined && typeof q.search !== "string"){
-        return {ok:false, message: "Invalide Search"}
+        return {ok:false, message: "Invalid Search"}
     }
     if(q.equipment !== undefined && typeof q.equipment !== "string"){
-        return {ok:false, message: "Invalide Equipment"}
+        return {ok:false, message: "Invalid Equipment"}
     }
     if(q.page !== undefined && typeof q.page !== "string"){
-        return {ok:false, message: "Invalide Page"}
+        return {ok:false, message: "Invalid Page"}
     }
     if(q.limit !== undefined && typeof q.limit !== "string"){
-        return {ok:false, message: "Invalide Limit"}
+        return {ok:false, message: "Invalid Limit"}
     }
     const rawPage = typeof q.page === "string" ? q.page : "1"
     const rawLimit = typeof q.limit === "string" ? q.limit : "12" 
@@ -34,11 +34,11 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
     const value : ListQuery = {page, limit}
 
     if (rawSearch.trim().length > 0)
-        (value.search = rawSearch.trim())
+        value.search = rawSearch.trim()
     if (rawMuscle.trim().length > 0)  
         value.muscle = rawMuscle.trim() 
     if (rawEquipment.trim().length > 0)
-        (value.equipment = rawEquipment.trim())
+        value.equipment = rawEquipment.trim()
 
     return {ok: true , value};
 }

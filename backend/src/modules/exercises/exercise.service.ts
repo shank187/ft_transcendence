@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
-import { Prisma } from "@prisma/client";
-import { ListQuery } from "./exercise.types";
+import type { Prisma } from "@prisma/client";
+import type { ListQuery } from "./exercise.types";
 
 export async function getExercises(list: ListQuery) {
 
@@ -107,6 +107,6 @@ export async function getExercisesFilters(){
     })
     return{
         muscles: muscleDb,
-        equipments: equipmentDb
+        equipment: equipmentDb
     }
 }
