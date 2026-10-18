@@ -11,8 +11,8 @@ export async function getExercisesController(req: Request, res: Response) {
     const page = Number(rawPage)
     const limit = Number(rawLimit)
     const search = rawSearch.length > 0 ? rawSearch : undefined
-    const equipment = rawSearch.length > 0 ? rawEquipment : undefined
-    const muscle = rawSearch.length > 0 ? rawMuscle : undefined
+    const equipment = rawEquipment.length > 0 ? rawEquipment : undefined
+    const muscle = rawMuscle.length > 0 ? rawMuscle : undefined
     
     if (
         !Number.isInteger(page) ||
