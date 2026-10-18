@@ -1,13 +1,18 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
-import type { ListQuery } from "./exercise.types";
+import type { GetExercisesReturn, ListQuery } from "./exercise.types";
 
-export async function getExercises(list: ListQuery) {
-
+export async function getExercises(list: ListQuery): Promise<GetExercisesReturn> {
     const {page , limit , search ,  muscle , equipment} = list;
+
+    if (muscle && !(await prisma.muscleGroup.findUnique({ where: { id: muscle }, select: { id: true } })))
+        return { ok: false, message: "Invalid Muscle" }
+    if(equipment && !await prisma.equipment.findUnique({where:{id: equipment} , select:{id: true}}))
+            return{ok: false , message: "Invalid equipment"}
 
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
+
     if(search){
         where.name = { contains: search, mode: "insensitive"}
     }
@@ -71,12 +76,15 @@ export async function getExercises(list: ListQuery) {
             imageUrl: exercise.imageUrl,
         };
     });
+
     return{
+        ok: true,
+        value: {  
         items: cleanExercises,
         page,
         limit,
         total,
-        totalPages,
+        totalPages,}
     };
 }
 

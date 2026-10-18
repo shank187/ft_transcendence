@@ -12,8 +12,11 @@ export async function getExercisesController(req: Request, res: Response) {
                 message: check.message
             });
         }
-        const exercises = await getExercises(check.value);
-        res.status(200).json(exercises)
+        const result = await getExercises(check.value);
+        if(result.ok === false)
+            return res.status(400).json({message: result.message})
+        else 
+            return res.status(200).json(result.value)
     }
     catch(error){
         console.error("GET /api/exercises failed:", error);
