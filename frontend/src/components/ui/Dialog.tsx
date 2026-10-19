@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react"
+import Button from "./Button"
 
 interface DialogProps {
     open: boolean
@@ -6,10 +7,11 @@ interface DialogProps {
     isWorking: boolean
     onClose: () => void
     children: ReactNode
+    showClose?: boolean
 }
 
 export default function Dialog({
-    open, title, onClose, isWorking, children,
+    open, title, onClose, isWorking, children, showClose: showClose
 }: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -44,7 +46,22 @@ export default function Dialog({
                     backdrop:bg-app-canvas/70"
                     
         >
+        <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">{title}</h2>
+            {showClose && (
+                <Button
+                    type="button"
+                    aria-label="Close"
+                    title="Close"
+                    disabled={isWorking}
+                    onClick={() => dialogRef.current?.close()}
+                    variant="secondary"
+                    className="min-h-11 min-w-11 border border-app-border"
+                >
+                    ✕
+                </Button>
+            )}
+        </div>
             <div className="mt-3 flex flex-col gap-3">{children}</div>
         </dialog>
     )
