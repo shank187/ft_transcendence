@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
-import type { GetExercisesReturn, ListQuery } from "./exercise.types";
+import type { ExerciseFilters, GetExercisesReturn, ListQuery } from "./exercise.types";
 
 export async function getExercises(list: ListQuery): Promise<GetExercisesReturn> {
     const { page, limit, search, muscle, equipment } = list;
@@ -89,7 +89,7 @@ export async function getExercises(list: ListQuery): Promise<GetExercisesReturn>
     };
 }
 
-export async function getExercisesFilters() {
+export async function getExercisesFilters(): Promise<ExerciseFilters> {
     const whereMuscle: Prisma.MuscleGroupWhereInput = { primaryExercises: { some: {} } }
     const whereEquipment: Prisma.EquipmentWhereInput = { exerciseLinks: { some: {} } }
 
