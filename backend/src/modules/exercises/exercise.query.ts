@@ -18,16 +18,22 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
         return { ok: false, message: "Invalid Limit" }
     }
     // set queries to Default
+    const DIGITS = /^\d+$/
     const rawPage = typeof q.page === "string" ? q.page : "1"
     const rawLimit = typeof q.limit === "string" ? q.limit : "12"
     const rawMuscle = typeof q.muscle === "string" ? q.muscle : ""
     const rawEquipment = typeof q.equipment === "string" ? q.equipment : ""
     const rawSearch = typeof q.search === "string" ? q.search : ""
 
+    if(!DIGITS.test(rawLimit) || !DIGITS.test(rawPage))
+        return { ok: false, message: "Invalid Pagination" }
+
+
     const page = Number(rawPage)
     const limit = Number(rawLimit)
 
-    if (!Number.isInteger(page) || !Number.isInteger(limit) || page < 1 || limit < 1 || limit > 50) {
+    
+    if (!Number.isSafeInteger(page) || page < 1 || limit < 1 || limit > 50) {
         return { ok: false, message: "Invalid Pagination" }
     }
     const value: ListQuery = { page, limit }
