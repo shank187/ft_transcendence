@@ -31,7 +31,7 @@ export interface FilterOption {
     id: string
     name: string
 }
-
+    
 
 export interface ExerciseFilters {
     muscles: FilterOption[]

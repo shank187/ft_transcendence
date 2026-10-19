@@ -13,6 +13,7 @@ import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../components/ui/Dialog"
 import { buttonClasses } from "../../components/ui/button-classes"
+import { ExercisePicker } from "../exercises/ExercisePicker"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -241,7 +242,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 onClose={closeExercisePickerDialog}
                 showClose={true}
                 >
-                    this the exercise picker
+                    <ExercisePicker>
+                    </ExercisePicker>
                 </Dialog>
             }
         </div>

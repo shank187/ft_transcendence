@@ -11,7 +11,7 @@ interface DialogProps {
 }
 
 export default function Dialog({
-    open, title, onClose, isWorking, children, showClose: showClose
+    open, title, onClose, isWorking, children, showClose
 }: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
 
