@@ -17,8 +17,9 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
     if (q.limit !== undefined && typeof q.limit !== "string") {
         return { ok: false, message: "Invalid Limit" }
     }
-    // set queries to Default
     const DIGITS = /^\d+$/
+
+    // set queries to Default
     const rawPage = typeof q.page === "string" ? q.page : "1"
     const rawLimit = typeof q.limit === "string" ? q.limit : "12"
     const rawMuscle = typeof q.muscle === "string" ? q.muscle : ""
@@ -32,7 +33,6 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
     const page = Number(rawPage)
     const limit = Number(rawLimit)
 
-    
     if (!Number.isSafeInteger(page) || page < 1 || limit < 1 || limit > 50) {
         return { ok: false, message: "Invalid Pagination" }
     }

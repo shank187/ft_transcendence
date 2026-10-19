@@ -111,8 +111,8 @@ Query parameters, all optional:
 
 | Param | Type | Default | Rules |
 |---|---|---|---|
-| `page` | integer | `1` | Must be an integer, at least `1` |
-| `limit` | integer | `12` | Must be an integer from `1` to `50` |
+| `page` | integer | `1` | Digits only (`0-9`), at least `1` |
+| `limit` | integer | `12` | Digits only (`0-9`), from `1` to `50` |
 | `search` | text | none | Trimmed; case-insensitive "contains" match on `name`. Empty or whitespace-only means no filter |
 | `muscle` | `MuscleGroup.id` | none | Matches the **primary** muscle only; secondary muscles are ignored. Trimmed; empty means no filter |
 | `equipment` | `Equipment.id` | none | Matches exercises linked to this equipment. Trimmed; empty means no filter |
@@ -175,7 +175,8 @@ Status codes:
 | Repeated `equipment` key | `Invalid Equipment` |
 | Repeated `page` key | `Invalid Page` |
 | Repeated `limit` key | `Invalid Limit` |
-| `page`/`limit` not an integer or out of range, e.g. `page=0`, `page=abc`, `page=`, `limit=51` | `Invalid Pagination` |
+| `page`/`limit` not plain digits or out of range, e.g. `page=0`, `page=abc`, `page=`, `page=1.5`, `page=1e2`, `page=-1`, `page=+1`, `page=0x10`, `limit=51` | `Invalid Pagination` |
+| `page` above `Number.MAX_SAFE_INTEGER` | `Invalid Pagination` |
 | `muscle` is not an existing `MuscleGroup.id` | `Invalid Muscle` |
 | `equipment` is not an existing `Equipment.id` | `Invalid Equipment` |
 
