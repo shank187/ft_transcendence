@@ -92,11 +92,11 @@ export function ExercisePicker()
                 />
                 <div>TODO FILTERS</div>
             </div>
-            <p>{`showed ${page.items.length} items of ${page.total}`}</p>
+            {((!isError && !isEmpty) ||  (isError && query.page > 1)) && <p>{`showed ${page.items.length} items of ${page.total}`}</p>}
             {isLoading && !hasLoaded &&
                 <LoadingState message="Loading exercises..."/>
             }
-            {isError && !hasLoaded &&
+            {isError && query.page === 1 &&
                 <ErrorState
                 message={pageState.message}
                 action={RetryButton}
@@ -117,17 +117,17 @@ export function ExercisePicker()
                         }
                 />
             }
-            { !isEmpty  &&
+            { ((!isError && !isEmpty) ||  (isError && query.page > 1)) &&
                 <ul className = "flex flex-col gap-y-4">
                     {page.items.map((exercise)=><li key={exercise.id}>
                         <button className="border">{exercise.name} - {exercise.primaryMuscle}</button>
                     </li>)}
                 </ul>
             }
-            {isError && hasLoaded && 
+            {isError && query.page !== 1 && 
                 <p className="text-app-danger">{pageState.message}</p>
             }
-            {isError && hasLoaded && RetryButton}
+            {isError && query.page !== 1 && RetryButton}
             {hasMore && !isError &&
                 <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
                     {isLoading? "Loading..." : "Load more"}
