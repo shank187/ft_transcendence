@@ -30,7 +30,7 @@ export default function Leaderboard({
             <ol className="mt-4 space-y-3">
                 {entries.map((entry, index) => (
                     <li
-                        key={`${entry.username}-${entry.xp}`}
+                        key={entry.id}
                         className="flex items-center justify-between border-b border-app-border pb-2 text-sm last:border-b-0 last:pb-0"
                     >
                         <span className="flex items-center gap-3">
