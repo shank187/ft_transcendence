@@ -18,6 +18,8 @@ const INITIAL_QUERY = {
     search: ""
 }
 
+type PickerView = "loading" | "error" | "empty" | "list"
+
 interface Results {
     items: Exercise[]
     total: number
@@ -75,7 +77,12 @@ export function ExercisePicker()
     const isEmpty = pageState.status === "success" && !hasLoaded
     const hasMore = page.total > page.items.length
 
-
+    const view: PickerView =
+        isLoading && !hasLoaded ? "loading"
+        : isError && query.page === 1 ? "error"
+        : isEmpty ? "empty"
+        : "list"
+    const errorMessage = pageState.status === "error" ? pageState.message : ""
     return(
         <div className="gap-3">
             <div>
@@ -92,46 +99,41 @@ export function ExercisePicker()
                 />
                 <div>TODO FILTERS</div>
             </div>
-            {((!isError && !isEmpty) ||  (isError && query.page > 1)) && <p>{`showed ${page.items.length} items of ${page.total}`}</p>}
-            {isLoading && !hasLoaded &&
-                <LoadingState message="Loading exercises..."/>
-            }
-            {isError && query.page === 1 &&
-                <ErrorState
-                message={pageState.message}
-                action={RetryButton}
-                />
-            }
-            {isEmpty && !isLoading &&
+            {view === "loading" && <LoadingState message="Loading exercises..."/>}
+
+            {view === "error" && <ErrorState message={errorMessage} action={RetryButton}/>}
+
+            {view === "empty" &&
                 <EmptyState
-                title="No exercise match."
-                action= {
-                            <Button
+                    title="No exercise match."
+                    action={
+                        <Button
                             variant="secondary"
                             className="border border-app-border"
-                            disabled={isLoading}
                             onClick={()=>{setSearchText(""); setQuery(INITIAL_QUERY)}}
-                            >
-                                Back to Default
-                            </Button>
-                        }
+                        >
+                            Back to Default
+                        </Button>
+                    }
                 />
             }
-            { ((!isError && !isEmpty) ||  (isError && query.page > 1)) &&
-                <ul className = "flex flex-col gap-y-4">
-                    {page.items.map((exercise)=><li key={exercise.id}>
-                        <button className="border">{exercise.name} - {exercise.primaryMuscle}</button>
-                    </li>)}
-                </ul>
-            }
-            {isError && query.page !== 1 && 
-                <p className="text-app-danger">{pageState.message}</p>
-            }
-            {isError && query.page !== 1 && RetryButton}
-            {hasMore && !isError &&
-                <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
-                    {isLoading? "Loading..." : "Load more"}
-                </Button>
+
+            {view === "list" &&
+                <>
+                    <p>{`showed ${page.items.length} items of ${page.total}`}</p>
+                    <ul className="flex flex-col gap-y-4">
+                        {page.items.map((exercise)=><li key={exercise.id}>
+                            <button className="border">{exercise.name} - {exercise.primaryMuscle}</button>
+                        </li>)}
+                    </ul>
+                    {isError && <p className="text-app-danger">{errorMessage}</p>}
+                    {isError && RetryButton}
+                    {hasMore && !isError &&
+                        <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
+                            {isLoading ? "Loading..." : "Load more"}
+                        </Button>
+                    }
+                </>
             }
         </div>
     )
