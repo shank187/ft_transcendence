@@ -14,7 +14,7 @@ import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
 import Progress from './pages/Progress';
-
+import Social from './pages/Social'
 
 function App() {
   return (
@@ -38,6 +38,7 @@ function App() {
           <Route path="profile/settings" element={<Edit_profile />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/social" element={<Social />} />
         </Route>
       </Route>
     </Routes>
