@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { WebSocketContext } from "../pages/WebSocketContext";
 import type { ClientMessage, ServerMessage } from "../features/chat/chat.types";
+import { API_URL } from "../features/auth/axiosInstance";
 
 type WebSocketProviderProps = {
     children: ReactNode;
@@ -30,8 +31,9 @@ export default function WebSocketProvider({
             setOnlineUserIds([]);
             return;
         }
-
-        const ws = new WebSocket("ws://localhost:3000/chat");
+        const wsUrl = new URL("chat", API_URL)
+        wsUrl.protocol = wsUrl.protocol === "https:" ? "wss" : "ws"
+        const ws = new WebSocket(wsUrl.toString());
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -46,7 +48,7 @@ export default function WebSocketProvider({
 
         ws.onmessage = (event) => {
             const message: ServerMessage = JSON.parse(event.data);
-    console.log("WebSocket received:", message);
+             console.log("WebSocket received:", message);
 
             setLastMessage(message);
 
@@ -70,8 +72,10 @@ export default function WebSocketProvider({
         };
 
         ws.onclose = () => {
-            if (wsRef.current === ws)
+            if (wsRef.current === ws) {
                 wsRef.current = null;
+                setOnlineUserIds([])
+            }
         };
 
         return () => {
