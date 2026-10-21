@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useState } from 'react';
-
+import WebSocketProvider from "./WebSocketProvider"
 const nav_items = [
     { to: '/home', label: 'Home' },
     { to: '/gyms', label: 'Gyms' },
@@ -40,6 +40,7 @@ function MainLayout() {
     }
 
   return (
+    <WebSocketProvider>
         <div className="min-h-screen bg-app-canvas md:flex">
             <div className="hidden md:flex gap-4 p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2 md:border-r md:border-app-border md:bg-app-surface">
 
@@ -72,6 +73,7 @@ function MainLayout() {
                 </button>
             </div>
         </div>
+    </WebSocketProvider>
   );
 }
 
