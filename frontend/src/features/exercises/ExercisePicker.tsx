@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { Exercise, ExerciseQuery } from "./exercise.types"
-import { getExercises } from "./exercise.api"
+import type { Exercise, ExerciseFilters, ExerciseQuery } from "./exercise.types"
+import { getExerciseFilter, getExercises } from "./exercise.api"
 import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
 import EmptyState from "../../components/states/EmptyState"
 import Button from "../../components/ui/Button"
+import FilterSelect from "../../components/ui/FilterSelect"
 
 type PageStateType =
         {status: "loading"}  
@@ -12,11 +13,20 @@ type PageStateType =
         |{status: "success"}
 
 const PAGE_SIZE = 12
-const INITIAL_QUERY = {
+const INITIAL_QUERY: ExerciseQuery = {
     page: 1,
     limit: PAGE_SIZE,
-    search: ""
+    search: "",
+    muscle: "",
+    equipment: ""
 }
+
+const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
+    ...q,
+    search: q.search?.trim() === "" ? undefined: q.search,
+    equipment: q.equipment?.trim() === "" ? undefined : q.equipment,
+    muscle: q.muscle?.trim() === "" ? undefined : q.muscle,
+})
 
 type PickerView = "loading" | "error" | "empty" | "list"
 
@@ -34,12 +44,17 @@ export function ExercisePicker()
     const [searchText, setSearchText] = useState("")
     const req_id = useRef(0)
 
+    const [filters, setFilters] = useState<ExerciseFilters|null>(null)
+    const [filterState, setFilterState] = useState<PageStateType>({status: "loading"})
+
+
+
     const load = useCallback(async (q: ExerciseQuery)=>{
         req_id.current += 1
         const check = req_id.current;
         setPageState({status:"loading"});
         try{
-            const resp = await getExercises(q)
+            const resp = await getExercises(cleanQuery(q))
             if(check !== req_id.current)
                 return;
             setPage((prev)=>({
@@ -58,12 +73,30 @@ export function ExercisePicker()
     }, [])
 
     useEffect(()=>{
+        const loadFilters = async ()=>{
+            setFilterState({status: "loading"})
+            try {
+                const resp = await getExerciseFilter()
+                setFilters(resp);
+                setFilterState({status: "success"})
+            } catch (err) {
+                setFilterState({
+                    status: "error",
+                    message: err instanceof Error ? err.message : "Failed to Load Filters"
+                })            
+            }            
+        }
+        void loadFilters();
+    }
+    ,[])
+
+    useEffect(()=>{
         void load(query)
     }, [load, query])
 
     useEffect(()=>{
         const id = setTimeout(()=>{
-            setQuery((prev)=>(prev.search !== searchText ?{...prev, page: 1, search: searchText}:prev))
+            setQuery((prev)=>(prev.search?.trim() !== searchText.trim() ? {...prev, page: 1, search: searchText} : prev))
         },300)
         return (()=>clearTimeout(id))
     }, [searchText])
@@ -78,7 +111,7 @@ export function ExercisePicker()
     const hasMore = page.total > page.items.length
 
     const view: PickerView =
-        isLoading && !hasLoaded ? "loading"
+        isLoading && query.page === 1 ? "loading"
         : isError && query.page === 1 ? "error"
         : isEmpty ? "empty"
         : "list"
@@ -97,7 +130,26 @@ export function ExercisePicker()
                     }}
 
                 />
-                <div>TODO FILTERS</div>
+                <div className="flex gap-3 justify-evenly">
+                    <FilterSelect 
+                    id = "equipment-filter"
+                    label="Equipment"
+                    disabled={filterState.status !== "success"}
+                    value={query.equipment ?? ""}
+                    options= {filters?.equipment ?? []}
+                    onChange={(value) => setQuery((prev) => ({...prev, page: 1, equipment: value}))}
+                    allLabel="All equipment"
+                    />
+                    <FilterSelect
+                    id="muscle-filter"
+                    label="Muscle"
+                    disabled= {filterState.status !== "success"}
+                    value= {query.muscle ?? ""}
+                    options={filters?.muscles ?? []}
+                    onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
+                    allLabel="All muscles"
+                    />
+                </div>
             </div>
             {view === "loading" && <LoadingState message="Loading exercises..."/>}
 
