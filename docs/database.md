@@ -14,13 +14,15 @@
 ```bash
 cd backend
 npm run prisma:validate   # schema check
-npm run prisma:generate   # regenerate client after schema changes
+npm run prisma:generate   # regenerate client after schema changes; needs DATABASE_URL: copy backend/.env.example to backend/.env and fill it first
 npm run prisma:migrate    # create/apply a dev migration
 ```
 
 ## Domains
 
 One shared database. Features extend the existing schema; they do not create parallel user, equipment, or workout-history entities.
+
+See [Database relationship maps](database-relationships.md) for focused planning, execution, and catalog diagrams, foreign keys, cardinality, and deletion rules.
 
 ```text
 Identity        User, Session, Role*, UserRole*
