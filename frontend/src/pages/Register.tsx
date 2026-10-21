@@ -21,7 +21,7 @@ function Register() {
     
     function handle_google_login()
     {
-        window.location.href = new URL('/api/auth/google', API_URL).toString();
+        window.location.href = `${API_URL}/api/auth/google`;
     }
 
 

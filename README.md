@@ -61,6 +61,7 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 
 - Git
 - Docker Engine with Docker Compose v2
+- Node 24 (only to run build/lint outside Docker; `nvm use` reads `.nvmrc`)
 - A local `.env` derived from the committed non-secret example
 
 ### Setup
@@ -111,6 +112,8 @@ cd frontend && npm run build && npm run lint
 cd backend && npm run build && npm run prisma:validate
 ```
 
+Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.example` to `backend/.env` and fill it first.
+
 ## Architecture and documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — system boundaries, slices, request flow, and contracts
@@ -118,6 +121,7 @@ cd backend && npm run build && npm run prisma:validate
 - [`docs/database.md`](docs/database.md) — current schema mental model and historical-data rules
 - [`docs/development.md`](docs/development.md) — branch, review, verification, and environment workflow
 - [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — frozen product, 14-point module plan, and cutoffs
+- [`docs/UPGRADE.md`](docs/UPGRADE.md) — October 2026 dependency upgrade: what changed, what to run after pulling, what is deferred
 
 The executable sources remain authoritative for current implementation details:
 
