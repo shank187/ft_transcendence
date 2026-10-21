@@ -7,6 +7,7 @@ import EmptyState from "../../components/states/EmptyState"
 import Button from "../../components/ui/Button"
 import FilterSelect from "../../components/ui/FilterSelect"
 
+
 type PageStateType =
         {status: "loading"}  
         | {status: "error" , message: string}
@@ -47,6 +48,18 @@ export function ExercisePicker()
     const [filters, setFilters] = useState<ExerciseFilters|null>(null)
     const [filterState, setFilterState] = useState<PageStateType>({status: "loading"})
 
+    const [selected, setSelected] = useState<Exercise[]>([])
+
+
+    const addSelected = (selectedExercise: Exercise)=>{   
+        setSelected((prev)=>[...prev, selectedExercise])
+    }
+    
+    const dropSelected = (id: string)=>{
+        setSelected((prev)=> prev.filter((exercise) => id !== exercise.id))
+    }
+
+    const isSelected = (id: string): boolean => selected.some((exercise) => id === exercise.id)
 
 
     const load = useCallback(async (q: ExerciseQuery)=>{
@@ -151,6 +164,10 @@ export function ExercisePicker()
                     />
                 </div>
             </div>
+            <div className="flex justify-between">
+                <p className="text-app-primary"> {selected.length} selected</p>
+                {selected.length > 0 && <Button variant="secondary" className="border border-app-primary-muted" onClick={()=>setSelected([])}>Reset selected</Button>}
+            </div>
             {view === "loading" && <LoadingState message="Loading exercises..."/>}
 
             {view === "error" && <ErrorState message={errorMessage} action={RetryButton}/>}
@@ -169,14 +186,22 @@ export function ExercisePicker()
                     }
                 />
             }
-
             {view === "list" &&
                 <>
                     <p>{`showed ${page.items.length} items of ${page.total}`}</p>
                     <ul className="flex flex-col gap-y-4">
-                        {page.items.map((exercise)=><li key={exercise.id}>
-                            <button className="border">{exercise.name} - {exercise.primaryMuscle}</button>
-                        </li>)}
+                        { page.items.map((exercise)=>
+                            <li key={exercise.id}>
+                                <Button
+                                    aria-pressed= {isSelected(exercise.id)}
+                                    className= {isSelected(exercise.id)? "border border-app-primary" :"border border-app-border"}
+                                    variant="ghost"
+                                    onClick={()=> isSelected(exercise.id)? dropSelected(exercise.id) : addSelected(exercise)}
+                                >
+                                    {isSelected(exercise.id) && "✓"} {exercise.name} - {exercise.primaryMuscle}
+                                </Button>
+                            </li>)
+                        }
                     </ul>
                     {isError && <p className="text-app-danger">{errorMessage}</p>}
                     {isError && RetryButton}
@@ -187,6 +212,10 @@ export function ExercisePicker()
                     }
                 </>
             }
+            {selected.length > 0 &&
+                <Button disabled>
+                    Save
+                </Button>}
         </div>
     )
 }
