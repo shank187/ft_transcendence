@@ -6,6 +6,7 @@ import ErrorState from "../../components/states/ErrorState"
 import EmptyState from "../../components/states/EmptyState"
 import Button from "../../components/ui/Button"
 import FilterSelect from "../../components/ui/FilterSelect"
+import ExerciseRow from "./ExerciseRow"
 
 
 type PageStateType =
@@ -41,11 +42,11 @@ interface Results {
 export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void})
 {
 
-    const [pageState, setPageState] = useState<PageStateType>({status:"loading"})
-    const [page, setPage] = useState<Results>({items:[], total:0})
+    const [resultState, setResultState] = useState<PageStateType>({status:"loading"})
+    const [results, setResults] = useState<Results>({items:[], total:0})
     const [query, setQuery] = useState<ExerciseQuery>(INITIAL_QUERY)
     const [searchText, setSearchText] = useState("")
-    const req_id = useRef(0)
+    const latestRequest = useRef(0)
 
     const [filters, setFilters] = useState<ExerciseFilters|null>(null)
     const [filterState, setFilterState] = useState<PageStateType>({status: "loading"})
@@ -53,34 +54,34 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const [selected, setSelected] = useState<Exercise[]>([])
     const [addGuard, setAddGuard] = useState(false)
 
-    const addSelected = (selectedExercise: Exercise)=>{   
-        setSelected((prev)=>[...prev, selectedExercise])
+    const toggleSelected = (selectedExercise: Exercise)=>{   
+        if(!isSelected(selectedExercise.id))
+            setSelected((prev)=>[...prev, selectedExercise])
+        else
+            setSelected((prev)=> prev.filter((exercise) => selectedExercise.id !== exercise.id))
     }
     
-    const dropSelected = (id: string)=>{
-        setSelected((prev)=> prev.filter((exercise) => id !== exercise.id))
-    }
 
     const isSelected = (id: string): boolean => selected.some((exercise) => id === exercise.id)
 
 
     const load = useCallback(async (q: ExerciseQuery)=>{
-        req_id.current += 1
-        const check = req_id.current;
-        setPageState({status:"loading"});
+        latestRequest.current += 1
+        const check = latestRequest.current;
+        setResultState({status:"loading"});
         try{
             const resp = await getExercises(cleanQuery(q))
-            if(check !== req_id.current)
+            if(check !== latestRequest.current)
                 return;
-            setPage((prev)=>({
+            setResults((prev)=>({
                 items: resp.page === 1 ? resp.items : [...prev.items, ...resp.items],
                 total: resp.total
             }))
-            setPageState({status: "success"});
+            setResultState({status: "success"});
         }catch(err){
-            if(check !== req_id.current)
+            if(check !== latestRequest.current)
                 return;
-            setPageState({
+            setResultState({
                 status: "error",
                 message: err instanceof Error ? err.message : "Failed to Load Exercises"
             })
@@ -119,18 +120,18 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const loadMore = () => setQuery((prev)=> ({...prev, page: prev.page + 1}) )
     const RetryButton = <Button variant="secondary" className="border border-app-border" onClick={()=>load(query)}>Retry</Button>
 
-    const isLoading = pageState.status === "loading"
-    const isError = pageState.status === "error"
-    const hasLoaded = page.total !== 0
-    const isEmpty = pageState.status === "success" && !hasLoaded
-    const hasMore = page.total > page.items.length
+    const isLoading = resultState.status === "loading"
+    const isError = resultState.status === "error"
+    const hasLoaded = results.total !== 0
+    const isEmpty = resultState.status === "success" && !hasLoaded
+    const hasMore = results.total > results.items.length
 
     const view: PickerView =
         isLoading && query.page === 1 ? "loading"
         : isError && query.page === 1 ? "error"
         : isEmpty ? "empty"
         : "list"
-    const errorMessage = pageState.status === "error" ? pageState.message : ""
+    const errorMessage = resultState.status === "error" ? resultState.message : ""
     return(
         <div className="flex flex-col gap-3">
             <div>
@@ -206,18 +207,15 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
             }
             {view === "list" &&
                 <>
-                    <p>{`showed ${page.items.length} items of ${page.total}`}</p>
+                    <p>{`showed ${results.items.length} items of ${results.total}`}</p>
                     <ul className="flex flex-col gap-y-4">
-                        { page.items.map((exercise)=>
+                        { results.items.map((exercise)=>
                             <li key={exercise.id}>
-                                <Button
-                                    aria-pressed= {isSelected(exercise.id)}
-                                    className= {isSelected(exercise.id)? "border border-app-primary" :"border border-app-border"}
-                                    variant="ghost"
-                                    onClick={()=> isSelected(exercise.id)? dropSelected(exercise.id) : addSelected(exercise)}
-                                >
-                                    {isSelected(exercise.id) && "✓"} {exercise.name} - {exercise.primaryMuscle}
-                                </Button>
+                                <ExerciseRow
+                                    isSelected = {isSelected(exercise.id)}
+                                    onToggle={toggleSelected}
+                                    exercise={exercise}
+                                />
                             </li>)
                         }
                     </ul>
