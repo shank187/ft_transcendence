@@ -5,6 +5,7 @@ export interface ExerciseQuery {
     search?: string
     muscle?: string
     equipment?: string
+    gymId?: string
 }
 
 export interface Exercise {
@@ -36,6 +37,7 @@ export interface FilterOption {
 export interface ExerciseFilters {
     muscles: FilterOption[]
     equipment: FilterOption[]
+    gym: { id: string; name: string } | null
 }
 
 export type ExerciseType =

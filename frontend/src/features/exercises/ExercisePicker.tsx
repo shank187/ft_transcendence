@@ -19,7 +19,8 @@ const INITIAL_QUERY: ExerciseQuery = {
     limit: PAGE_SIZE,
     search: "",
     muscle: "",
-    equipment: ""
+    equipment: "",
+    gymId: "",
 }
 
 const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
@@ -27,6 +28,7 @@ const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
     search: q.search?.trim() === "" ? undefined: q.search,
     equipment: q.equipment?.trim() === "" ? undefined : q.equipment,
     muscle: q.muscle?.trim() === "" ? undefined : q.muscle,
+    gymId: q.gymId?.trim() === "" ? undefined : q.gymId,
 })
 
 type PickerView = "loading" | "error" | "empty" | "list"
@@ -141,8 +143,24 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     onChange={(e)=>{
                         setSearchText(e.target.value)
                     }}
-
                 />
+                <Button
+                    disabled={filters?.gym === null}
+                    variant="ghost"
+                    className= {(filters?.gym && query.gymId !== "") ? "border border-app-primary" :"border border-app-border"}
+                    aria-pressed={query.gymId !== ""}
+                    onClick={()=>setQuery((prev)=>(
+                        {
+                            ...prev,
+                            page: 1,
+                            gymId: prev.gymId === "" ? filters?.gym?.id : ""
+                        }
+                    )
+                )
+            }
+                >
+                    {(filters?.gym && query.gymId !== "" ) && "✓" } {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                </Button>
                 <div className="flex gap-3 justify-evenly">
                     <FilterSelect 
                     id = "equipment-filter"
@@ -214,7 +232,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
             }
             {selected.length > 0 &&
                 <Button onClick={()=>onAdd(selected)}>
-                    Save
+                    Add {selected.length} exercises
                 </Button>}
         </div>
     )
