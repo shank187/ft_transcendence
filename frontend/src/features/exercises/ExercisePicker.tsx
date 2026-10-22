@@ -36,7 +36,7 @@ interface Results {
     total: number
 }
 
-export function ExercisePicker()
+export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void})
 {
 
     const [pageState, setPageState] = useState<PageStateType>({status:"loading"})
@@ -130,7 +130,7 @@ export function ExercisePicker()
         : "list"
     const errorMessage = pageState.status === "error" ? pageState.message : ""
     return(
-        <div className="gap-3">
+        <div className="flex flex-col gap-3">
             <div>
                 <input
                     type="search"
@@ -213,7 +213,7 @@ export function ExercisePicker()
                 </>
             }
             {selected.length > 0 &&
-                <Button disabled>
+                <Button onClick={()=>onAdd(selected)}>
                     Save
                 </Button>}
         </div>

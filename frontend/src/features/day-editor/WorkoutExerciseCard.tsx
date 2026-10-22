@@ -5,6 +5,7 @@ import type { DraftExercise, SetType} from "./day-editor.types"
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, SET_TYPE_LETTER, type FieldKey } from "./exercise-fields"
 import SetRow from "./SetRow"
 import { validateRest } from "./day-editor.draft"
+import exercisePlaceholder from "../../assets/exercise-placeholder.svg"
 
 export default function WorkoutExerciseCard(props: {
     exercise: DraftExercise,
@@ -40,6 +41,8 @@ export default function WorkoutExerciseCard(props: {
             <div className="flex min-w-0 flex-1 flex-col gap-3">
                 <div className="flex items-start gap-3">
                     <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-app-surface-hover text-[13px] font-semibold">{props.position}</div>
+                    {/* alt="" because the name right next to it already says what it is */}
+                    <img src={exercise.exerciseSummary.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-md object-cover" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                         <h2 className="font-semibold wrap-break-word">{exercise.exerciseSummary.name}</h2>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">

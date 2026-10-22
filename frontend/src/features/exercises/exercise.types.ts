@@ -10,7 +10,7 @@ export interface ExerciseQuery {
 export interface Exercise {
     id: string
     name: string
-    type: string
+    type: ExerciseType
     primaryMuscle: string
     secondaryMuscles: string[]
     equipment: string[]
@@ -38,3 +38,6 @@ export interface ExerciseFilters {
     equipment: FilterOption[]
 }
 
+export type ExerciseType =
+    | "WEIGHT_REPS" | "BODYWEIGHT_REPS" | "WEIGHTED_BODYWEIGHT" | "ASSISTED_BODYWEIGHT"
+    | "DURATION" | "WEIGHT_DURATION" | "DISTANCE_DURATION"

@@ -1,6 +1,4 @@
-export type ExerciseType =
-    | "WEIGHT_REPS" | "BODYWEIGHT_REPS" | "WEIGHTED_BODYWEIGHT" | "ASSISTED_BODYWEIGHT"
-    | "DURATION" | "WEIGHT_DURATION" | "DISTANCE_DURATION"
+import type { ExerciseType } from "../exercises/exercise.types"
 
 export type SetType = "NORMAL" | "WARMUP" | "DROP" | "FAILURE"
 
@@ -36,6 +34,7 @@ export interface ExerciseSummary {
     name: string
     type: ExerciseType
     primaryMuscle: string
+    imageUrl: string | null
 }
 
 

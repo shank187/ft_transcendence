@@ -7,13 +7,14 @@ import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
+import { addDraftSet, appendExercises, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../components/ui/Dialog"
 import { buttonClasses } from "../../components/ui/button-classes"
 import { ExercisePicker } from "../exercises/ExercisePicker"
+import type { Exercise } from "../exercises/exercise.types"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -45,8 +46,12 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const removeExerciseCard = (key: DraftExercise["key"])=>{
         setDraft(prev => removeExercise(prev, key))
     }
+    
+    const addSelectedExercises = (selected: Exercise[])=>{
+        setDraft(prev => appendExercises(prev, selected))
+        closeExercisePickerDialog()
+    }
 
-        
     const addSet = (key: string)=>{
         setDraft(prev => addDraftSet(prev, key))
     }
@@ -242,8 +247,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 onClose={closeExercisePickerDialog}
                 showClose={true}
                 >
-                    <ExercisePicker>
-                    </ExercisePicker>
+                    <ExercisePicker onAdd={addSelectedExercises} />
                 </Dialog>
             }
         </div>

@@ -24,11 +24,11 @@ type CatalogExercise = ExerciseSummary
 
 // FAKE-DATA: stands in for the Exercise table.
 const catalog = new Map<string, CatalogExercise>([
-    ["bench-press", { id: "bench-press", name: "Barbell bench press", type: "WEIGHT_REPS", primaryMuscle: "Chest" }],
-    ["push-up", { id: "push-up", name: "Push-up", type: "BODYWEIGHT_REPS", primaryMuscle: "Chest" }],
-    ["plank", { id: "plank", name: "Plank", type: "DURATION", primaryMuscle: "Core" }],
-    ["incline-dumbbell-press", { id: "incline-dumbbell-press", name: "Incline dumbbell press", type: "WEIGHT_REPS", primaryMuscle: "Chest" }],
-    ["running", { id: "running", name: "Running", type: "DISTANCE_DURATION", primaryMuscle: "Cardio" }],
+    ["bench-press", { id: "bench-press", name: "Barbell bench press", type: "WEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
+    ["push-up", { id: "push-up", name: "Push-up", type: "BODYWEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
+    ["plank", { id: "plank", name: "Plank", type: "DURATION", primaryMuscle: "Core", imageUrl: null }],
+    ["incline-dumbbell-press", { id: "incline-dumbbell-press", name: "Incline dumbbell press", type: "WEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
+    ["running", { id: "running", name: "Running", type: "DISTANCE_DURATION", primaryMuscle: "Cardio", imageUrl: null }],
 ])
 
 // FAKE-DATA: one entry per dayId, seeded on first access.

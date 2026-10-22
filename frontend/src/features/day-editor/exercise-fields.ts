@@ -1,4 +1,5 @@
-import type { ExerciseType, SetType } from "./day-editor.types"
+import type { ExerciseType } from "../exercises/exercise.types"
+import type { SetType } from "./day-editor.types"
 
 export type FieldKey = "weight" | "reps" | "duration" | "distance"
 export interface SetField { key: FieldKey; label: string }
