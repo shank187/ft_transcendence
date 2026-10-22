@@ -54,8 +54,8 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const [selected, setSelected] = useState<Exercise[]>([])
     const [addGuard, setAddGuard] = useState(false)
 
-    const toggleSelected = (selectedExercise: Exercise)=>{   
-        if(!isSelected(selectedExercise.id))
+    const toggleSelected = (selectedExercise: Exercise, isSelected: boolean)=>{   
+        if(!isSelected)
             setSelected((prev)=>[...prev, selectedExercise])
         else
             setSelected((prev)=> prev.filter((exercise) => selectedExercise.id !== exercise.id))
