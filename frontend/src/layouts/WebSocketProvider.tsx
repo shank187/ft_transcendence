@@ -16,7 +16,7 @@ export default function WebSocketProvider({
 }: WebSocketProviderProps) {
 
     const { accessToken } = useAuth();
-
+    const [connectionStatus , setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" >("disconnected")
     const wsRef = useRef<WebSocket | null>(null);
 
     const [lastMessage, setLastMessage] =
@@ -25,71 +25,102 @@ export default function WebSocketProvider({
     const [onlineUserIds, setOnlineUserIds] =
         useState<string[]>([]);
 
+
     useEffect(() => {
         if (!accessToken) {
             setLastMessage(null);
             setOnlineUserIds([]);
+            setConnectionStatus("disconnected");
             return;
         }
-        const wsUrl = new URL("chat", API_URL)
-        wsUrl.protocol = wsUrl.protocol === "https:" ? "wss" : "ws"
-        const ws = new WebSocket(wsUrl.toString());
-        wsRef.current = ws;
 
-        ws.onopen = () => {
-            console.log("WebSocket connected successfully");
-            const message: ClientMessage = {
-                type: "authenticate",
-                token: accessToken
+        let stopped = false;
+        let retryTimer: number | undefined;
+        let ws: WebSocket | null = null;
+
+        function connect() {
+            if (stopped) return;
+
+            setConnectionStatus("connecting");
+
+            const wsUrl = new URL("/chat", API_URL);
+            wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
+
+            const connection = new WebSocket(wsUrl.toString());
+            ws = connection;
+            wsRef.current = connection;
+
+            connection.onopen = () => {
+                const message: ClientMessage = {
+                    type: "authenticate",
+                    token: accessToken!
+                };
+
+                connection.send(JSON.stringify(message));
             };
 
-            ws.send(JSON.stringify(message));
-        };
+            connection.onmessage = (event) => {
+                const message: ServerMessage = JSON.parse(event.data);
 
-        ws.onmessage = (event) => {
-            const message: ServerMessage = JSON.parse(event.data);
-             console.log("WebSocket received:", message);
+                setLastMessage(message);
 
-            setLastMessage(message);
-
-            if (message.type === "presence_snapshot") {
-                setOnlineUserIds(message.onlineUserIds);
-            }
-            else if (message.type === "presence") {
-                if (message.status === "online") {
-                    setOnlineUserIds(current =>
-                        current.includes(message.userId)
-                            ? current
-                            : [...current, message.userId]
-                    );
+                if (message.type === "authenticated") {
+                    setConnectionStatus("connected");
                 }
-                else if (message.status === "offline") {
-                    setOnlineUserIds(current =>
-                        current.filter(id => id !== message.userId)
-                    );
+                else if (message.type === "presence_snapshot") {
+                    setOnlineUserIds(message.onlineUserIds);
                 }
-            }
-        };
+                else if (message.type === "presence") {
+                    if (message.status === "online") {
+                        setOnlineUserIds(current =>
+                            current.includes(message.userId)
+                                ? current
+                                : [...current, message.userId]
+                        );
+                    }
+                    else {
+                        setOnlineUserIds(current =>
+                            current.filter(id => id !== message.userId)
+                        );
+                    }
+                }
+            };
 
-        ws.onclose = () => {
-            if (wsRef.current === ws) {
+            connection.onclose = () => {
+                if (wsRef.current !== connection || stopped) return;
+
                 wsRef.current = null;
-                setOnlineUserIds([])
-            }
-        };
+                setOnlineUserIds([]);
+                setConnectionStatus("disconnected");
+
+                retryTimer = setTimeout(connect, 3000);
+            };
+
+            connection.onerror = () => {
+                // onclose normally follows a failed connection.
+                // Reconnection is handled there.
+                console.error("WebSocket connection error");
+            };
+        }
+
+        connect();
 
         return () => {
-            ws.close();
+            stopped = true;
+            clearTimeout(retryTimer);
 
-            if (wsRef.current === ws)
-                wsRef.current = null;
+            if (ws) {
+                ws.close();
+                if (wsRef.current === ws)
+                    wsRef.current = null;
+            }
         };
-
     }, [accessToken]);
+
 
     return (
         <WebSocketContext.Provider
-            value={{ wsRef, lastMessage, onlineUserIds }}
+            value={{ wsRef, lastMessage, onlineUserIds, connectionStatus }}
         >
             {children}
         </WebSocketContext.Provider>
