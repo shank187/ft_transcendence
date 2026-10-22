@@ -70,7 +70,7 @@ Promise<ExerciseFilters>
         ...resp.data,
         // FAKE-DATA: gym comes from the user's current gym once S1 adds gymId on User.
         // For the no-gym state: gym: null
-        // gym: { id: FAKE_GYM_ID, name: "1337 Gym" },
-        gym: null
+        gym: { id: FAKE_GYM_ID, name: "1337 Gym" },
+        // gym: null,
     }
 }

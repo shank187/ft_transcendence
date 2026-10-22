@@ -51,7 +51,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const [filterState, setFilterState] = useState<PageStateType>({status: "loading"})
 
     const [selected, setSelected] = useState<Exercise[]>([])
-
+    const [addGuard, setAddGuard] = useState(false)
 
     const addSelected = (selectedExercise: Exercise)=>{   
         setSelected((prev)=>[...prev, selectedExercise])
@@ -145,7 +145,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     }}
                 />
                 <Button
-                    disabled={filters?.gym === null}
+                    disabled={filters?.gym === null || filterState.status === "loading"}
                     variant="ghost"
                     className= {(filters?.gym && query.gymId !== "") ? "border border-app-primary" :"border border-app-border"}
                     aria-pressed={query.gymId !== ""}
@@ -231,7 +231,13 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                 </>
             }
             {selected.length > 0 &&
-                <Button onClick={()=>onAdd(selected)}>
+                <Button 
+                onClick={()=>{
+                    setAddGuard(true)
+                    onAdd(selected)
+                }}
+                disabled = {addGuard}
+                >
                     Add {selected.length} exercises
                 </Button>}
         </div>
