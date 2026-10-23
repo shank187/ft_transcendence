@@ -6,14 +6,17 @@ import ErrorState from "../components/states/ErrorState";
 import Leaderboard, { fakeLeaderboard } from "../features/progress/Leaderboard";
 import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
+import ProgressTabs from "../features/progress/ProgressTabs";
 
 const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
 
 export default function Progress() {
     const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState("progress");
     const [summary, setSummary] = useState<ProgressSummary | null>(null);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         getProgressSummary()
@@ -43,7 +46,9 @@ export default function Progress() {
 
     return (
         <section className="flex min-h-full flex-col px-6 py-10">
-            <h1 className="text-3xl font-semibold">progress</h1>
+            <ProgressTabs activeTab={activeTab} 
+                          onTabChange={setActiveTab}
+                />
                 <div className="bg-teal-500mt-3 w-full rounded-md border-2 border-app-border bg-app-surface px-6 py-8 sm:px-9 sm:py-10">
                     <div className="flex items-center gap-4">
                         <div
