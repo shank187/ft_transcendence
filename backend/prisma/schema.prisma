@@ -171,6 +171,7 @@ model Session {
 
 model Gym {
   id          String   @id @default(uuid())
+  googleId    String?   @unique 
   name        String
   description String?
   address     String?
