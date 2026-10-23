@@ -1,6 +1,11 @@
 import { useEffect, useRef, type ReactNode } from "react"
 import Button from "./Button"
 
+const DIALOG_LAYOUT = {
+    modal: "m-auto w-[90vw] max-w-md rounded-lg p-5",
+    drawer: "m-0 ml-auto flex h-dvh max-h-none w-[480px] max-w-full flex-col p-6",
+} as const
+
 interface DialogProps {
     open: boolean
     title: string
@@ -8,10 +13,11 @@ interface DialogProps {
     onClose: () => void
     children: ReactNode
     showClose?: boolean
+    variant?: "modal" | "drawer"
 }
 
 export default function Dialog({
-    open, title, onClose, isWorking, children, showClose
+    open, title, onClose, isWorking, children, showClose, variant="modal"
 }: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -41,10 +47,7 @@ export default function Dialog({
             if(isWorking)
                 e.preventDefault()
         }}
-        className="m-auto w-[90vw] max-w-md rounded-lg p-5
-                    bg-app-surface text-app-text
-                    backdrop:bg-app-canvas/70"
-                    
+        className={`${DIALOG_LAYOUT[variant]} bg-app-surface text-app-text backdrop:bg-app-canvas/70`}
         >
         <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold">{title}</h2>

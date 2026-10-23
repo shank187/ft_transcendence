@@ -241,7 +241,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
             }
             {
                 openExecisePicker &&
-                <Dialog isWorking={saving}
+                <Dialog isWorking={saving} variant="drawer"
                 title="Add exercise"
                 open={true}
                 onClose={closeExercisePickerDialog}

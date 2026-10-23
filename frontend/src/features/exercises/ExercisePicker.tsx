@@ -9,7 +9,7 @@ import FilterSelect from "../../components/ui/FilterSelect"
 import ExerciseRow from "./ExerciseRow"
 
 
-type PageStateType =
+type LoadStateType =
         {status: "loading"}  
         | {status: "error" , message: string}
         |{status: "success"}
@@ -42,14 +42,14 @@ interface Results {
 export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void})
 {
 
-    const [resultState, setResultState] = useState<PageStateType>({status:"loading"})
+    const [resultState, setResultState] = useState<LoadStateType>({status:"loading"})
     const [results, setResults] = useState<Results>({items:[], total:0})
     const [query, setQuery] = useState<ExerciseQuery>(INITIAL_QUERY)
     const [searchText, setSearchText] = useState("")
     const latestRequest = useRef(0)
 
     const [filters, setFilters] = useState<ExerciseFilters|null>(null)
-    const [filterState, setFilterState] = useState<PageStateType>({status: "loading"})
+    const [filterState, setFilterState] = useState<LoadStateType>({status: "loading"})
 
     const [selected, setSelected] = useState<Exercise[]>([])
     const [addGuard, setAddGuard] = useState(false)
