@@ -66,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode })
 
             setAccessToken(token);
 
+            console.log("herrrrrrrrrrrrre");
             const response = await api.get('/api/users/me');
 
             setUser(response.data);
