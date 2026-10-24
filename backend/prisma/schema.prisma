@@ -91,6 +91,20 @@ enum WorkoutSessionStatus {
 // IDENTITY
 // ============================================================
 
+model PendingRegistration {
+  id           String   @id @default(uuid())
+  username     String
+  email        String
+  passwordHash String
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+}
+
+
 model User {
   id                    String             @id @default(uuid())
   email                 String             @unique

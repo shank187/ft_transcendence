@@ -7,6 +7,9 @@ import {
     googleLogin,
     googleCallback
 } from './google.controller';
+import { verify_registration } from './verify_registration.controller';
+
+
 
 const router = Router();
 
@@ -20,5 +23,7 @@ router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.get('/session', check_session);
 
+
+router.post('/verify-registration', verify_registration);
 
 export default router;

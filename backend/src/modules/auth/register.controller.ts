@@ -9,6 +9,9 @@ import { create_session } from './session.service';
 
 import { prisma } from '../../lib/prisma';
 
+import { error } from 'console';
+import { randomInt } from 'crypto';
+import { send_email } from "./email.service";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -41,8 +44,9 @@ export const register = async (req: Request, res: Response) => {
 
     username = username.trim();
     email = email.trim().toLowerCase();
-
-
+    
+    if (username.length < 3 || username.length > 30)
+        return res.status(200).json({success: false, error: "Username must be between 3 and 30 characters."});
 
     try {
         const existing_user = await prisma.user.findFirst({
@@ -53,40 +57,52 @@ export const register = async (req: Request, res: Response) => {
                 ]
             },
         });
-
+        
         if (existing_user)
             return res.status(200).json({success: false, error: 'Username or Email already taken'});
+        
 
-        const hashed_pass = await hash(password, 10);
 
-        const new_user = await prisma.user.create({
+        const code = randomInt(100000, 1000000).toString();
+        const passwordHash = await hash(password, 10);
+        const codeHash = await hash(code, 10);
+        const pending = await prisma.pendingRegistration.create({
             data: {
                 username,
                 email,
-                passwordHash: hashed_pass
-            },
+                passwordHash,
+                codeHash,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+            }
         });
 
-        const access_token = sign_access_token(new_user.id);
 
-        const { raw_token } = await create_session(new_user.id);
+        try {
+            await send_email(email, code);
+        }
+        catch {
+            await prisma.pendingRegistration.deleteMany({
+                where: {
+                    id: pending.id
+                }
+            });
 
-        res.cookie(refreshCookieName, raw_token, refreshCookieOptions);
+            return res.status(503).json({
+                success: false,
+                error: "Unable to send verification email. Please try again."
+            });
+        }
 
-        return res.status(201).json({
+        return res.status(202).json({
             success: true,
-            access_token,
-            user: {
-                id: new_user.id,
-                username: new_user.username,
-                email: new_user.email,
-            },
+            registrationId: pending.id,
+            message: "Check your email for the verification code."
         });
     }
-    catch (error)
-    {
+    catch {
         return res.status(500).json({
-            error: 'Internal server error'
+            success: false,
+            error: "Internal server error"
         });
     }
 };
