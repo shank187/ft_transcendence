@@ -35,9 +35,6 @@ export const verify_registration = async (req: Request, res: Response) => {
             return res.status(400).json({success: false, error: 'Registration not found. Please register again.'});
 
 
-        if (pending.attempts >= 5)
-            return res.status(429).json({success: false, error: 'Too many attempts. Please register again.'});
-
         if (pending.expiresAt.getTime() <= Date.now()) {
             return res.status(400).json({
                 success: false,
@@ -46,12 +43,16 @@ export const verify_registration = async (req: Request, res: Response) => {
         }
 
         const attempt = await prisma.pendingRegistration.updateMany({
-            where: {id: pending.id},
-            data: { attempts: pending.attempts + 1 }
+            where: {id: pending.id,
+                    attempts: {lt: 5}
+            },
+            data:{
+                attempts: {increment: 1}
+            }
         });
 
         if (attempt.count === 0)// prisma add count  by default in apdate many    
-            return res.status(400).json({ success: false, error: 'Verification unavailable. Please register again.'});
+            return res.status(400).json({ success: false, error: 'Too many attempts. Please register again.'});
 
         const valid_code = await compare(code, pending.codeHash);
 
