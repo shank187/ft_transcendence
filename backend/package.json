@@ -21,6 +21,7 @@
     "google-auth-library": "^10.9.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
+    "nodemailer": "^10.1.7",
     "prisma": "^6.19.3",
     "ws": "^8.22.0",
     "zod": "^4.6.7"
@@ -33,6 +34,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.3.0",
     "@types/node": "^24.19.2",
+    "@types/nodemailer": "^8.0.2",
     "@types/ws": "^8.18.2",
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
