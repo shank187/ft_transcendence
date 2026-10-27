@@ -14,6 +14,8 @@ function GymsearchPage(){
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
     const [verified, setVerified]= useState<boolean | null>(null);
+    const [selectedGym, setSelectedGym] = useState<string | null>(null);
+
     // const [rating, setRating] = useState<Number | null>(null);
 
 
@@ -73,7 +75,7 @@ function GymsearchPage(){
                 </div>)
             :(<div>
                 {GymList.map((gym) =>(
-                    <GymCard key={gym.id} gym={gym}/>
+                    <GymCard key={gym.id} gym={gym} Selected={selectedGym === gym.id} onSelect={setSelectedGym} />
                 ))}
             </div>)
         }
