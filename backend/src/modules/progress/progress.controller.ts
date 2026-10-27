@@ -13,7 +13,7 @@ export async function getProgressSummary(
 
     // demo until i fetch the actual progress data from the database
     return res.status(200).json({
-        completedWorkouts: 101,
+        completedWorkouts: 75,
         totalVolume: 0,
         period: "30d",
     });

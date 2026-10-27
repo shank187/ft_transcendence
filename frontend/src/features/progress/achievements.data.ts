@@ -27,7 +27,7 @@ export const achievements: Achievement[] = [
     },
     {
         id: 6,
-        title: "100 Workouts",
+        title: "+100 Workouts",
         description: "Complete 100 workouts",
         unlocked: false,
     },

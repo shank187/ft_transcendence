@@ -22,7 +22,15 @@ export default function Progress() {
 
     useEffect(() => {
         getProgressSummary()
-            .then(setSummary)
+            .then((data) => {
+                console.log("Progress summary:", data);
+                console.log(
+                    "Completed workouts:",
+                    data.completedWorkouts
+                );
+
+                setSummary(data);
+            })
             .catch(() => setError("Could not load progress"));
     }, []);
 
@@ -83,6 +91,7 @@ export default function Progress() {
                                 <span className="rounded-md border-2 border-app-primary bg-app-primary px-1 py-0 text-sm font-bold tracking-wide text-app-canvas">
                                     LEVEL {level}
                                 </span>
+
                                 <span className="mt-1 text-xs text-app-text-muted">
                                     current level
                                 </span>
@@ -93,6 +102,7 @@ export default function Progress() {
                             <span>
                                 {levelXp} / {XP_PER_LEVEL} XP earned
                             </span>
+
                             <span>{xpPercentage}% progress</span>
                         </div>
                     </div>
@@ -114,7 +124,9 @@ export default function Progress() {
 
             {/* ACHIEVEMENTS TAB */}
             {activeTab === "Achievements" && (
-                <Achievements />
+                <Achievements
+                    completedWorkouts={summary.completedWorkouts}
+                />
             )}
 
             {/* ANALYTICS TAB */}
@@ -123,8 +135,9 @@ export default function Progress() {
                     <h2 className="text-2xl font-semibold">
                         Analytics
                     </h2>
+
                     <p className="mt-2 text-app-text-secondary">
-                        Your workout analytics will appear here.
+                        Workout analytics will appear here.
                     </p>
                 </div>
             )}
