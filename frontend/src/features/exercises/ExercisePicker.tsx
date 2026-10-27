@@ -177,7 +177,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                             gymId: prev.gymId === "" ? filters?.gym?.id : ""
                         }))}
                     >
-                        {(filters?.gym && query.gymId !== "") && "✓"} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                        {(filters?.gym && query.gymId !== "") && <span aria-hidden="true">✓</span>} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
                     </Button>
                 </div>
                 {filterState.status === "error" && <p className="text-xs text-app-danger">Filters unavailable.</p>}
