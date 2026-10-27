@@ -3,7 +3,7 @@ import Button from "./Button"
 
 const DIALOG_LAYOUT = {
     modal: "m-auto w-[90vw] max-w-md rounded-lg p-5",
-    drawer: "m-0 ml-auto flex h-dvh max-h-none w-[480px] max-w-full flex-col p-6",
+    drawer: "ml-auto flex h-dvh max-h-none w-[480px] max-w-full flex-col p-6",
 } as const
 
 interface DialogProps {
@@ -65,7 +65,9 @@ export default function Dialog({
                 </Button>
             )}
         </div>
-            <div className="mt-3 flex flex-col gap-3">{children}</div>
+            <div className={variant === "drawer" ? "mt-4 flex min-h-0 flex-1 flex-col" : "mt-3 flex flex-col gap-3"}>
+                {children}
+            </div>
         </dialog>
     )
 }

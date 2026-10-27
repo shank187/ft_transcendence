@@ -133,7 +133,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
         : "list"
     const errorMessage = resultState.status === "error" ? resultState.message : ""
     return(
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col min-h-0 gap-4">
             <div>
                 <input
                     type="search"
@@ -187,47 +187,49 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                 <p className="text-app-primary"> {selected.length} selected</p>
                 {selected.length > 0 && <Button variant="secondary" className="border border-app-primary-muted" onClick={()=>setSelected([])}>Reset selected</Button>}
             </div>
-            {view === "loading" && <LoadingState message="Loading exercises..."/>}
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+                {view === "loading" && <LoadingState message="Loading exercises..."/>}
 
-            {view === "error" && <ErrorState message={errorMessage} action={RetryButton}/>}
+                {view === "error" && <ErrorState message={errorMessage} action={RetryButton}/>}
 
-            {view === "empty" &&
-                <EmptyState
-                    title="No exercise match."
-                    action={
-                        <Button
-                            variant="secondary"
-                            className="border border-app-border"
-                            onClick={()=>{setSearchText(""); setQuery(INITIAL_QUERY)}}
-                        >
-                            Back to Default
-                        </Button>
-                    }
-                />
-            }
-            {view === "list" &&
-                <>
-                    <p>{`showed ${results.items.length} items of ${results.total}`}</p>
-                    <ul className="flex flex-col gap-y-4">
-                        { results.items.map((exercise)=>
-                            <li key={exercise.id}>
-                                <ExerciseRow
-                                    isSelected = {isSelected(exercise.id)}
-                                    onToggle={toggleSelected}
-                                    exercise={exercise}
-                                />
-                            </li>)
+                {view === "empty" &&
+                    <EmptyState
+                        title="No exercise match."
+                        action={
+                            <Button
+                                variant="secondary"
+                                className="border border-app-border"
+                                onClick={()=>{setSearchText(""); setQuery(INITIAL_QUERY)}}
+                            >
+                                Back to Default
+                            </Button>
                         }
-                    </ul>
-                    {isError && <p className="text-app-danger">{errorMessage}</p>}
-                    {isError && RetryButton}
-                    {hasMore && !isError &&
-                        <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
-                            {isLoading ? "Loading..." : "Load more"}
-                        </Button>
-                    }
-                </>
-            }
+                    />
+                }
+                {view === "list" &&
+                    <>
+                        <p>{`showed ${results.items.length} items of ${results.total}`}</p>
+                        <ul className="flex flex-col gap-y-4">
+                            { results.items.map((exercise)=>
+                                <li key={exercise.id}>
+                                    <ExerciseRow
+                                        isSelected = {isSelected(exercise.id)}
+                                        onToggle={toggleSelected}
+                                        exercise={exercise}
+                                    />
+                                </li>)
+                            }
+                        </ul>
+                        {isError && <p className="text-app-danger">{errorMessage}</p>}
+                        {isError && RetryButton}
+                        {hasMore && !isError &&
+                            <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
+                                {isLoading ? "Loading..." : "Load more"}
+                            </Button>
+                        }
+                    </>
+                }
+            </div>
             {selected.length > 0 &&
                 <Button 
                 onClick={()=>{
