@@ -1,5 +1,5 @@
 import api from '../auth/axiosInstance'
-import type {Exercise, ExerciseFilters, ExerciseQuery, PaginatedExercises } from './exercise.types'
+import type { Exercise, ExerciseFilters, ExerciseQuery, PaginatedExercises } from './exercise.types'
 
 // FAKE-DATA: switch the gym id in getExerciseFilter to test the states:
 //   FAKE_GYM_ID        -> gym with exercises
@@ -56,7 +56,7 @@ export async function getExercises(query: ExerciseQuery): Promise<PaginatedExerc
     const response = await api.get<PaginatedExercises>(
         '/api/exercises',
         {
-            params:query
+            params: query
         }
     )
     return response.data
@@ -71,6 +71,5 @@ Promise<ExerciseFilters>
         // FAKE-DATA: gym comes from the user's current gym once S1 adds gymId on User.
         // For the no-gym state: gym: null
         gym: { id: FAKE_GYM_ID, name: "1337 Gym" },
-        // gym: null,
     }
 }

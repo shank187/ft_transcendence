@@ -1,7 +1,7 @@
-// Same shape as the API's filter options ({ id, name }), declared here so
-// a shared ui component never imports from a feature folder.
 import { buttonClasses } from "./button-classes"
 
+// Same shape as the API's filter options ({ id, name }), declared here so
+// a shared ui component never imports from a feature folder.
 type SelectOption = {
     id: string
     name: string

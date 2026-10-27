@@ -9,11 +9,10 @@ import FilterSelect from "../../components/ui/FilterSelect"
 import ExerciseRow from "./ExerciseRow"
 import searchIcon from "../../assets/search-icon.svg"
 
-
 type LoadStateType =
-        {status: "loading"}  
-        | {status: "error" , message: string}
-        |{status: "success"}
+    | {status: "loading"}
+    | {status: "error", message: string}
+    | {status: "success"}
 
 const PAGE_SIZE = 12
 const INITIAL_QUERY: ExerciseQuery = {
@@ -42,7 +41,6 @@ interface Results {
 
 export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void})
 {
-
     const [resultState, setResultState] = useState<LoadStateType>({status:"loading"})
     const [results, setResults] = useState<Results>({items:[], total:0})
     const [query, setQuery] = useState<ExerciseQuery>(INITIAL_QUERY)
@@ -55,33 +53,32 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const [selected, setSelected] = useState<Exercise[]>([])
     const [addGuard, setAddGuard] = useState(false)
 
-    const toggleSelected = (selectedExercise: Exercise, isSelected: boolean)=>{   
+    const toggleSelected = (selectedExercise: Exercise, isSelected: boolean)=>{
         if(!isSelected)
             setSelected((prev)=>[...prev, selectedExercise])
         else
             setSelected((prev)=> prev.filter((exercise) => selectedExercise.id !== exercise.id))
     }
-    
 
     const isSelected = (id: string): boolean => selected.some((exercise) => id === exercise.id)
 
-
     const load = useCallback(async (q: ExerciseQuery)=>{
+        // drop responses that are not the latest, so a slow older search can't overwrite newer results
         latestRequest.current += 1
-        const check = latestRequest.current;
-        setResultState({status:"loading"});
+        const check = latestRequest.current
+        setResultState({status:"loading"})
         try{
             const resp = await getExercises(cleanQuery(q))
             if(check !== latestRequest.current)
-                return;
+                return
             setResults((prev)=>({
                 items: resp.page === 1 ? resp.items : [...prev.items, ...resp.items],
                 total: resp.total
             }))
-            setResultState({status: "success"});
+            setResultState({status: "success"})
         }catch(err){
             if(check !== latestRequest.current)
-                return;
+                return
             setResultState({
                 status: "error",
                 message: err instanceof Error ? err.message : "Failed to Load Exercises"
@@ -94,18 +91,17 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
             setFilterState({status: "loading"})
             try {
                 const resp = await getExerciseFilter()
-                setFilters(resp);
+                setFilters(resp)
                 setFilterState({status: "success"})
             } catch (err) {
                 setFilterState({
                     status: "error",
                     message: err instanceof Error ? err.message : "Failed to Load Filters"
-                })            
-            }            
+                })
+            }
         }
-        void loadFilters();
-    }
-    ,[])
+        void loadFilters()
+    }, [])
 
     useEffect(()=>{
         void load(query)
@@ -133,6 +129,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
         : isEmpty ? "empty"
         : "list"
     const errorMessage = resultState.status === "error" ? resultState.message : ""
+
     return(
         <div className="flex flex-col min-h-0 gap-4">
             <div className="flex flex-col gap-4">
@@ -151,23 +148,23 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <FilterSelect 
-                    id = "equipment-filter"
-                    label="Equipment"
-                    disabled={filterState.status !== "success"}
-                    value={query.equipment ?? ""}
-                    options= {filters?.equipment ?? []}
-                    onChange={(value) => setQuery((prev) => ({...prev, page: 1, equipment: value}))}
-                    allLabel="All equipment"
+                    <FilterSelect
+                        id="equipment-filter"
+                        label="Equipment"
+                        disabled={filterState.status !== "success"}
+                        value={query.equipment ?? ""}
+                        options={filters?.equipment ?? []}
+                        onChange={(value) => setQuery((prev) => ({...prev, page: 1, equipment: value}))}
+                        allLabel="All equipment"
                     />
                     <FilterSelect
-                    id="muscle-filter"
-                    label="Muscle"
-                    disabled= {filterState.status !== "success"}
-                    value= {query.muscle ?? ""}
-                    options={filters?.muscles ?? []}
-                    onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
-                    allLabel="All muscles"
+                        id="muscle-filter"
+                        label="Muscle"
+                        disabled={filterState.status !== "success"}
+                        value={query.muscle ?? ""}
+                        options={filters?.muscles ?? []}
+                        onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
+                        allLabel="All muscles"
                     />
                     <Button
                         disabled={filters?.gym === null || filterState.status === "loading"}
@@ -175,12 +172,12 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                         size="pill"
                         aria-pressed={query.gymId !== ""}
                         onClick={()=>setQuery((prev)=>({
-                                ...prev,
-                                page: 1,
-                                gymId: prev.gymId === "" ? filters?.gym?.id : ""
-                            }))}
+                            ...prev,
+                            page: 1,
+                            gymId: prev.gymId === "" ? filters?.gym?.id : ""
+                        }))}
                     >
-                        {(filters?.gym && query.gymId !== "" ) && "✓" } {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                        {(filters?.gym && query.gymId !== "") && "✓"} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
                     </Button>
                 </div>
             </div>
@@ -207,10 +204,10 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     <>
                         <p>{`showed ${results.items.length} items of ${results.total}`}</p>
                         <ul className="flex flex-col gap-1">
-                            { results.items.map((exercise)=>
+                            {results.items.map((exercise)=>
                                 <li key={exercise.id}>
                                     <ExerciseRow
-                                        isSelected = {isSelected(exercise.id)}
+                                        isSelected={isSelected(exercise.id)}
                                         onToggle={toggleSelected}
                                         exercise={exercise}
                                     />

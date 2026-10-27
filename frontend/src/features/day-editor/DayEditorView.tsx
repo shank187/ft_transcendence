@@ -46,7 +46,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const removeExerciseCard = (key: DraftExercise["key"])=>{
         setDraft(prev => removeExercise(prev, key))
     }
-    
+
     const addSelectedExercises = (selected: Exercise[])=>{
         setDraft(prev => appendExercises(prev, selected))
         closeExercisePickerDialog()
@@ -136,6 +136,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const closeExercisePickerDialog = ()=>{
         setopenExecisePicker(false)
     }
+
     useEffect(()=>{
         if(!isDirty)
             return
@@ -239,13 +240,14 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     </div>
                 </Dialog>
             }
-            {
-                openExecisePicker &&
-                <Dialog isWorking={saving} variant="drawer"
-                title="Add exercise"
-                open={true}
-                onClose={closeExercisePickerDialog}
-                showClose={true}
+            {openExecisePicker &&
+                <Dialog
+                    isWorking={saving}
+                    variant="drawer"
+                    title="Add exercise"
+                    open={true}
+                    onClose={closeExercisePickerDialog}
+                    showClose={true}
                 >
                     <ExercisePicker onAdd={addSelectedExercises} />
                 </Dialog>
