@@ -8,6 +8,7 @@ import Leaderboard, { fakeLeaderboard } from "../features/progress/Leaderboard";
 import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
 import ProgressTabs from "../features/progress/ProgressTabs";
+import Achievements from "../features/progress/Achievements";
 
 const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
@@ -112,19 +113,12 @@ export default function Progress() {
             )}
 
             {/* ACHIEVEMENTS TAB */}
-            {activeTab === "achievements" && (
-                <div className="mt-6">
-                    <h2 className="text-2xl font-semibold">
-                        Achievements
-                    </h2>
-                    <p className="mt-2 text-app-text-secondary">
-                        Your achievements will appear here.
-                    </p>
-                </div>
+            {activeTab === "Achievements" && (
+                <Achievements />
             )}
 
             {/* ANALYTICS TAB */}
-            {activeTab === "analytics" && (
+            {activeTab === "Analytics" && (
                 <div className="mt-6">
                     <h2 className="text-2xl font-semibold">
                         Analytics
