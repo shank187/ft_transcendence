@@ -21,18 +21,15 @@ function FilterSelect({id, label, value, options, allLabel, onChange, disabled =
     return (
         <div className="flex flex-col gap-1">
             <label className="sr-only" htmlFor={id}>{label}</label>
-
-            {/* STYLE: pill chip, accent color when a filter is active (layer 4) */}
             <select
                 id={id}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
                 disabled={disabled}
-                className = {buttonClasses("outline", "", "pill")}
+                className = {buttonClasses("outline", "scheme-dark [&>option]:bg-app-surface", "pill")}
                 data-active={value !== ""}
             >
                 <option value="">{allLabel}</option>
-
                 {options.map((option) => (
                     <option key={option.id} value={option.id}>
                         {option.name}
