@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { DayDetail, DraftExercise, SetType } from "./day-editor.types"
-import getWorkoutDay, { saveWorkoutDay } from "./day-editor.api"
+import getWorkoutDay, { rememberFakeExercises, saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../components/states/ErrorState"
 import NotFoundState from "../../components/states/NotFoundState"
 import Button from "../../components/ui/Button"
@@ -48,6 +48,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     }
 
     const addSelectedExercises = (selected: Exercise[])=>{
+        rememberFakeExercises(selected.map((e) => ({
+            id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl,
+        })))
         setDraft(prev => appendExercises(prev, selected))
         closeExercisePickerDialog()
     }

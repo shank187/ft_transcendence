@@ -31,6 +31,11 @@ const catalog = new Map<string, CatalogExercise>([
     ["running", { id: "running", name: "Running", type: "DISTANCE_DURATION", primaryMuscle: "Cardio", imageUrl: null }],
 ])
 
+// FAKE-DATA: the picker adds real catalog exercises; remember them so the fake save can rebuild their summary. Remove with the real day API (Phase 2).
+export function rememberFakeExercises(summaries: ExerciseSummary[]) {
+    for (const summary of summaries) catalog.set(summary.id, summary)
+}
+
 // FAKE-DATA: one entry per dayId, seeded on first access.
 const days = new Map<string, DayDetail>()
 
