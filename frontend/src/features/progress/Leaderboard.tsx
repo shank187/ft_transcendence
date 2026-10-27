@@ -25,7 +25,7 @@ export default function Leaderboard({
     currentUserId,
 }: LeaderboardProps) {
     return (
-        <section className="min-h-96 w-full flex-1 rounded-md border-2 border-app-border bg-app-surface p-5">
+        <section className="min-h-96 w-full flex-1 rounded-md border-2 border-app-border bg-app-surface p-5 ">
             <h2 className="text-xl font-semibold">Leaderboard</h2>
             <ol className="mt-4 space-y-3">
                 {entries.map((entry, index) => (
