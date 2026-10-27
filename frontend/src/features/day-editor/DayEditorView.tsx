@@ -176,7 +176,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 <Link  onClick={handleBackClick} to={planPath} className="inline-flex min-h-11 items-center self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
                 <div className="flex justify-between">
                     <h1 className="text-[28px] font-semibold">{day.name}</h1>
-                    {draft.length !== 0 && <Button variant="secondary" onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
+                    {draft.length !== 0 && <Button variant="secondary" disabled={saving} onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
                 </div>
             </header>
             {draft.length === 0 &&
@@ -190,7 +190,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         />
                     }
                     action={
-                        <Button className="min-h-11" onClick={()=> setopenExecisePicker(true)}>Add Exercises</Button>
+                        <Button className="min-h-11" disabled={saving} onClick={()=> setopenExecisePicker(true)}>Add Exercises</Button>
                     }
                     />
             }
