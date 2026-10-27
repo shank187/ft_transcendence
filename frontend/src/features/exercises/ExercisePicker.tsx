@@ -7,6 +7,7 @@ import EmptyState from "../../components/states/EmptyState"
 import Button from "../../components/ui/Button"
 import FilterSelect from "../../components/ui/FilterSelect"
 import ExerciseRow from "./ExerciseRow"
+import searchIcon from "../../assets/search-icon.svg"
 
 
 type LoadStateType =
@@ -134,35 +135,22 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const errorMessage = resultState.status === "error" ? resultState.message : ""
     return(
         <div className="flex flex-col min-h-0 gap-4">
-            <div>
-                <input
-                    type="search"
-                    enterKeyHint="search"
-                    placeholder="Search exercises"
-                    aria-label="Search Exercises"
-                    value={searchText}
-                    onChange={(e)=>{
-                        setSearchText(e.target.value)
-                    }}
-                />
-                <Button
-                    disabled={filters?.gym === null || filterState.status === "loading"}
-                    variant="ghost"
-                    className= {(filters?.gym && query.gymId !== "") ? "border border-app-primary" :"border border-app-border"}
-                    aria-pressed={query.gymId !== ""}
-                    onClick={()=>setQuery((prev)=>(
-                        {
-                            ...prev,
-                            page: 1,
-                            gymId: prev.gymId === "" ? filters?.gym?.id : ""
-                        }
-                    )
-                )
-            }
-                >
-                    {(filters?.gym && query.gymId !== "" ) && "✓" } {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
-                </Button>
-                <div className="flex gap-3 justify-evenly">
+            <div className="flex flex-col gap-4">
+                <div className="flex h-10 items-center gap-2 rounded-lg border border-app-border bg-app-canvas px-3">
+                    <img src={searchIcon} alt="" width={18} height={18}/>
+                    <input
+                        type="search"
+                        enterKeyHint="search"
+                        placeholder="Search exercises"
+                        aria-label="Search Exercises"
+                        className="w-full"
+                        value={searchText}
+                        onChange={(e)=>{
+                            setSearchText(e.target.value)
+                        }}
+                    />
+                </div>
+                <div className="flex flex-wrap gap-2">
                     <FilterSelect 
                     id = "equipment-filter"
                     label="Equipment"
@@ -181,6 +169,19 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
                     allLabel="All muscles"
                     />
+                    <Button
+                        disabled={filters?.gym === null || filterState.status === "loading"}
+                        variant="outline"
+                        size="pill"
+                        aria-pressed={query.gymId !== ""}
+                        onClick={()=>setQuery((prev)=>({
+                                ...prev,
+                                page: 1,
+                                gymId: prev.gymId === "" ? filters?.gym?.id : ""
+                            }))}
+                    >
+                        {(filters?.gym && query.gymId !== "" ) && "✓" } {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                    </Button>
                 </div>
             </div>
             <div className="flex justify-between">
