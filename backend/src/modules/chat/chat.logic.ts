@@ -27,7 +27,7 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
     if (!userId) return
     const friends = await getFriendsId(userId)
     const isOnline = connectedUsers.has(userId)
-    
+
     if (status === "online" && !isOnline) return
     if (status === "offline" && isOnline) return
     const response: ServerMessage = {
@@ -41,7 +41,8 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
 
     onlineFriendIds.forEach( friendId => {
         connectedUsers.get(friendId)?.forEach( Socket => {
-            Socket.send(JSON.stringify(response))
+            if (Socket.readyState === WebSocket.OPEN)
+                Socket.send(JSON.stringify(response))
         })
     }
     )
@@ -49,9 +50,12 @@ async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "of
 
 async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
     const userId = ws.userId
-
     if (!userId) return
+
     const friends = await getFriendsId(userId)
+
+    if (ws.readyState !== WebSocket.OPEN)
+        return
 
     const onlineFriendIds = friends.filter(friendId =>
         connectedUsers.has(friendId)
@@ -67,8 +71,11 @@ async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
 
 export function initializeChat(wss: WebSocketServer) {
     wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
+        let messageQueue = Promise.resolve()
         console.log(`client connected.`)
-        ws.on('message', async rawData => {
+        ws.on('message',  rawData => {
+            messageQueue = messageQueue
+                .then(async () => {
             try {
                 let message: unknown
                 try {
@@ -161,12 +168,14 @@ export function initializeChat(wss: WebSocketServer) {
                     const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
                     if (response.type === "error") {
                         connectedUsers.get(ws.userId)?.forEach( toSocket => {
-                            toSocket.send(JSON.stringify(response))
+                            if (toSocket.readyState === WebSocket.OPEN)
+                                toSocket.send(JSON.stringify(response))
                         })
                     }
                     else {
                         connectedUsers.get(message.target)?.forEach( toSocket => {
-                            toSocket.send(JSON.stringify(response))
+                            if (toSocket.readyState === WebSocket.OPEN)
+                                toSocket.send(JSON.stringify(response))
                         })
                     }
                     return
@@ -200,10 +209,12 @@ export function initializeChat(wss: WebSocketServer) {
                         readAt: null
                     }
                     connectedUsers.get(message.to)?.forEach( toSocket => {
-                        toSocket.send(JSON.stringify(response))
+                        if (toSocket.readyState === WebSocket.OPEN)
+                            toSocket.send(JSON.stringify(response))
                     })
                     connectedUsers.get(ws.userId)?.forEach(toSocket => {
-                        toSocket.send(JSON.stringify(response))
+                        if (toSocket.readyState === WebSocket.OPEN)
+                            toSocket.send(JSON.stringify(response))
                     })
                     console.log(
                         `Message received from user ${ws.userId}`
@@ -218,7 +229,14 @@ export function initializeChat(wss: WebSocketServer) {
                     }
                     ws.send(JSON.stringify(response))
                 }
-    }})
+            }
+                }
+            ) 
+            .catch(error => {
+            console.error("Queue error:", error);
+        });
+}) 
+    
         ws.on('close', async (code, reason) => {
             const userId = ws.userId
             if (!userId) return
