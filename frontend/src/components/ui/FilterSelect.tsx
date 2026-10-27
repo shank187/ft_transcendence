@@ -26,7 +26,7 @@ function FilterSelect({id, label, value, options, allLabel, onChange, disabled =
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
                 disabled={disabled}
-                className = {buttonClasses("outline", "scheme-dark [&>option]:bg-app-surface", "pill")}
+                className={buttonClasses("outline", "scheme-dark [&>option]:bg-app-surface [&>option]:text-app-text", "pill")}
                 data-active={value !== ""}
             >
                 <option value="">{allLabel}</option>

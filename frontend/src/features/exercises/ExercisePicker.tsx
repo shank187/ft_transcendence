@@ -184,10 +184,6 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     </Button>
                 </div>
             </div>
-            <div className="flex justify-between">
-                <p className="text-app-primary"> {selected.length} selected</p>
-                {selected.length > 0 && <Button variant="secondary" className="border border-app-primary-muted" onClick={()=>setSelected([])}>Reset selected</Button>}
-            </div>
             <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
                 {view === "loading" && <LoadingState message="Loading exercises..."/>}
 
@@ -210,7 +206,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                 {view === "list" &&
                     <>
                         <p>{`showed ${results.items.length} items of ${results.total}`}</p>
-                        <ul className="flex flex-col gap-y-4">
+                        <ul className="flex flex-col gap-1">
                             { results.items.map((exercise)=>
                                 <li key={exercise.id}>
                                     <ExerciseRow
@@ -231,16 +227,25 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     </>
                 }
             </div>
-            {selected.length > 0 &&
-                <Button 
-                onClick={()=>{
-                    setAddGuard(true)
-                    onAdd(selected)
-                }}
-                disabled = {addGuard}
-                >
-                    Add {selected.length} exercises
-                </Button>}
+            <div className="flex items-center justify-between gap-3 border-t border-app-border pt-4">
+                <p className="text-sm text-app-text-secondary">
+                    {selected.length === 0 ? "No exercises selected" : `${selected.length} selected`}
+                </p>
+                {selected.length > 0 &&
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" onClick={() => setSelected([])}>Reset</Button>
+                        <Button
+                            onClick={() => {
+                                setAddGuard(true)
+                                onAdd(selected)
+                            }}
+                            disabled={addGuard}
+                        >
+                            Add {selected.length}
+                        </Button>
+                    </div>
+                }
+            </div>
         </div>
     )
 }
