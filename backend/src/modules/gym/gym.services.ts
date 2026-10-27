@@ -18,16 +18,11 @@ import { prisma } from "../../lib/prisma";
 
 
 export async function setUserCUrrentGym(userID: string, gymId : string){
-    try{
 
-        const updatedUser = await prisma.user.update({
-            where : {id : userID},
-            data : {currentGymId : gymId}
-        });
-        return updatedUser;
-    }
-    catch (e){
-        console.error(e);
-    }
+    const updatedUser = await prisma.user.update({
+        where : {id : userID},
+        data : {currentGymId : gymId}
+    });
+    return updatedUser;
 }
 

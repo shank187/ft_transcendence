@@ -27,7 +27,6 @@ function GymCard({gym, Selected, onSelect} : GymCardPara){
         setIsloadng(true);
         try{
             const res = await axios.post("/api/user/current-gym", {gymId : gym.id});
-            res;
             onSelect(gym.id);
         }catch(e){
             console.log(e);
@@ -65,7 +64,7 @@ function GymCard({gym, Selected, onSelect} : GymCardPara){
                 {isLoading 
                     ? "Selecting..." 
                     : Selected 
-                        ? "Selected ✓" 
+                        ? "Selected " 
                         : "Select this gym"}
             </button>
             </div>
