@@ -167,7 +167,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                         allLabel="All muscles"
                     />
                     <Button
-                        disabled={filters?.gym === null || filterState.status === "loading"}
+                        disabled={filterState.status !== "success" || !filters?.gym}
                         variant="outline"
                         size="pill"
                         aria-pressed={query.gymId !== ""}
@@ -180,6 +180,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                         {(filters?.gym && query.gymId !== "") && "✓"} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
                     </Button>
                 </div>
+                {filterState.status === "error" && <p className="text-xs text-app-danger">Filters unavailable.</p>}
             </div>
             <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
                 {view === "loading" && <LoadingState message="Loading exercises..."/>}
