@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import { prisma } from '../../lib/prisma';
-import { randomInt } from 'crypto';
+import { generate_verification_code } from './verification_code';
 import { send_email } from "./email.service";
 
 
@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
         
 
 
-        const code = randomInt(100000, 1000000).toString();
+        const code = generate_verification_code();
         const passwordHash = await hash(password, 10);
         const codeHash = await hash(code, 10);
         const pending = await prisma.pendingRegistration.create({
