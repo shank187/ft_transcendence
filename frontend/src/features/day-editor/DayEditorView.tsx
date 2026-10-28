@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from "react"
 import type { DayDetail, DraftExercise, SetType } from "./day-editor.types"
-import getWorkoutDay, { saveWorkoutDay } from "./day-editor.api"
+import getWorkoutDay, { rememberFakeExercises, saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../components/states/ErrorState"
 import NotFoundState from "../../components/states/NotFoundState"
 import Button from "../../components/ui/Button"
 import LoadingState from "../../components/states/LoadingState"
 import EmptyState from "../../components/states/EmptyState"
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { addDraftSet, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
+import { addDraftSet, appendExercises, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
 import type { FieldKey } from "./exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../components/ui/Dialog"
 import { buttonClasses } from "../../components/ui/button-classes"
+import { ExercisePicker } from "../exercises/ExercisePicker"
+import type { Exercise } from "../exercises/exercise.types"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -34,6 +36,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     // key of the set whose menu is open, so only one menu opens at a time
     const [openSetMenu, setOpenSetMenu] = useState<string|null>(null)
 
+    const [openExecisePicker, setopenExecisePicker] = useState(false)
+
     const navigate = useNavigate()
 
     const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
@@ -43,7 +47,14 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setDraft(prev => removeExercise(prev, key))
     }
 
-        
+    const addSelectedExercises = (selected: Exercise[])=>{
+        rememberFakeExercises(selected.map((e) => ({
+            id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl,
+        })))
+        setDraft(prev => appendExercises(prev, selected))
+        closeExercisePickerDialog()
+    }
+
     const addSet = (key: string)=>{
         setDraft(prev => addDraftSet(prev, key))
     }
@@ -125,6 +136,10 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setIsDialogOpen(false)
     }
 
+    const closeExercisePickerDialog = ()=>{
+        setopenExecisePicker(false)
+    }
+
     useEffect(()=>{
         if(!isDirty)
             return
@@ -159,7 +174,10 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         <div className="flex w-full max-w-[640px] flex-col gap-4">
             <header className="flex flex-col gap-2">
                 <Link  onClick={handleBackClick} to={planPath} className="inline-flex min-h-11 items-center self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
-                <h1 className="text-[28px] font-semibold">{day.name}</h1>
+                <div className="flex justify-between">
+                    <h1 className="text-[28px] font-semibold">{day.name}</h1>
+                    {draft.length !== 0 && <Button variant="secondary" disabled={saving} onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
+                </div>
             </header>
             {draft.length === 0 &&
                     <EmptyState
@@ -172,8 +190,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         />
                     }
                     action={
-                        // TODO(UI 4/7): open the exercise picker
-                        <Button disabled className="min-h-11">Add Exercises</Button>
+                        <Button className="min-h-11" disabled={saving} onClick={()=> setopenExecisePicker(true)}>Add Exercises</Button>
                     }
                     />
             }
@@ -224,6 +241,18 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         <Button variant="ghost" disabled={saving} className="min-h-11 border border-app-border" onClick={closeLeaveDialog}>Keep editing</Button>
                         <Button disabled={saving} className={buttonClasses("secondary", "min-h-11 border border-app-danger")} onClick={()=>navigate(planPath)} >Leave Anyway</Button>
                     </div>
+                </Dialog>
+            }
+            {openExecisePicker &&
+                <Dialog
+                    isWorking={saving}
+                    variant="drawer"
+                    title="Add exercise"
+                    open={true}
+                    onClose={closeExercisePickerDialog}
+                    showClose={true}
+                >
+                    <ExercisePicker onAdd={addSelectedExercises} />
                 </Dialog>
             }
         </div>
