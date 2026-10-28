@@ -1,15 +1,7 @@
 import { Request, Response } from 'express';
 import { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
-
-import {refreshCookieName,refreshCookieOptions} from './cookie.config';
-import { sign_access_token } from './token.service';
-
-import { create_session } from './session.service';
-
 import { prisma } from '../../lib/prisma';
-
-import { error } from 'console';
 import { randomInt } from 'crypto';
 import { send_email } from "./email.service";
 
@@ -38,7 +30,7 @@ export const register = async (req: Request, res: Response) => {
     const errors = validationResult(req); //Get all validation errors stored on this request.
 
     if (!errors.isEmpty())
-        return res.status(200).json({success: false, error: errors.array()[0].msg});
+        return res.status(400).json({success: false, error: errors.array()[0].msg});
 
     let { username, email, password } = req.body;
 
@@ -46,7 +38,7 @@ export const register = async (req: Request, res: Response) => {
     email = email.trim().toLowerCase();
     
     if (username.length < 3 || username.length > 30)
-        return res.status(200).json({success: false, error: "Username must be between 3 and 30 characters."});
+        return res.status(400).json({success: false, error: "Username must be between 3 and 30 characters."});
 
     try {
         const existing_user = await prisma.user.findFirst({
@@ -59,7 +51,7 @@ export const register = async (req: Request, res: Response) => {
         });
         
         if (existing_user)
-            return res.status(200).json({success: false, error: 'Username or Email already taken'});
+            return res.status(409).json({success: false, error: 'Username or Email already taken'});
         
 
 

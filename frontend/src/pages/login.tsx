@@ -1,6 +1,7 @@
 
 import {useState} from 'react';
 import api ,{API_URL}from '../features/auth/axiosInstance';
+import axios from 'axios';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
@@ -51,7 +52,10 @@ function Login()
                 navigate('/onboarding', { replace: true });
 
         } catch (error) {
-            set_err_msg("invalid email or password");
+            if (axios.isAxiosError(error))
+                set_err_msg(error.response?.data?.error || "invalid email or password");
+            else
+                set_err_msg("invalid email or password");
         }
     }
 
