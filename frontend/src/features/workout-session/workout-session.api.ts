@@ -10,11 +10,17 @@ import type { WorkoutSession, WorkoutSessionSet } from "./workout-session.types"
 //   startWorkoutFromDay, dayId "missing" -> rejects "Day not found"
 //   getWorkoutSession, id "missing"      -> returns null
 //   getWorkoutSession, id "fail"         -> rejects
+//   startEmptyWorkout, page URL ?fake=fail  -> always rejects
+//   startEmptyWorkout, page URL ?fake=flaky -> the first call rejects, the
+//                                              retry succeeds (until reload)
 
 const FAKE_DELAY_MS = 500
 
 // FAKE-DATA: stands in for the WorkoutSession table, one entry per session id.
 const sessions = new Map<string, WorkoutSession>()
+
+// FAKE-DATA: set once a "flaky" empty start has failed.
+let emptyStartFailed = false
 
 function wait() {
     return new Promise(resolve => setTimeout(resolve, FAKE_DELAY_MS))
@@ -49,9 +55,22 @@ function toSessionSet(planned: PlannedSet): WorkoutSessionSet {
     }
 }
 
+// FAKE-DATA: startEmptyWorkout takes no id to pick a scenario from, so it
+// reads ?fake= from the page URL instead.
+function failEmptyStart() {
+    const scenario = new URLSearchParams(window.location.search).get("fake")
+    if (scenario === "fail")
+        throw new Error("Failed to start workout, try again.")
+    if (scenario === "flaky" && !emptyStartFailed) {
+        emptyStartFailed = true
+        throw new Error("Failed to start workout, try again.")
+    }
+}
+
 // FAKE-DATA: real version will be POST /api/workout-sessions
 export async function startEmptyWorkout(): Promise<WorkoutSession> {
     await wait()
+    failEmptyStart()
 
     const session: WorkoutSession = {
         id: crypto.randomUUID(),

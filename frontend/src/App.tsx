@@ -17,6 +17,7 @@ import Progress from './pages/Progress';
 import Social from './pages/Social'
 import DayEditor from './pages/DayEditor';
 import NotFound from './pages/NotFound';
+import WorkoutSession from './pages/WorkoutSession';
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path="profile/settings" element={<Edit_profile />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
           <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
+          <Route path="/workouts/session/:sessionId" element={<WorkoutSession />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/social" element={<Social />} />
           <Route path="*" element={<NotFound />} />
