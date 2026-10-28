@@ -9,7 +9,7 @@ import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
 import ProgressTabs from "../features/progress/ProgressTabs";
 import Achievements from "../features/progress/Achievements";
-
+import { TrendingUp } from "lucide-react"
 const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
 
@@ -70,6 +70,22 @@ export default function Progress() {
             {/* PROGRESS TAB */}
             {activeTab === "progress" && (
                 <>
+                    {/* PROGRESS HEADER*/}
+                            <div className="mt-6 mb-6 flex items-center gap-4">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                                    <TrendingUp className="h-9 w-9 text-app-primary" />
+                                </div>
+
+                                <div>
+                                    <h1 className="text-3xl font-bold">
+                                        Your Progress
+                                    </h1>
+
+                                    <p className="mt-1 text-app-text-secondary">
+                                        Track your workouts. Level up your journey.
+                                    </p>
+                                </div>
+                            </div>
                     {/* XP PROGRESS BAR */}
                     <div className="mt-3 w-full rounded-md border-2 border-app-border bg-app-surface px-6 py-8 sm:px-9 sm:py-10">
                         <div className="flex items-center gap-4">
