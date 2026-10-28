@@ -27,6 +27,7 @@ export default function DayRow(
     const isMenuOpen = props.dropDownMenu === day.id;
     const { setDropDown } = props;
 
+
     // close the menu on a press outside the ⋮ button and the menu
     useEffect(() => {
         if (!isMenuOpen) return;

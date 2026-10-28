@@ -6,7 +6,7 @@ export default function WorkoutSession ()
 {
     const {sessionId} = useParams()
 
-    if(!sessionId) return <NotFoundState title="Day not found."/>
+    if(!sessionId) return <NotFoundState title="Workout not found."/>
 
     return(
         <WorkoutSessionView sessionId={sessionId}/>
