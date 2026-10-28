@@ -10,6 +10,10 @@ import { useAuth } from "../features/auth/AuthContext";
 import ProgressTabs from "../features/progress/ProgressTabs";
 import Achievements from "../features/progress/Achievements";
 import { TrendingUp } from "lucide-react"
+import { ChartLine } from "lucide-react"
+import { BrainCircuit } from "lucide-react"
+
+
 const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
 
@@ -73,7 +77,7 @@ export default function Progress() {
                     {/* PROGRESS HEADER*/}
                             <div className="mt-6 mb-6 flex items-center gap-4">
                                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
-                                    <TrendingUp className="h-9 w-9 text-app-primary" />
+                                    <ChartLine className="h-9 w-9 text-app-primary" />
                                 </div>
 
                                 <div>
@@ -146,16 +150,24 @@ export default function Progress() {
             )}
 
             {/* ANALYTICS TAB */}
+            <div className="mt-6 flex w-full flex-col gap-6"></div>
             {activeTab === "Analytics" && (
-                <div className="mt-6">
-                    <h2 className="text-2xl font-semibold">
-                        Analytics
-                    </h2>
+            <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                    <BrainCircuit className="h-9 w-9 text-app-primary" />
+                </div>
 
-                    <p className="mt-2 text-app-text-secondary">
-                        Workout analytics will appear here.
+                <div>
+                    <h1 className="text-3xl font-bold">
+                        Analytics
+                    </h1>
+
+                    <p className="mt-1 text-app-text-secondary">
+                        Unlock milestones. Earn your glory.
                     </p>
                 </div>
+            </div>
+
             )}
         </section>
     );
