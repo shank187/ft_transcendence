@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import { completeSet, getWorkoutSession } from "./workout-session.api";
+import { getWorkoutSession, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -40,7 +40,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
     // Errors are not caught here: they reach the row, which shows them next to its tick.
     // The saved set from the server replaces ours, so completedAt comes from the server.
     const completeSessionSet = async (exerciseId: string, setId: string, values: PerformedValues) => {
-        const saved = await completeSet(props.sessionId, setId, values)
+        const saved = await updateSessionSet(props.sessionId, setId, { ...values, completed: true })
         setLoadState(prev => prev.status !== "success" ? prev : {
             ...prev,
             session: { ...prev.session, exercises: updateSet(prev.session.exercises, exerciseId, setId, () => saved) },
