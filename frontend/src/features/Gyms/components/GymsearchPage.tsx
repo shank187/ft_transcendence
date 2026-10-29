@@ -14,6 +14,8 @@ function GymsearchPage(){
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
     const [verified, setVerified]= useState<boolean | null>(null);
+    const [selectedGym, setSelectedGym] = useState<string | null>(null);
+
     // const [rating, setRating] = useState<Number | null>(null);
 
 
@@ -27,7 +29,6 @@ function GymsearchPage(){
             //     return ;
             // }
             setLoading(true);
-
             try
             {
                 const fakeData = await getFakeData(textSearched, city, verified);
@@ -42,8 +43,10 @@ function GymsearchPage(){
                 console.log(err);
             }
             finally{
+                if (!ignore)
                 setLoading(false);
             }
+            // A’s finally calls setLoading(false) even if B is still loading, so the loading indicator can disappear too soon
         }
         fetchGyms();
         return  function(){
@@ -60,7 +63,7 @@ function GymsearchPage(){
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
             <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
 
-        <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
+        <GymFilters setCityProps={setCity} setverifiedProps={setVerified} curentCity={city}></GymFilters>
         {/* <GymFilters setCityProps={setCity} setRatingProps={setRating} setverifiedProps={setVerified}></GymFilters> */}
 
 
@@ -72,7 +75,7 @@ function GymsearchPage(){
                 </div>)
             :(<div>
                 {GymList.map((gym) =>(
-                    <GymCard key={gym.id} gym={gym}/>
+                    <GymCard key={gym.id} gym={gym} Selected={selectedGym === gym.id} onSelect={setSelectedGym} />
                 ))}
             </div>)
         }
