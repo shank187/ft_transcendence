@@ -12,7 +12,6 @@ export const fakeLeaderboard: LeaderboardEntry[] = [
     { id: "mehdi", username: "Mehdi", xp: 350 },
     { id: "nour", username: "Nour", xp: 310 },
     { id: "hamza", username: "Hamza", xp: 270 },
-    { id: "khadija", username: "Khadija", xp: 9000 },
     { id: "khadija", username: "Khadija", xp: 9000 }
 ];
 
