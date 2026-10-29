@@ -1,23 +1,34 @@
-import { getExercises } from "./exercise.service";
+import { parseListQuery } from "./exercise.query";
+import { getExercises, getExercisesFilters } from "./exercise.service";
 import type { Request, Response } from "express";
 
 export async function getExercisesController(req: Request, res: Response) {
-    const rawPage = typeof req.query.page === 'string' ? req.query.page : '1';
-    const rawLimit = typeof req.query.limit === 'string' ? req.query.limit : '12';
-    const page = Number(rawPage)
-    const limit = Number(rawLimit)
-    if (
-        !Number.isInteger(page) ||
-        !Number.isInteger(limit) ||
-        page < 1 ||
-        limit < 1||
-        limit > 50
-    ){
-        return res.status(400).json({
-            message: 'Invalid Pagination parameteres'
-        });
+    try {
+        const check = parseListQuery(req.query)
+        if (check.ok === false) {
+            return res.status(400).json({
+                message: check.message
+            });
+        }
+        const result = await getExercises(check.value);
+        if (result.ok === false)
+            return res.status(400).json({ message: result.message })
+        else
+            return res.status(200).json(result.value)
     }
+    catch (error) {
+        console.error("GET /api/exercises failed:", error);
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
 
-    const exercises = await getExercises(page, limit);
-    res.status(200).json(exercises)
+export async function getExercisesFiltersController(_req: Request, res: Response) {
+    try {
+        const filters = await getExercisesFilters()
+        res.status(200).json(filters)
+    }
+    catch (error) {
+        console.error("GET /api/exercises/filters failed:", error);
+        return res.status(500).json({ message: "Internal server error" })
+    }
 }

@@ -9,10 +9,14 @@ import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
+import Edit_profile from "./pages/PrivateProfile";
 import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
 import Progress from './pages/Progress';
+import Social from './pages/Social'
+import DayEditor from './pages/DayEditor';
+import NotFound from './pages/NotFound';
 
 
 function App() {
@@ -34,8 +38,12 @@ function App() {
           <Route path="/gyms/:id" element={<GymDetailsPage />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
+          <Route path="profile/settings" element={<Edit_profile />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
+          <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/social" element={<Social />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
     </Routes>
