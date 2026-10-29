@@ -15,7 +15,7 @@ export const resend_verification = async (req: Request, res: Response) => {
     const email: string = req.body.email.trim().toLowerCase();
 
     try {
-        const pending = await prisma.pendingRegistration.findFirst({
+        const pending = await prisma.pendingRegistration.findUnique({
             where: { email }
         });
 
