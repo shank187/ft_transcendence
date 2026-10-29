@@ -91,7 +91,6 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
 export async function startWorkoutFromDay(planId: string, dayId: string): Promise<WorkoutSession> {
     const day = await getWorkoutDay(planId, dayId)
     if (!day) throw new Error("Day not found")
-
     const session: WorkoutSession = {
         id: crypto.randomUUID(),
         name: day.name,
