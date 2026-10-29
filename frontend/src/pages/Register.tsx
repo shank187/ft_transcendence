@@ -60,11 +60,18 @@ function Register() {
             set_password('');
             set_confirm_password('');
         } catch (error) {
-            if (axios.isAxiosError(error))
-                set_err_msg(error.response?.data?.error || "Registration request failed. Please try again.");
-            else
+            if (axios.isAxiosError(error)) {
+                const data = error.response?.data;
+                if (data?.code === "PENDING_REGISTRATION_EXISTS" && typeof data.registrationId === "string") {
+                    setRegistrationId(data.registrationId);
+                    return;
+                }
+
+                set_err_msg(data?.error || "Registration request failed. Please try again.");
+            } else {
                 set_err_msg("An unexpected error occurred.");
-        } finally {
+            }
+        }finally {
             set_is_submitting(false);
         }
     }
