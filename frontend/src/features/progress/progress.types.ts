@@ -3,3 +3,5 @@ export type ProgressSummary = {
     totalVolume: number;
     period: string;
 };
+
+export type ProgressTab = "Progress" | "Achievements" | "Analytics";

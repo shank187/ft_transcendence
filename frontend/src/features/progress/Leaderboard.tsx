@@ -5,14 +5,14 @@ type LeaderboardEntry = {
 };
 
 export const fakeLeaderboard: LeaderboardEntry[] = [
-    { id: "aymen", username: "Aymen", xp: 10000 },
-    { id: "mohhamed", username: "Mohhamed", xp: 9000 },
-    { id: "ziad", username: "Ziad", xp: 4300 },
-    { id: "abdlhamid", username: "Abdlhamid", xp: 3900 },
-    { id: "mehdi", username: "Mehdi", xp: 3500 },
-    { id: "nour", username: "Nour", xp: 3100 },
-    { id: "hamza", username: "Hamza", xp: 2700 },
-    { id: "khadija", username: "Khadija", xp: 9000 },
+    { id: "aymen", username: "Aymen", xp: 512 },
+    { id: "mohhamed", username: "Moha.med", xp: 133 },
+    { id: "ziad", username: "Ziad", xp: 430 },
+    { id: "abdlhamid", username: "Abdlhamid", xp: 390 },
+    { id: "mehdi", username: "Mehdi", xp: 350 },
+    { id: "nour", username: "Nour", xp: 310 },
+    { id: "hamza", username: "Hamza", xp: 270 },
+    { id: "khadija", username: "Khadija", xp: 9000 }
 ];
 
 type LeaderboardProps = {
@@ -25,7 +25,7 @@ export default function Leaderboard({
     currentUserId,
 }: LeaderboardProps) {
     return (
-        <section className="min-h-96 w-full flex-1 rounded-md border-2 border-app-border bg-app-surface p-5">
+        <section className="min-h-96 w-full flex-1 rounded-md border-2 border-app-border bg-app-surface p-5 ">
             <h2 className="text-xl font-semibold">Leaderboard</h2>
             <ol className="mt-4 space-y-3">
                 {entries.map((entry, index) => (
