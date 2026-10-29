@@ -37,8 +37,6 @@ export interface ExerciseSummary {
     imageUrl: string | null
 }
 
-
-
 export interface DraftSet{
     key: string,
     setType: SetType,
@@ -47,8 +45,6 @@ export interface DraftSet{
     duration: string,
     distance: string,
 }
-
-
 
 export interface DraftExercise{
     key: string,

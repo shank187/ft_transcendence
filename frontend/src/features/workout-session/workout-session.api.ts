@@ -1,6 +1,6 @@
 import getWorkoutDay from "../day-editor/day-editor.api";
 import type { PlannedSet } from "../day-editor/day-editor.types";
-import type { WorkoutSession, WorkoutSessionSet } from "./workout-session.types";
+import type { PerformedValues, WorkoutSession, WorkoutSessionSet } from "./workout-session.types";
 
 // FAKE-DATA: in-memory mock of /api/workout-sessions.
 // State resets on every page reload.
@@ -13,6 +13,7 @@ import type { WorkoutSession, WorkoutSessionSet } from "./workout-session.types"
 //   startEmptyWorkout, page URL ?fake=fail  -> always rejects
 //   startEmptyWorkout, page URL ?fake=flaky -> the first call rejects, the
 //                                              retry succeeds (until reload)
+//   completeSet, page URL ?fake=set-fail    -> always rejects
 
 const FAKE_DELAY_MS = 500
 
@@ -131,4 +132,25 @@ export async function discardWorkout(id: string): Promise<void> {
     const session = sessions.get(id)
     if (!session) throw new Error("Workout not found")
     sessions.set(id, { ...session, status: "CANCELLED" })
+}
+
+
+// FAKE-DATA: real version will be PATCH /api/workout-sessions/:id/sets/:setId
+// Returns the saved set; its completedAt comes from the server, not the client.
+export async function completeSet(sessionId: string, setId: string, values: PerformedValues): Promise<WorkoutSessionSet> {
+    await wait()
+    if (new URLSearchParams(window.location.search).get("fake") === "set-fail")
+        throw new Error("Failed to save set, try again.")
+
+    const session = sessions.get(sessionId)
+    if (!session || session.status !== "IN_PROGRESS") throw new Error("Workout not found")
+    const set = session.exercises.flatMap(e => e.sets).find(s => s.id === setId)
+    if (!set) throw new Error("Set not found")
+
+    const saved: WorkoutSessionSet = { ...set, ...values, completedAt: new Date().toISOString() }
+    sessions.set(sessionId, {
+        ...session,
+        exercises: session.exercises.map(e => ({ ...e, sets: e.sets.map(s => s.id === setId ? saved : s) })),
+    })
+    return { ...saved }
 }

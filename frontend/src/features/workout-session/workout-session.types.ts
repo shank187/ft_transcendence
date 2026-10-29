@@ -1,4 +1,5 @@
 import type { ExerciseSummary, SetType } from "../day-editor/day-editor.types"
+import type { FieldKey } from "../day-editor/exercise-fields"
 
 export  type WorkoutStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
 
@@ -40,3 +41,6 @@ export interface WorkoutSession {
     bodyWeightKg: number | null,
     exercises: WorkoutSessionExercise[],
 }
+
+// What the user did in one set, sent when the set is ticked.
+export type PerformedValues = Pick<WorkoutSessionSet, FieldKey>
