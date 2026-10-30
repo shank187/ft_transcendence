@@ -12,7 +12,6 @@ interface VerificationFormProps {
 }
 
 function VerificationForm({ email, initialRegistrationId }: VerificationFormProps) {
-    const [registrationId, setRegistrationId] = useState(initialRegistrationId);
     const [code, set_code] = useState('');
     const [err_msg, set_err_msg] = useState('');
     const [resend_message, set_resend_message] = useState('');
@@ -20,6 +19,9 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
     const [is_resending, set_is_resending] = useState(false);
     const { setAccessToken, setUser } = useAuth();
     const navigate = useNavigate();
+    const registrationId = initialRegistrationId;
+    
+    
 
     async function handle_verify() {
         if (is_submitting || is_resending || !registrationId)
