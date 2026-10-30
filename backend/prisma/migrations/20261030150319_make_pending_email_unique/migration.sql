@@ -5,4 +5,12 @@
 
 */
 -- CreateIndex
+
+DELETE FROM "PendingRegistration"
+WHERE "id" NOT IN (
+    SELECT DISTINCT ON ("email") "id"
+    FROM "PendingRegistration"
+    ORDER BY "email", "createdAt" DESC
+);
+
 CREATE UNIQUE INDEX "PendingRegistration_email_key" ON "PendingRegistration"("email");
