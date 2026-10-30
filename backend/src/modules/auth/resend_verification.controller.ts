@@ -10,7 +10,7 @@ export const resend_verification = async (req: Request, res: Response) => {
 
     const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
+    if (!errors.isEmpty()){
         return res.status(400).json({
             success: false,
             error: errors.array()[0].msg
@@ -37,15 +37,6 @@ export const resend_verification = async (req: Request, res: Response) => {
         const code = generate_verification_code();
         const codeHash = await hash(code, 10);
 
-        try {
-            await send_email(pending.email, code);
-        } catch {
-            return res.status(503).json({
-                success: false,
-                error: 'Unable to send verification email. Please try again.'
-            });
-        }
-
         const updated = await prisma.pendingRegistration.updateMany({
             where: {
                 id: pending.id,
@@ -62,7 +53,29 @@ export const resend_verification = async (req: Request, res: Response) => {
         {
             return res.status(409).json({
                 success: false,
-                error: 'Registration changed. Please register again.'
+                error: 'Another resend request was already processed.'
+            });
+        }
+
+        try {
+            await send_email(pending.email, code);
+        }
+        catch {
+            await prisma.pendingRegistration.updateMany({
+                where: {
+                    id: pending.id,
+                    codeHash
+                },
+                data: {
+                    codeHash: pending.codeHash,
+                    expiresAt: pending.expiresAt,
+                    attempts: pending.attempts
+                }
+            });
+
+            return res.status(503).json({
+                success: false,
+                error: 'Unable to send verification email. Please try again.'
             });
         }
 
@@ -70,7 +83,8 @@ export const resend_verification = async (req: Request, res: Response) => {
             success: true,
             message: 'Verification code sent'
         });
-    } catch {
+    }
+    catch {
         return res.status(500).json({
             success: false,
             error: 'Internal server error'
