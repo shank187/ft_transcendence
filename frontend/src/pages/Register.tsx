@@ -61,7 +61,7 @@ function Register() {
             set_confirm_password('');
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set_err_msg(error.response?.data || "Registration request failed. Please try again.");
+                set_err_msg(error.response?.data?.error|| "Registration request failed. Please try again.");
             } else {
                 set_err_msg("An unexpected error occurred.");
             }

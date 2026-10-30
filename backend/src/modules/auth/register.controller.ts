@@ -61,32 +61,22 @@ export const register = async (req: Request, res: Response) => {
             where: { email }
         });
 
-        let pending;
-
-        if (existing_pending) {
-            pending = await prisma.pendingRegistration.update({
-                where: {
-                    email
-                },
-                data: {
-                    username,
-                    passwordHash,
-                    codeHash,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-                    attempts: 0
-                }
-            });
-        } else {
-            pending = await prisma.pendingRegistration.create({
-                data: {
-                    username,
-                    email,
-                    passwordHash,
-                    codeHash,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-                }
+        if (existing_pending)
+        {
+            await prisma.pendingRegistration.delete({
+                where: { email }
             });
         }
+
+        const pending = await prisma.pendingRegistration.create({
+            data: {
+                username,
+                email,
+                passwordHash,
+                codeHash,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+            }
+        });
 
 
         try {
