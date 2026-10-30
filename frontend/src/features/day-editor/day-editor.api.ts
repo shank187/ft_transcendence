@@ -5,7 +5,8 @@ import type { DayDetail, DayExercise, ExerciseSummary, SaveDayBody, SetTargets, 
 //
 // FAKE-DATA: scenarios by dayId
 //   "push-day-1"  -> Push (day 1): bench press, push-up, plank
-//   "pull-day-2"  -> Pull (day 2), same exercises
+//   "pull-day-2"  -> Pull (day 2) with mixed targets: all filled, weight
+//                    only, none, a 0 kg target, distance without duration
 //   any other id  -> Push (day 1), same exercises
 //   "legs-day-3"  -> Legs (day 3) with no exercises, like the plan page
 //   "empty"       -> Push (day 1) with no exercises
@@ -67,6 +68,22 @@ function seedBody(): SaveDayBody {
     }
 }
 
+// FAKE-DATA: one set per placeholder case, so the session page shows each one.
+function mixedTargetsBody(): SaveDayBody {
+    return {
+        exercises: [
+            { exerciseId: "incline-dumbbell-press", restSeconds: 90, sets: [
+                ...normalSets(1, { targetWeight: 22.5, targetReps: 10 }),
+                ...normalSets(1, { targetWeight: 22.5 }),
+                ...normalSets(1, {}),
+                ...normalSets(1, { targetWeight: 0, targetReps: 12 }),
+            ] },
+            { exerciseId: "running", restSeconds: null, sets: normalSets(1, { targetDistance: 5000 }) },
+            { exerciseId: "plank", restSeconds: 60, sets: normalSets(2, {}) },
+        ],
+    }
+}
+
 const seededDays = new Map([
     ["pull-day-2", { name: "Pull", dayOrder: 2 }],
     ["legs-day-3", { name: "Legs", dayOrder: 3 }],
@@ -86,7 +103,7 @@ function findDay(planId: string, dayId: string): DayDetail | null {
         dayOrder,
         planId,
         planName: "Push Pull Legs",
-        exercises: hasNoExercises ? [] : buildExercises(seedBody()),
+        exercises: hasNoExercises ? [] : buildExercises(dayId === "pull-day-2" ? mixedTargetsBody() : seedBody()),
     }
     days.set(dayId, day)
     return day
