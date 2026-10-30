@@ -53,31 +53,40 @@ export const register = async (req: Request, res: Response) => {
         if (existing_user)
             return res.status(409).json({success: false, error: 'Username or Email already taken'});
         
-        const existing_pending = await prisma.pendingRegistration.findUnique({where: { email }});
-        if (existing_pending)
-        {
-            return res.status(409).json({
-                success: false,
-                code: "PENDING_REGISTRATION_EXISTS",
-                registrationId: existing_pending.id,
-                error: "A pending registration already exists for this email."
-            });
-        }
-
-
         const code = generate_verification_code();
         const passwordHash = await hash(password, 10);
         const codeHash = await hash(code, 10);
 
-        const pending = await prisma.pendingRegistration.create({
-            data: {
-                username,
-                email,
-                passwordHash,
-                codeHash,
-                expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-            }
+        const existing_pending = await prisma.pendingRegistration.findUnique({
+            where: { email }
         });
+
+        let pending;
+
+        if (existing_pending) {
+            pending = await prisma.pendingRegistration.update({
+                where: {
+                    email
+                },
+                data: {
+                    username,
+                    passwordHash,
+                    codeHash,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    attempts: 0
+                }
+            });
+        } else {
+            pending = await prisma.pendingRegistration.create({
+                data: {
+                    username,
+                    email,
+                    passwordHash,
+                    codeHash,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+                }
+            });
+        }
 
 
         try {
