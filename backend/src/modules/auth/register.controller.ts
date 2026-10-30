@@ -1,16 +1,8 @@
 import { Request, Response } from 'express';
 import { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
-
-import {refreshCookieName,refreshCookieOptions} from './cookie.config';
-import { sign_access_token } from './token.service';
-
-import { create_session } from './session.service';
-
 import { prisma } from '../../lib/prisma';
-
-import { error } from 'console';
-import { randomInt } from 'crypto';
+import { generate_verification_code } from './verification_code';
 import { send_email } from "./email.service";
 
 
@@ -38,7 +30,7 @@ export const register = async (req: Request, res: Response) => {
     const errors = validationResult(req); //Get all validation errors stored on this request.
 
     if (!errors.isEmpty())
-        return res.status(200).json({success: false, error: errors.array()[0].msg});
+        return res.status(400).json({success: false, error: errors.array()[0].msg});
 
     let { username, email, password } = req.body;
 
@@ -46,7 +38,7 @@ export const register = async (req: Request, res: Response) => {
     email = email.trim().toLowerCase();
     
     if (username.length < 3 || username.length > 30)
-        return res.status(200).json({success: false, error: "Username must be between 3 and 30 characters."});
+        return res.status(400).json({success: false, error: "Username must be between 3 and 30 characters."});
 
     try {
         const existing_user = await prisma.user.findFirst({
@@ -59,13 +51,23 @@ export const register = async (req: Request, res: Response) => {
         });
         
         if (existing_user)
-            return res.status(200).json({success: false, error: 'Username or Email already taken'});
+            return res.status(409).json({success: false, error: 'Username or Email already taken'});
         
-
-
-        const code = randomInt(100000, 1000000).toString();
+        const code = generate_verification_code();
         const passwordHash = await hash(password, 10);
         const codeHash = await hash(code, 10);
+
+        const existing_pending = await prisma.pendingRegistration.findUnique({
+            where: { email }
+        });
+
+        if (existing_pending)
+        {
+            await prisma.pendingRegistration.delete({
+                where: { email }
+            });
+        }
+
         const pending = await prisma.pendingRegistration.create({
             data: {
                 username,
@@ -86,6 +88,21 @@ export const register = async (req: Request, res: Response) => {
                     id: pending.id
                 }
             });
+
+            if (existing_pending) {
+                await prisma.pendingRegistration.create({
+                    data: {
+                        id: existing_pending.id,
+                        username: existing_pending.username,
+                        email: existing_pending.email,
+                        passwordHash: existing_pending.passwordHash,
+                        codeHash: existing_pending.codeHash,
+                        expiresAt: existing_pending.expiresAt,
+                        attempts: existing_pending.attempts,
+                        createdAt: existing_pending.createdAt
+                    }
+                });
+            }
 
             return res.status(503).json({
                 success: false,
