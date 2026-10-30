@@ -32,7 +32,7 @@ export default function SetRowSession(props:{
     async function handleTick()
     {
         if (props.fields.some(field => text[field.key].trim() === "" && props.set[PLANNED_KEY[field.key]] === null)) {
-            setError("Fill in every non-planned field first.")
+            setError("Enter the empty values first.")
             return
         }
         

@@ -30,7 +30,7 @@ const sessions = new Map<string, WorkoutSession>()
 const catalog = new Map<string, ExerciseSummary>()
 
 // FAKE-DATA: the picker adds real catalog exercises; remember them so addExercises can find their summary. Remove with the real session API (Phase 2).
-export function rememberFakeExercises(summaries: ExerciseSummary[]) {
+export function rememberSessionExercises(summaries: ExerciseSummary[]) {
     for (const summary of summaries) catalog.set(summary.id, summary)
 }
 
@@ -107,7 +107,7 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
 export async function startWorkoutFromDay(planId: string, dayId: string): Promise<WorkoutSession> {
     const day = await getWorkoutDay(planId, dayId)
     if (!day) throw new Error("Day not found")
-    rememberFakeExercises(day.exercises.map(e => e.exerciseSummary))
+    rememberSessionExercises(day.exercises.map(e => e.exerciseSummary))
     const session: WorkoutSession = {
         id: crypto.randomUUID(),
         name: day.name,

@@ -7,6 +7,7 @@ import NotFoundState from "../../components/states/NotFoundState";
 import ErrorState from "../../components/states/ErrorState";
 import Button from "../../components/ui/Button";
 import ExerciseSessionCard from "./ExerciseSessionCard";
+import SessionHeader from "./SessionHeader";
 
 type LoadStateType =
     | { status: "loading" }
@@ -61,8 +62,17 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 </Button>
             }
         />)
+    const sets = loadState.session.exercises.flatMap(e => e.sets)
+    const doneCount = sets.filter(s => s.completedAt !== null).length
+
     return(
-        <div>
+        <div className="flex flex-col gap-5">
+            <SessionHeader
+            name={loadState.session.name}
+            startedAt={loadState.session.startedAt}
+            doneCount={doneCount}
+            totalCount={sets.length}
+            />
             <ol className="flex flex-col gap-5">
                 {loadState.session.exercises.map((exercise, i)=>
                     <li key={exercise.id}>
