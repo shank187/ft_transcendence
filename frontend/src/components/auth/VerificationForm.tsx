@@ -71,19 +71,13 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
         set_is_resending(true);
 
         try {
-            const response = await api.post('/api/auth/resend-verification', { email });
-            if (!response.data.success){
+            const response = await api.post('/api/auth/resend-verification', {registrationId});
+
+            if (!response.data.success) {
                 set_err_msg(response.data.error || 'Unable to resend verification code.');
                 return;
             }
 
-            const id = response.data.registrationId;
-            if (typeof id !== 'string' || !id){
-                set_err_msg('Missing registration ID in server response.');
-                return;
-            }
-
-            setRegistrationId(id);
             set_code('');
             set_resend_message('A new verification code has been sent. Check your inbox and spam folder.');
         } catch (error) {
