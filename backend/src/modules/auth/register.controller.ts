@@ -89,6 +89,21 @@ export const register = async (req: Request, res: Response) => {
                 }
             });
 
+            if (existing_pending) {
+                await prisma.pendingRegistration.create({
+                    data: {
+                        id: existing_pending.id,
+                        username: existing_pending.username,
+                        email: existing_pending.email,
+                        passwordHash: existing_pending.passwordHash,
+                        codeHash: existing_pending.codeHash,
+                        expiresAt: existing_pending.expiresAt,
+                        attempts: existing_pending.attempts,
+                        createdAt: existing_pending.createdAt
+                    }
+                });
+            }
+
             return res.status(503).json({
                 success: false,
                 error: "Unable to send verification email. Please try again."
