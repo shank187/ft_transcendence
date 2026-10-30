@@ -57,3 +57,12 @@ export interface SetPatch {
     setType?: SetType,
     completed?: boolean,
 }
+
+type PlannedKey = "plannedWeight" | "plannedReps" | "plannedDuration" | "plannedDistance"
+
+export const PLANNED_KEY: Record<FieldKey, PlannedKey> = {
+    weight: "plannedWeight",
+    reps : "plannedReps",
+    duration: "plannedDuration",
+    distance: "plannedDistance"
+}

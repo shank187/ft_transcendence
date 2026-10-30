@@ -3,7 +3,7 @@ import Button from "../../components/ui/Button";
 import { validateSet } from "../day-editor/day-editor.draft";
 import type { FieldKey, SetField } from "../day-editor/exercise-fields";
 import { toPerformed, toText } from "./workout-session.helpers";
-import type { PerformedValues, WorkoutSessionSet } from "./workout-session.types";
+import { PLANNED_KEY, type PerformedValues, type WorkoutSessionSet } from "./workout-session.types";
 
 export default function SetRowSession(props:{
     set: WorkoutSessionSet,
@@ -58,7 +58,7 @@ export default function SetRowSession(props:{
                         <input
                         id={`${id}-${field.key}`}
                         type="text"
-                        placeholder="-"
+                        placeholder={toText(props.set[PLANNED_KEY[field.key]]) || "-"}
                         inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
                         disabled={saving || done}
                         aria-invalid={errors[field.key] ? true : undefined}
