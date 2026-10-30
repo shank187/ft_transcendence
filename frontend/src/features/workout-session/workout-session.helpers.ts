@@ -1,6 +1,6 @@
 import { toNumber } from "../day-editor/day-editor.draft";
 import type { FieldKey } from "../day-editor/exercise-fields";
-import type { PerformedValues, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
+import {type PerformedValues, type WorkoutSessionExercise, type WorkoutSessionSet } from "./workout-session.types";
 
 // Inputs hold text: a row starts from the server numbers, null shows as "".
 export function toText(value: number | null): string

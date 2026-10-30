@@ -31,14 +31,22 @@ export default function SetRowSession(props:{
 
     async function handleTick()
     {
-        if (props.fields.some(field => text[field.key].trim() === "")) {
-            setError("Fill in every field first.")
+        if (props.fields.some(field => text[field.key].trim() === "" && props.set[PLANNED_KEY[field.key]] === null)) {
+            setError("Fill in every non-planned field first.")
             return
         }
+        
+        const plannedForwarding ={
+            distance: text.distance.trim() || toText(props.set[PLANNED_KEY["distance"]]), 
+            reps: text.reps.trim() || toText(props.set[PLANNED_KEY["reps"]]) ,
+            weight: text.weight.trim() || toText(props.set[PLANNED_KEY["weight"]]) ,
+            duration: text.duration.trim() || toText(props.set[PLANNED_KEY["duration"]]) ,
+        }
+        setText(plannedForwarding)
         setSaving(true)
         setError(null)
         try {
-            await props.onComplete(props.set.id, toPerformed(text))
+            await props.onComplete(props.set.id, toPerformed(plannedForwarding))
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to save set.")
         } finally {
