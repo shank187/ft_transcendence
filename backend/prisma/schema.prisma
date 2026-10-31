@@ -94,7 +94,7 @@ enum WorkoutSessionStatus {
 model PendingRegistration {
   id           String   @id @default(uuid())
   username     String
-  email        String
+  email        String   @unique
   passwordHash String
   codeHash     String
   expiresAt    DateTime
