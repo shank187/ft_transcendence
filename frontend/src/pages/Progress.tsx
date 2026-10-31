@@ -9,6 +9,9 @@ import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
 import ProgressTabs from "../features/progress/ProgressTabs";
 import Achievements from "../features/progress/Achievements";
+import { ChartLine } from "lucide-react"
+import { BrainCircuit } from "lucide-react"
+import { Crown } from "lucide-react"
 
 const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
@@ -22,7 +25,14 @@ export default function Progress() {
 
     useEffect(() => {
         getProgressSummary()
-            .then((data) => setSummary(data))
+            .then((data) => {
+                console.log("Progress summary:", data);
+                console.log(
+                    "Completed workouts:",
+                    data.completedWorkouts
+                );
+                setSummary(data);
+            })
             .catch(() => setError("Could not load progress"));
     }, []);
 
@@ -34,13 +44,11 @@ export default function Progress() {
         return <LoadingState message="Loading progress..." />;
     }
 
-    // XP calculations
     const totalXp = summary.completedWorkouts * XP_PER_WORKOUT;
     const level = Math.floor(totalXp / XP_PER_LEVEL);
     const levelXp = totalXp % XP_PER_LEVEL;
     const xpPercentage = (levelXp / XP_PER_LEVEL) * 100;
 
-    // Leaderboard
     const leaderboardEntries = user
         ? [
               ...fakeLeaderboard,
@@ -55,7 +63,7 @@ export default function Progress() {
     const leaderboardWinner = leaderboardEntries[0];
 
     return (
-        <section className="p-6">
+        <section className="flex min-h-full flex-col px-6 py-10">
             <ProgressTabs
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -63,55 +71,73 @@ export default function Progress() {
 
             {/* PROGRESS TAB */}
             {activeTab === "progress" && (
-                <div className="mt-6">
-                    <h1 className="text-2xl font-bold">
-                        Your Progress
-                    </h1>
+                <>
+                    {/* PROGRESS HEADER*/}
+                            <div className="mt-6 mb-6 flex items-center gap-4">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                                    <ChartLine className="h-9 w-9 text-app-primary" />
+                                </div>
 
-                    <p className="mt-2 text-app-text-secondary">
-                        Track your workouts and level up.
-                    </p>
+                                <div>
+                                    <h1 className="text-3xl font-bold">
+                                        Your Progress
+                                    </h1>
 
+                                    <p className="mt-1 text-app-text-secondary">
+                                        Track your workouts. Level up your journey.
+                                    </p>
+                                </div>
+                            </div>
                     {/* XP PROGRESS BAR */}
-                    <div className="mt-6 rounded border border-app-border bg-app-surface p-4">
-                        <h2 className="font-bold">
-                            Level {level}
-                        </h2>
-
-                        <div
-                            className="mt-4 h-6 w-full overflow-hidden rounded bg-app-canvas"
-                            role="progressbar"
-                            aria-valuenow={levelXp}
-                            aria-valuemin={0}
-                            aria-valuemax={XP_PER_LEVEL}
-                            aria-label={`Level ${level} XP progress`}
-                        >
+                    <div className="w-full rounded-md border-2 border-app-border bg-app-surface px-6 py-8 sm:px-9 sm:py-10">
+                        <div className="flex items-center gap-4">
                             <div
-                                className="h-full bg-app-primary"
-                                style={{ width: `${xpPercentage}%` }}
-                            />
+                                className="h-11 min-w-0 flex-1 overflow-hidden rounded-md border-2 border-app-primary-muted bg-app-canvas"
+                                role="progressbar"
+                                aria-valuenow={levelXp}
+                                aria-valuemin={0}
+                                aria-valuemax={XP_PER_LEVEL}
+                                aria-label={`Level ${level} XP progress`}
+                            >
+                                <div
+                                    className="h-full rounded-[3px] bg-app-primary/20 transition-[width]"
+                                    style={{ width: `${xpPercentage}%` }}
+                                />
+                            </div>
+
+                            <div className="flex shrink-0 flex-col items-center">
+                                <span className="rounded-md border-2 border-app-primary bg-app-primary px-1 py-0 text-sm font-bold tracking-wide text-app-canvas">
+                                    LEVEL {level}
+                                </span>
+
+                                <span className="mt-1 text-xs text-app-text-muted">
+                                    current level
+                                </span>
+                            </div>
                         </div>
 
-                        <p className="mt-2 text-sm">
-                            {levelXp} / {XP_PER_LEVEL} XP ({xpPercentage}%)
-                        </p>
+                        <div className="mt-4 flex items-center justify-between gap-4 text-sm text-app-text-secondary">
+                            <span>
+                                {levelXp} / {XP_PER_LEVEL} XP earned
+                            </span>
+
+                            <span>{xpPercentage}% progress</span>
+                        </div>
                     </div>
 
                     {/* LEADERBOARD AND GYM BRO */}
-                    <div className="mt-6 flex flex-col gap-6 md:flex-row">
+                    <div className="mt-6 flex w-full flex-col items-stretch gap-6 md:flex-row">
                         <Leaderboard
                             entries={leaderboardEntries}
                             currentUserId={user?.id ?? null}
                         />
 
-                        {leaderboardWinner && (
-                            <GymBroOfTheMonth
-                                username={leaderboardWinner.username}
-                                xp={leaderboardWinner.xp}
-                            />
-                        )}
+                        <GymBroOfTheMonth
+                            username={leaderboardWinner.username}
+                            xp={leaderboardWinner.xp}
+                        />
                     </div>
-                </div>
+                </>
             )}
 
             {/* ACHIEVEMENTS TAB */}
@@ -122,16 +148,24 @@ export default function Progress() {
             )}
 
             {/* ANALYTICS TAB */}
+            <div className="mt-6 flex w-full flex-col gap-6"></div>
             {activeTab === "Analytics" && (
-                <div className="mt-6">
-                    <h1 className="text-2xl font-bold">
+            <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                    <BrainCircuit className="h-9 w-9 text-app-primary" />
+                </div>
+
+                <div>
+                    <h1 className="text-3xl font-bold">
                         Analytics
                     </h1>
 
-                    <p className="mt-2 text-app-text-secondary">
-                        Your workout analytics.
+                    <p className="mt-1 text-app-text-secondary">
+                        Unlock milestones. Earn your glory.
                     </p>
                 </div>
+            </div>
+
             )}
         </section>
     );
