@@ -87,6 +87,56 @@ enum WorkoutSessionStatus {
   CANCELLED
 }
 
+// Gyms
+
+enum GymVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum GymSource {
+  TEAM
+  IMPORTED
+  MEMBER
+}
+
+enum EquipmentCategory {
+  FREE_WEIGHTS
+  BENCHES_RACKS
+  MACHINES
+  CABLES_ATTACHMENTS
+  CARDIO
+  ACCESSORIES
+  OTHER
+}
+
+enum GymSubmissionKind {
+  NEW_GYM
+  VERIFY
+  CORRECTION
+}
+
+enum GymSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum GymRejectReason {
+  ALREADY_LISTED
+  NOT_A_GYM
+  CANT_CONFIRM
+  OTHER
+}
+
+// Rewards
+
+enum XpReason {
+  WORKOUT_COMPLETED
+  PR_SET
+  GYM_APPROVED
+}
+
 // ============================================================
 // IDENTITY
 // ============================================================
@@ -128,8 +178,17 @@ model User {
   sessions Session[]
 
   // Gym
+<<<<<<< HEAD
   createdGyms Gym[]       @relation("GymCreator")
   gymReviews  GymReview[]
+=======
+  createdGyms         Gym[]           @relation("GymCreator")
+  currentGymId        String?
+  currentGym          Gym?            @relation("UserCurrentGym", fields: [currentGymId], references: [id], onDelete: SetNull)
+  gymReviews          GymReview[]
+  gymSubmissions      GymSubmission[] @relation("Submitter")
+  reviewedSubmissions GymSubmission[] @relation("Reviewer")
+>>>>>>> origin/main
 
   // Workouts
   workoutPlans    WorkoutPlan[]
@@ -141,6 +200,10 @@ model User {
   messages             Message[]
   conversationsAsUser1 Conversation[] @relation("ConversationUser1")
   conversationsAsUser2 Conversation[] @relation("ConversationUser2")
+
+  // Rewards
+  xpEvents     XpEvent[]
+  achievements UserAchievement[]
 
   // Shared
   notifications Notification[]
@@ -186,8 +249,12 @@ model Session {
 // ============================================================
 
 model Gym {
+<<<<<<< HEAD
   id          String   @id @default(uuid())
   googleId    String?  @unique
+=======
+  id          String        @id @default(uuid())
+>>>>>>> origin/main
   name        String
   description String?
   address     String?
@@ -196,21 +263,39 @@ model Gym {
   longitude   Float?
   phone       String?
   website     String?
-  verified    Boolean  @default(false)
-  createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  verified    Boolean       @default(false)
+  googleId    String?       @unique // Google place ID of an imported gym
+  visibility  GymVisibility @default(PUBLIC)
+  source      GymSource     @default(TEAM)
+  verifiedAt  DateTime?
+  closedAt    DateTime?
+  createdById String? // null = seeded by the team or imported
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
+<<<<<<< HEAD
   createdBy    User             @relation("GymCreator", fields: [createdById], references: [id])
   openingHours GymOpeningHour[]
   equipment    GymEquipment[]
   facilities   GymFacility[]
   reviews      GymReview[]
+=======
+  createdBy User? @relation("GymCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  openingHours  GymOpeningHour[]
+  equipment     GymEquipment[]
+  facilities    GymFacility[]
+  reviews       GymReview[]
+  activeUsers   User[]           @relation("UserCurrentGym")
+  submissions   GymSubmission[]  @relation("SubmissionGym")
+  privateCopies GymSubmission[]  @relation("SubmissionPrivateCopy")
+>>>>>>> origin/main
 
   activeUsers User[] @relation("UserCurrentGym")
 
   @@index([city])
   @@index([createdById])
+  @@index([visibility, verified, closedAt])
 }
 
 model GymOpeningHour {
@@ -226,12 +311,14 @@ model GymOpeningHour {
 }
 
 model Equipment {
-  id       String  @id @default(uuid())
-  name     String  @unique
+  id       String            @id @default(uuid())
+  name     String            @unique
   imageUrl String?
+  category EquipmentCategory @default(OTHER)
 
   gyms          GymEquipment[]
   exerciseLinks ExerciseEquipment[]
+  submissions   GymSubmissionEquipment[]
 }
 
 model GymEquipment {
@@ -277,6 +364,62 @@ model GymReview {
   @@unique([gymId, userId])
   @@index([gymId])
   @@index([userId])
+}
+
+model GymSubmission {
+  id               String              @id @default(uuid())
+  kind             GymSubmissionKind
+  status           GymSubmissionStatus @default(PENDING)
+  submitterId      String
+  gymId            String? // the gym it's about; for NEW_GYM, set to the gym created on approval
+  privateCopyId    String? // the member's private copy, if they kept one
+  name             String?
+  city             String?
+  address          String?
+  closed           Boolean             @default(false)
+  note             String?
+  seenOn           DateTime?           @db.Date
+  baseGymUpdatedAt DateTime? // gym.updatedAt when the form opened; approve returns 409 if it changed
+  reviewerId       String?
+  reviewedAt       DateTime?
+  rejectReason     GymRejectReason?
+  rejectDetail     String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  submitter   User                     @relation("Submitter", fields: [submitterId], references: [id], onDelete: Cascade)
+  reviewer    User?                    @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  gym         Gym?                     @relation("SubmissionGym", fields: [gymId], references: [id], onDelete: SetNull)
+  privateCopy Gym?                     @relation("SubmissionPrivateCopy", fields: [privateCopyId], references: [id], onDelete: SetNull)
+  equipment   GymSubmissionEquipment[]
+  photos      GymSubmissionPhoto[]
+
+  @@index([status, createdAt])
+  @@index([submitterId, createdAt])
+  @@index([gymId, status])
+}
+
+// The full proposed list, not a diff.
+model GymSubmissionEquipment {
+  submissionId String
+  equipmentId  String
+
+  submission GymSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  equipment  Equipment     @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+
+  @@id([submissionId, equipmentId])
+}
+
+// Links the existing Media table.
+model GymSubmissionPhoto {
+  submissionId String
+  mediaId      String @unique
+  position     Int
+
+  submission GymSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  media      Media         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([submissionId, position])
 }
 
 // ============================================================
@@ -502,6 +645,9 @@ model WorkoutSet {
   // null = not completed yet
   completedAt DateTime?
 
+  // Set by S3 when the workout finishes.
+  isPr Boolean @default(false)
+
   workoutSessionExercise WorkoutSessionExercise @relation(fields: [workoutSessionExerciseId], references: [id], onDelete: Cascade)
 
   @@unique([workoutSessionExerciseId, setNumber])
@@ -554,6 +700,36 @@ model Message {
 }
 
 // ============================================================
+// REWARDS (S5)
+// ============================================================
+
+// One row per reward; total XP = the sum.
+model XpEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  reason    XpReason
+  sourceId  String // session ID, workout set ID or gym submission ID
+  amount    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reason, sourceId]) // nothing pays twice
+  @@index([userId])
+}
+
+// The unlock moment; progress like 7/10 is computed.
+model UserAchievement {
+  userId     String
+  code       String // e.g. WORKOUTS_10, defined in S5's rules config
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, code])
+}
+
+// ============================================================
 // SHARED INFRASTRUCTURE
 // ============================================================
 
@@ -584,6 +760,8 @@ model Media {
   createdAt    DateTime  @default(now())
 
   uploadedBy User @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  gymSubmissionPhoto GymSubmissionPhoto?
 
   @@index([uploadedById])
 }
