@@ -40,7 +40,7 @@ export default function RenamePlanDialog(props: {
     }
 
     return (
-        <Dialog isWorking={submitting} open={true} title="Rename the plan" onClose={props.onClose}>
+        <Dialog isWorking={submitting} title="Rename the plan" onClose={props.onClose}>
             <form onSubmit={submitRename} noValidate>
                 <div className="flex flex-col gap-2 mt-3">
                     <Form_input id="rename-plan-name" label="Plan name" type="text"

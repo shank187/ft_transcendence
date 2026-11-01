@@ -28,7 +28,7 @@ export default function DeletePlanDialog(props: {
     }
 
     return (
-        <Dialog isWorking={submitting} open={true} title={`Delete ${props.name}?`} onClose={props.onClose}>
+        <Dialog isWorking={submitting} title={`Delete ${props.name}?`} onClose={props.onClose}>
             <p>Past workouts stay in your history.</p>
             {deletePlanError && <p className="text-app-danger">{deletePlanError}</p>}
             <div className="flex gap-2 mt-3">

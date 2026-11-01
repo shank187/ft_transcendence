@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 
 // 38:42 under an hour, 1:02:05 after.
 function formatElapsed(ms: number): string
@@ -18,6 +19,7 @@ export default function SessionHeader(props:{
     startedAt: string
     doneCount: number
     totalCount: number
+    onDiscard: ()=>void
 })
 {
     const [now, setNow] = useState(() => Date.now())
@@ -39,7 +41,7 @@ export default function SessionHeader(props:{
                         <time>{elapsed}</time> · {props.doneCount} / {props.totalCount} sets
                     </p>
                 </div>
-                {/* Discard (ui5-06) and Finish (finish page) go here, right-aligned by justify-between */}
+                <Button variant="danger" onClick={()=> props.onDiscard()}>Discard</Button>
             </Card>
         </header>
     )

@@ -36,7 +36,7 @@ export default function RenameDayDialog(props: {
     }
 
     return (
-        <Dialog isWorking={submitting} open={true} title="Rename the day" onClose={props.onClose}>
+        <Dialog isWorking={submitting} title="Rename the day" onClose={props.onClose}>
             <form onSubmit={submitRename} noValidate>
                 <Form_input id="rename-day" label="Day name" type="text"
                             value={renameName} onChange={setRenameName} />

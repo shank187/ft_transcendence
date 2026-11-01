@@ -7,7 +7,6 @@ const DIALOG_LAYOUT = {
 } as const
 
 interface DialogProps {
-    open: boolean
     title: string
     isWorking: boolean
     onClose: () => void
@@ -17,20 +16,16 @@ interface DialogProps {
 }
 
 export default function Dialog({
-    open, title, onClose, isWorking, children, showClose, variant = "modal"
+    title, onClose, isWorking, children, showClose, variant = "modal"
 }: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
 
+    // Open while mounted: the parent shows the dialog by rendering it and hides it by unmounting it.
+    // The dialog.open check stops StrictMode's second effect run from calling showModal() twice (it throws).
     useEffect(() => {
         const dialog = dialogRef.current
-        if (!dialog) return
-
-        if (open && !dialog.open) {
-        dialog.showModal()
-        } else if (!open && dialog.open) {
-        dialog.close()
-        }
-    }, [open])
+        if (dialog && !dialog.open) dialog.showModal()
+    }, [])
 
     return (
         <dialog

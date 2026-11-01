@@ -234,7 +234,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 </div>
             }
             {isDialogOpen &&
-                <Dialog isWorking={saving} title={`Save changes to ${day.name}?`} open={true} onClose={closeLeaveDialog}>
+                <Dialog isWorking={saving} title={`Save changes to ${day.name}?`} onClose={closeLeaveDialog}>
                     <p className="text-sm text-app-text-secondary">You have unsaved changes.</p>
                     <div className="flex gap-2 justify-end">
                         <Button className="min-h-11"   disabled={saving || !isValid} onClick={() => void saveAndLeave()} >{saving ?"Saving":"Save"}</Button>
@@ -248,7 +248,6 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     isWorking={saving}
                     variant="drawer"
                     title="Add exercise"
-                    open={true}
                     onClose={closeExercisePickerDialog}
                     showClose={true}
                 >

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import { getWorkoutSession, updateSessionSet } from "./workout-session.api";
+import { discardWorkout, getWorkoutSession, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -8,6 +8,8 @@ import ErrorState from "../../components/states/ErrorState";
 import Button from "../../components/ui/Button";
 import ExerciseSessionCard from "./ExerciseSessionCard";
 import SessionHeader from "./SessionHeader";
+import DiscardWorkoutDialog from "./DiscardWorkoutDialog";
+import { replace, useNavigate } from "react-router-dom";
 
 type LoadStateType =
     | { status: "loading" }
@@ -18,7 +20,7 @@ type LoadStateType =
 export default function WorkoutSessionView(props: {sessionId: string})
 {
     const [loadState, setLoadState] = useState<LoadStateType>({status:"loading"});
-
+    const [showDiscard, setShowDiscard] = useState(false);
     const getSession = useCallback( async () =>{
         setLoadState({status: "loading"})
         try{
@@ -72,6 +74,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
             startedAt={loadState.session.startedAt}
             doneCount={doneCount}
             totalCount={sets.length}
+            onDiscard = {()=> setShowDiscard(true)}
             />
             <ol className="flex flex-col gap-5">
                 {loadState.session.exercises.map((exercise, i)=>
@@ -84,6 +87,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                     </li>
                 )}
             </ol>
+        {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={props.sessionId}/>}
         </div>
     )
 }
