@@ -32,6 +32,8 @@ Registration/login/logout, sessions, onboarding, own profile/avatar, OAuth, shar
 
 Gym catalog/details, canonical equipment, current gym, search, filters, sorting, pagination, and equipment availability exposed to S3.
 
+Gym expansion approved on 31 Oct 2026: verified, unverified and private gyms, member submissions with photos, and admin review, with cutoffs Mon 9, Thu 12 and Sat 14 Nov.
+
 ### S3 — Workout Planning & Execution
 
 Exercise catalog/types/muscles/equipment; search/filter; plans/days/planned exercises/sets; empty/planned session snapshots; type-aware performed sets; completion; workout history; basic PRs.
@@ -45,6 +47,8 @@ Public profile, friends, online/offline presence, basic chat, history, and WebSo
 ### S5 — Progress & Gamification
 
 Workout history presentation, weekly activity, applicable volume, basic PR overview/charts, exactly scoped XP/levels, achievements, and leaderboard based on S3 completed data.
+
+Gamification is stored in `XpEvent` and `UserAchievement`.
 
 ## 14-point plan
 

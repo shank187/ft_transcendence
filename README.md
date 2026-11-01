@@ -170,17 +170,148 @@ Only fully working and demonstrable modules count. Detailed evidence and final c
 
 ## Database schema
 
-The canonical schema is `backend/prisma/schema.prisma`. It separates:
+The canonical schema is `backend/prisma/schema.prisma`. Key tables and relations (`|o` zero or one, `||` exactly one, `o{` zero or many):
 
-- identity/authentication;
-- gyms and canonical equipment;
-- exercise catalog;
-- reusable workout planning;
-- performed workout sessions and sets;
-- friendships, conversations, and messages;
-- shared notification/media/API-key infrastructure.
+```mermaid
+erDiagram
+    User |o..o{ Gym : creates
+    Gym |o..o{ User : "current gym of"
+    Gym ||--o{ GymEquipment : offers
+    Equipment ||--o{ GymEquipment : "listed in"
+    Exercise }o..o{ Equipment : "needs (ExerciseEquipment)"
+    User ||..o{ GymSubmission : submits
+    User |o..o{ GymSubmission : reviews
+    Gym |o..o{ GymSubmission : "is about"
+    Gym |o..o{ GymSubmission : "private copy"
+    GymSubmission }o..o{ Equipment : "proposes (GymSubmissionEquipment)"
+    User |o..o{ WorkoutPlan : owns
+    WorkoutPlan ||..o{ WorkoutDay : contains
+    WorkoutDay ||..o{ WorkoutExercise : contains
+    Exercise ||..o{ WorkoutExercise : "placed as"
+    WorkoutExercise ||..o{ WorkoutExerciseSet : targets
+    User ||..o{ WorkoutSession : performs
+    WorkoutDay |o..o{ WorkoutSession : "started from"
+    WorkoutSession ||..o{ WorkoutSessionExercise : contains
+    Exercise ||..o{ WorkoutSessionExercise : "performed as"
+    WorkoutSessionExercise ||..o{ WorkoutSet : logs
+    User ||--o{ Friendship : requests
+    User ||--o{ Friendship : receives
+    User ||..o{ Conversation : "user1 of"
+    User ||..o{ Conversation : "user2 of"
+    Conversation ||..o{ Message : contains
+    User ||..o{ Message : sends
+    User ||..o{ XpEvent : earns
+    User ||--o{ UserAchievement : unlocks
 
-The critical workout rule is: plans describe future intent, while sessions preserve what was actually started and performed.
+    User {
+        String id PK
+        String username UK
+        String currentGymId FK "nullable"
+    }
+    Gym {
+        String id PK
+        GymVisibility visibility
+        Boolean verified
+        DateTime closedAt "nullable"
+    }
+    Equipment {
+        String id PK
+        String name UK
+        EquipmentCategory category
+    }
+    GymEquipment {
+        String gymId PK, FK
+        String equipmentId PK, FK
+    }
+    GymSubmission {
+        String id PK
+        GymSubmissionKind kind
+        GymSubmissionStatus status
+        String gymId FK "nullable"
+    }
+    Exercise {
+        String id PK
+        String name UK
+        ExerciseType type
+    }
+    WorkoutPlan {
+        String id PK
+        String userId FK "nullable"
+        String name
+    }
+    WorkoutDay {
+        String id PK
+        String workoutPlanId FK
+        Int dayOrder
+    }
+    WorkoutExercise {
+        String id PK
+        String workoutDayId FK
+        String exerciseId FK
+        Int order
+    }
+    WorkoutExerciseSet {
+        String id PK
+        String workoutExerciseId FK
+        Int setNumber
+        Int targetReps "nullable"
+    }
+    WorkoutSession {
+        String id PK
+        String userId FK
+        String workoutDayId FK "nullable"
+        WorkoutSessionStatus status
+    }
+    WorkoutSessionExercise {
+        String id PK
+        String workoutSessionId FK
+        String exerciseId FK
+        Int order
+    }
+    WorkoutSet {
+        String id PK
+        Int plannedReps "nullable"
+        Int reps "nullable"
+        Boolean isPr
+    }
+    Friendship {
+        String requesterId PK, FK
+        String addresseeId PK, FK
+        FriendshipStatus status
+    }
+    Conversation {
+        String id PK
+        String user1Id FK
+        String user2Id FK
+    }
+    Message {
+        String id PK
+        String conversationId FK
+        String senderId FK
+        String content
+    }
+    XpEvent {
+        String userId FK
+        XpReason reason UK "unique with sourceId"
+        String sourceId UK
+        Int amount
+    }
+    UserAchievement {
+        String userId PK, FK
+        String code PK
+        DateTime unlockedAt
+    }
+```
+
+Design decisions:
+
+- **Plans vs history.** Starting a workout copies the plan's targets into the session (`WorkoutSet.planned*`), so editing a plan never changes past workouts.
+- **One canonical `Equipment` table** shared by gyms (`GymEquipment`) and exercises (`ExerciseEquipment`), so "what can I do at my gym" is a join, not a second vocabulary.
+- **One `Gym` table with states.** `visibility`, `verified`, `source` and `closedAt` describe verified, unverified, private and closed gyms. A member's `GymSubmission` changes nothing until an admin approves it in one transaction, guarded on `status = PENDING` and on the gym's `updatedAt`, so a double click or a stale suggestion returns 409.
+- **Rewards are an event log.** `XpEvent` is unique on `(reason, sourceId)`, so a workout or an approval never pays twice; total XP, level and leaderboard are computed from it.
+- **Delete rules.** Cascade for data a user owns, SetNull for references history must survive, Restrict for catalog rows that history uses.
+
+Details: [docs/database.md](docs/database.md) (domains, invariants, migrations) and [docs/database-relationships.md](docs/database-relationships.md) (focused diagrams and delete rules).
 
 ## Resources and AI usage
 
