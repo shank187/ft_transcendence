@@ -4,3 +4,5 @@ dist/
 todo
 .vscode/
 /package-lock.json
+backend/uploads/
+

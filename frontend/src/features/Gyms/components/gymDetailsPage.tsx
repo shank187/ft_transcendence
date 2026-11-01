@@ -117,5 +117,4 @@ function GymDetailsPage() {
         </div>
     )
 }
-
 export default GymDetailsPage;
