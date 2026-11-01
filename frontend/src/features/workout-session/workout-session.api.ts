@@ -144,7 +144,6 @@ export async function getWorkoutSession(id: string): Promise<WorkoutSession | nu
 // FAKE-DATA: real version will be PATCH /api/workout-sessions/:id
 export async function discardWorkout(id: string): Promise<void> {
     await wait()
-
     const session = sessions.get(id)
     if (!session) throw new Error("Workout not found")
     sessions.set(id, { ...session, status: "CANCELLED" })

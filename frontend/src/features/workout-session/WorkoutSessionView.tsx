@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import { discardWorkout, getWorkoutSession, updateSessionSet } from "./workout-session.api";
+import {getWorkoutSession, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -9,7 +9,6 @@ import Button from "../../components/ui/Button";
 import ExerciseSessionCard from "./ExerciseSessionCard";
 import SessionHeader from "./SessionHeader";
 import DiscardWorkoutDialog from "./DiscardWorkoutDialog";
-import { replace, useNavigate } from "react-router-dom";
 
 type LoadStateType =
     | { status: "loading" }

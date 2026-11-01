@@ -15,6 +15,7 @@ export default function DiscardWorkoutDialog(props:{
 
     const discard = async()=>{
         setDiscarding(true)
+        setDiscardError(null)
         try{
 
             await discardWorkout(props.sessionId)
@@ -35,10 +36,10 @@ export default function DiscardWorkoutDialog(props:{
         >
             <div>
                 Sets you logged in this Workout won't be saved.
-                {discardError && <p className=" text-app-danger"></p>}
+                {discardError && <p className=" text-app-danger">{discardError}</p>}
                 <div>
-                    <Button variant="danger" onClick={()=> discard()}>Discard Workout</Button>
-                    <Button variant="secondary" onClick={()=> props.onClose()}>Keep training</Button>
+                    <Button variant="danger" disabled={discarding} onClick={()=> discard()}>Discard Workout</Button>
+                    <Button variant="secondary" disabled={discarding} onClick={()=> props.onClose()}>Keep training</Button>
                 </div>
             </div>
         </Dialog>
