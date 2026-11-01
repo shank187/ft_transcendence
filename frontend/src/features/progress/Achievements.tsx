@@ -49,13 +49,13 @@ export default function Achievements({
                 </div>
 
                 <div>
-                    <h1 className="text-3xl font-bold">
+                    <div className="text-3xl font-bold">
                         Achievements
-                    </h1>
+                    </div>
 
-                    <p className="mt-1 text-app-text-secondary">
+                    <div className="mt-1 text-app-text-secondary">
                         Unlock milestones. Earn your glory.
-                    </p>
+                    </div>
                 </div>
             </div>
 
@@ -65,22 +65,19 @@ export default function Achievements({
                 {/* TOP SECTION */}
                 <div className="flex items-center justify-between gap-4">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-widest text-app-text-secondary">
+                        <div className="text-xs font-semibold uppercase tracking-widest text-app-text-secondary">
                             Your Achievement Journey
-                        </p>
+                        </div>
 
                         <div className="mt-3 flex items-baseline gap-3">
-                            <h2 className="text-4xl font-bold text-app-primary">
+                            <div className="text-4xl font-bold text-app-primary">
                                 {unlockedAchievements}
-
-                                <span className="text-app-text-secondary">
                                     {" / "}{totalAchievements}
-                                </span>
-                            </h2>
+                            </div>
 
-                            <span className="text-sm text-app-text-secondary">
+                            <div className="text-sm text-app-text-secondary">
                                 Unlocked
-                            </span>
+                            </div>
                         </div>
                     </div>
 
@@ -93,13 +90,13 @@ export default function Achievements({
                 {/* PROGRESS SECTION */}
                 <div className="mt-8">
                     <div className="mb-3 flex items-center justify-between gap-4">
-                        <p className="text-sm font-medium text-app-text-secondary">
+                        <div className="text-sm font-medium text-app-text-secondary">
                             Total completion
-                        </p>
+                        </div>
 
-                        <span className="text-sm font-bold text-app-primary">
+                        <div className="text-sm font-bold text-app-primary">
                             {progressPercentage}%
-                        </span>
+                        </div>
                     </div>
 
                     {/* PROGRESS BAR */}
@@ -131,13 +128,13 @@ export default function Achievements({
             {/* ACHIEVEMENT COLLECTION */}
             <div className="mt-4">
                 <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">
+                    <div className="text-2xl font-bold">
                         All Achievements
-                    </h2>
+                    </div>
 
-                    <span className="text-sm text-app-text-secondary">
+                    <div className="text-sm text-app-text-secondary">
                         {totalAchievements} milestones
-                    </span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
