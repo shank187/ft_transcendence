@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import type { Gym } from "../data/FakeData";
 import SearchBar from "./SearchBar";
 import GymCard from "./GymCard";
-// import axios from "axios";
+
 import {getFakeData} from "../data/FakeData";
 import LoadingState from "../../../components/states/LoadingState";
 import GymFilters from "./gymFilters";
+import api from "../../auth/axiosInstance";
 
 
 function GymsearchPage(){
@@ -46,18 +47,27 @@ function GymsearchPage(){
                 if (!ignore)
                 setLoading(false);
             }
-            // A’s finally calls setLoading(false) even if B is still loading, so the loading indicator can disappear too soon
         }
         fetchGyms();
         return  function(){
             ignore = true;
         }
     }, [textSearched, city, verified]);
-    // }, [textSearched, city, verified, rating]);
 
-    // if (loading) {
-    //     return <LoadingState message="Loading gyms..." />;
-    // }
+    useEffect(function(){
+        async function loadCurrentGym(){
+            try{
+                const res = await api.get("/api/users/current-gym");
+                if (res.data?.currentGymId){
+                    setSelectedGym(res.data?.currentGymId);
+                }
+
+            }catch(e){
+                console.log("Failed to fetch current gym:");
+            }
+        }
+        loadCurrentGym();
+    }, []);
     return (
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
