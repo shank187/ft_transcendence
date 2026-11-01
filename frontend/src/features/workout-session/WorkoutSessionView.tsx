@@ -36,7 +36,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
     useEffect(()=>{
         void getSession();
     }
-    ,[])
+    ,[getSession])
 
     // Errors are not caught here: they reach the row, which shows them next to its tick.
     // The saved set from the server replaces ours, so completedAt comes from the server.
