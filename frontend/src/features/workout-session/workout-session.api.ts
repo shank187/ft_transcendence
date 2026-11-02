@@ -302,3 +302,17 @@ export async function moveExercise(sessionId: string, exerciseId: string, direct
     saveExercises(session, exercises)
     return exercises.map(e => e.id)
 }
+
+
+   // workout-session.api.ts
+   // FAKE-DATA: real version will be POST /api/workout-sessions/:id/finish
+export async function finishWorkout(id: string): Promise<void> {
+    await wait()
+    const session = sessions.get(id)
+    if (!session) throw new Error("Workout not found")
+    if (session.status === "CANCELLED") throw new Error("This workout was discarded.")
+    if (session.status === "COMPLETED") return
+    const done = session.exercises.some(e => e.sets.some(s => s.completedAt !== null))
+    if (!done) throw new Error("Complete at least one set to finish.")
+    sessions.set(id, { ...session, status: "COMPLETED", completedAt: new Date().toISOString() })
+}

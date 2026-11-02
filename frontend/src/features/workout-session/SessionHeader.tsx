@@ -20,6 +20,8 @@ export default function SessionHeader(props:{
     doneCount: number
     totalCount: number
     onDiscard: ()=>void
+    onFinish: ()=>void
+    finishing : boolean
 })
 {
     const [now, setNow] = useState(() => Date.now())
@@ -41,7 +43,10 @@ export default function SessionHeader(props:{
                         <time>{elapsed}</time> · {props.doneCount} / {props.totalCount} sets
                     </p>
                 </div>
-                <Button variant="danger" onClick={()=> props.onDiscard()}>Discard</Button>
+                <div className="flex gap-3">
+                    <Button className="flex-1" disabled={props.doneCount === 0 || props.finishing} onClick={()=> props.onFinish()}>Finish</Button>
+                    <Button className="flex-1" disabled={props.finishing} variant="danger" onClick={()=> props.onDiscard()}>Discard</Button>
+                </div>
             </Card>
         </header>
     )

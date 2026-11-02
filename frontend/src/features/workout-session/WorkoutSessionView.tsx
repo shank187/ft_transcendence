@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import {getWorkoutSession, updateSessionSet } from "./workout-session.api";
+import {finishWorkout, getWorkoutSession, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -9,6 +9,7 @@ import Button from "../../components/ui/Button";
 import ExerciseSessionCard from "./ExerciseSessionCard";
 import SessionHeader from "./SessionHeader";
 import DiscardWorkoutDialog from "./DiscardWorkoutDialog";
+import FinishingDialog from "./FinishingDialog";
 
 type LoadStateType =
     | { status: "loading" }
@@ -18,8 +19,16 @@ type LoadStateType =
 
 export default function WorkoutSessionView(props: {sessionId: string})
 {
+    // page states
     const [loadState, setLoadState] = useState<LoadStateType>({status:"loading"});
+    //discard states
     const [showDiscard, setShowDiscard] = useState(false);
+    // finishing state
+    const [incompleteFinish, setIncompleteFinish] = useState(false)
+
+    const [finishing, setFinishing] = useState(false)
+    const [finishError, setFinishError] = useState<string|null>(null)
+
     const getSession = useCallback( async () =>{
         setLoadState({status: "loading"})
         try{
@@ -49,6 +58,20 @@ export default function WorkoutSessionView(props: {sessionId: string})
         })
     }
 
+    const finish = async () => {
+        setFinishing(true)
+        setFinishError(null)
+        try {
+            await finishWorkout(props.sessionId)
+            setIncompleteFinish(false)
+            await getSession()
+        } catch (err) {
+            setFinishError(err instanceof Error ? err.message : "Can't finish your workout, try again.")
+        } finally {
+            setFinishing(false)
+        }
+    }
+
     if (loadState.status === "loading") return <LoadingState message="Loading your session"/>
     if (loadState.status === "notFound") return <NotFoundState title="Session Not Found"/>
     if (loadState.status === "error")
@@ -66,6 +89,11 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const sets = loadState.session.exercises.flatMap(e => e.sets)
     const doneCount = sets.filter(s => s.completedAt !== null).length
 
+    const requestFinish = () =>
+    doneCount < sets.length
+        ? setIncompleteFinish(true)   // some sets not done → ask first
+        : void finish()
+
     return(
         <div className="flex flex-col gap-5">
             <SessionHeader
@@ -74,6 +102,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
             doneCount={doneCount}
             totalCount={sets.length}
             onDiscard = {()=> setShowDiscard(true)}
+            onFinish = {()=> requestFinish()}
+            finishing={finishing}
             />
             <ol className="flex flex-col gap-5">
                 {loadState.session.exercises.map((exercise, i)=>
@@ -87,6 +117,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 )}
             </ol>
         {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={props.sessionId}/>}
+        {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
         </div>
     )
 }
