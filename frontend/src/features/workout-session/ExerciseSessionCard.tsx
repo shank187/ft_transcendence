@@ -5,7 +5,8 @@ import SetRowSession from "./SetRowSession";
 
 export default function ExerciseSessionCard(props:{
     exercise: WorkoutSessionExercise,
-    position: number
+    position: number,
+    isReadOnly: boolean,
     onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>
 })
 {
@@ -32,6 +33,7 @@ export default function ExerciseSessionCard(props:{
             <ol className="flex flex-col gap-3">
                 {props.exercise.sets.map((set, i)=>
                     <SetRowSession
+                    isReadOnly={props.isReadOnly}
                     key={set.id}
                     position={i + 1}
                     set={set}

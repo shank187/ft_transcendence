@@ -19,20 +19,31 @@ export default function SessionHeader(props:{
     startedAt: string
     doneCount: number
     totalCount: number
+    status: string
+    isReadOnly: boolean
     onDiscard: ()=>void
     onFinish: ()=>void
     finishing : boolean
+    finishedAt: string | null
 })
 {
     const [now, setNow] = useState(() => Date.now())
 
     // Re-render once a second so the elapsed time moves; the interval stops when the page closes.
     useEffect(() => {
-        const timer = setInterval(() => setNow(Date.now()), 1000)
-        return () => clearInterval(timer)
+        if(!props.isReadOnly)
+        {
+            const timer = setInterval(() => setNow(Date.now()), 1000)
+            return () => clearInterval(timer)
+        }
     }, [])
 
-    const elapsed = formatElapsed(now - new Date(props.startedAt).getTime())
+    // todo rn calculate both status times correcty when finished or on live .
+    let elapsed = null;
+    if(! props.isReadOnly)
+        elapsed= formatElapsed(now - new Date(props.startedAt).getTime())
+    else if(props.finishedAt)
+        elapsed= formatElapsed(new Date(props.finishedAt).getTime() - new Date(props.startedAt).getTime())
 
     return(
         <header className="sticky top-4 z-10">
@@ -40,13 +51,18 @@ export default function SessionHeader(props:{
                 <div className="flex min-w-0 flex-col gap-0.5">
                     <h1 className="truncate text-xl font-semibold">{props.name}</h1>
                     <p className="text-xs text-app-text-muted">
-                        <time>{elapsed}</time> · {props.doneCount} / {props.totalCount} sets
+                        {elapsed && <time>{elapsed}</time>} · {props.doneCount} / {props.totalCount} sets
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <Button className="flex-1" disabled={props.doneCount === 0 || props.finishing} onClick={()=> props.onFinish()}>Finish</Button>
-                    <Button className="flex-1" disabled={props.finishing} variant="danger" onClick={()=> props.onDiscard()}>Discard</Button>
-                </div>
+                {! props.isReadOnly &&
+                    <div className="flex gap-3">
+                        <Button className="flex-1" disabled={props.doneCount === 0 || props.finishing} onClick={()=> props.onFinish()}>Finish</Button>
+                        <Button className="flex-1" disabled={props.finishing} variant="danger" onClick={()=> props.onDiscard()}>Discard</Button>
+                    </div>
+                }
+                {props.isReadOnly &&
+                    <p>{props.status}</p>
+                }
             </Card>
         </header>
     )

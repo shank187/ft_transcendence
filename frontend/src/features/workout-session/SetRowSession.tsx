@@ -9,6 +9,7 @@ export default function SetRowSession(props:{
     set: WorkoutSessionSet,
     position: number
     fields: SetField[]
+    isReadOnly:boolean,
     onComplete: (setId: string, values: PerformedValues) => Promise<void>
 })
 {
@@ -68,7 +69,7 @@ export default function SetRowSession(props:{
                         type="text"
                         placeholder={toText(props.set[PLANNED_KEY[field.key]]) || "-"}
                         inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
-                        disabled={saving || done}
+                        disabled={saving || done || props.isReadOnly}
                         aria-invalid={errors[field.key] ? true : undefined}
                         aria-describedby={errors[field.key] ? `${id}-${field.key}-error` : undefined}
                         value={text[field.key]}
@@ -85,7 +86,7 @@ export default function SetRowSession(props:{
                 variant="ghost"
                 aria-label={`Complete set ${props.position}`}
                 aria-pressed={done}
-                disabled={saving || done || hasErrors}
+                disabled={saving || done || hasErrors || props.isReadOnly}
                 onClick={() => void handleTick()}
                 className="size-11 shrink-0 border border-app-border"
                 >

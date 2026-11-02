@@ -94,6 +94,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
         ? setIncompleteFinish(true)   // some sets not done → ask first
         : void finish()
 
+    const isReadOnly = loadState.session.status !== "IN_PROGRESS"
+
     return(
         <div className="flex flex-col gap-5">
             <SessionHeader
@@ -104,11 +106,15 @@ export default function WorkoutSessionView(props: {sessionId: string})
             onDiscard = {()=> setShowDiscard(true)}
             onFinish = {()=> requestFinish()}
             finishing={finishing}
+            status={loadState.session.status}
+            isReadOnly={isReadOnly}
+            finishedAt={loadState.session.completedAt}
             />
             <ol className="flex flex-col gap-5">
                 {loadState.session.exercises.map((exercise, i)=>
                     <li key={exercise.id}>
                         <ExerciseSessionCard
+                        isReadOnly={isReadOnly}
                         exercise={exercise}
                         position={i + 1}
                         onCompleteSet={completeSessionSet}
