@@ -59,6 +59,10 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       EMAIL_FROM: ${EMAIL_FROM}
 
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      GOOGLE_PLACES_API_KEY: "${GOOGLE_PLACES_API_KEY:-}"
+
       PORT: 3000
 
     ports:

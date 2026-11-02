@@ -25,13 +25,15 @@ One shared database. Features extend the existing schema; they do not create par
 See [Database relationship maps](database-relationships.md) for focused planning, execution, and catalog diagrams, foreign keys, cardinality, and deletion rules.
 
 ```text
-Identity        User, Session, Role*, UserRole*
-Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, Facility*, GymFacility*, GymReview*
+Identity        User, Session, Role, UserRole
+Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, GymSubmission, GymSubmissionEquipment,
+                GymSubmissionPhoto, Facility*, GymFacility*, GymReview*
 Exercises (S3)  MuscleGroup, Exercise, ExerciseSecondaryMuscle, ExerciseEquipment
 Planning (S3)   WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutExerciseSet
 Execution (S3)  WorkoutSession, WorkoutSessionExercise, WorkoutSet
-Social (S4)     Friendship, Conversation, ConversationMember, Message
-Shared          Notification*, Media*, ApiKey*
+Social (S4)     Friendship, Conversation, Message
+Rewards (S5)    XpEvent, UserAchievement
+Shared          Media, Notification*, ApiKey*
 ```
 
 `*` Present in the schema but not required by the frozen V1 scope in `docs/SCOPE_AND_VALIDATION.md`. Do not build features on them before the validation gate is green. Likewise, the `RECOMMENDED` plan type and `supersetGroup` exist in the schema, but recommended templates and complex supersets are deferred.
@@ -88,9 +90,17 @@ Current migrations, in order:
 20260909141126_add_refresh_token
 20260913120639_remove_user_refresh_token
 20260914101847_add_google_auth
+20260927143924_add_blocked_by
+20261020104210_add_pending_registration
+20261030150319_make_pending_email_unique
+20261031221446_gym_expansion_and_rewards
 ```
 
 - Never edit an applied migration; add a new one.
 - Never reset shared data without explicit team authorization.
 - Discuss schema changes that affect another slice's contract (identity, equipment, completed-session data) before merging.
 - Do not add fields speculatively; add them with the feature that uses them.
+
+## Schema changes
+
+Only the Tech Lead generates migrations, on the latest `main`. Feature PRs carry no migration folder. After Tue 3 Nov the schema is frozen except for fixes.

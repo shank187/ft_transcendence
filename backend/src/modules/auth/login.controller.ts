@@ -26,7 +26,7 @@ export const login = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty())
-        return res.status(200).json({
+        return res.status(400).json({
             success: false,
             error: 'Invalid email or password'
          });
@@ -41,14 +41,14 @@ export const login = async (req: Request, res: Response) => {
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || !user.passwordHash)
-            return res.status(200).json({
+            return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
             });
 
         const is_pass_valid = await compare(password, user.passwordHash);
         if (!is_pass_valid)
-            return res.status(200).json({
+            return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
             });

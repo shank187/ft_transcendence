@@ -64,7 +64,12 @@ api.interceptors.response.use(
     async (error) => {
         const request = error.config;
 
-        if (error.response && error.response.status === 401 && !request._retry) {
+        const is_public_auth_request =
+            request?.url?.includes("/api/auth/login") ||
+            request?.url?.includes("/api/auth/register") ||
+            request?.url?.includes("/api/auth/refresh") ||
+            request?.url?.includes("/api/auth/session");
+        if (error.response && error.response.status === 401 && !request._retry && !is_public_auth_request) {
             request._retry = true;
 
             try {

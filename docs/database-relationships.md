@@ -157,5 +157,14 @@ These are the explicit `onDelete` rules for the relationships shown above. They 
 | `Exercise` / `MuscleGroup` | `ExerciseSecondaryMuscle.exerciseId` / `muscleGroupId` | Cascade: delete the matching join rows |
 | `Exercise` / `Equipment` | `ExerciseEquipment.exerciseId` / `equipmentId` | Cascade: delete the matching join rows |
 | `Gym` / `Equipment` | `GymEquipment.gymId` / `equipmentId` | Cascade: delete the matching join rows |
+| `User` | `GymSubmission.submitterId` | Cascade: delete the user's submissions |
+| `User` | `GymSubmission.reviewerId` | SetNull: keep the submission, clear its reviewer |
+| `User` | `Gym.createdById` | SetNull: keep the gym, clear its creator |
+| `Gym` | `User.currentGymId` | SetNull: keep the user, clear their current gym |
+| `Gym` | `GymSubmission.gymId` / `privateCopyId` | SetNull: keep the submission, clear the gym reference |
+| `GymSubmission` | `GymSubmissionEquipment.submissionId`, `GymSubmissionPhoto.submissionId` | Cascade: delete its proposed equipment and photo links |
+| `Equipment` | `GymSubmissionEquipment.equipmentId` | Restrict: reject deletion while a submission proposes it |
+| `Media` | `GymSubmissionPhoto.mediaId` | Cascade: delete the photo link |
+| `User` | `XpEvent.userId`, `UserAchievement.userId` | Cascade: delete the user's XP events and achievements |
 
 For application invariants and schema commands, see [Database](database.md).

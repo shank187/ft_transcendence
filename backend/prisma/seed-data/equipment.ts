@@ -2,30 +2,32 @@ import { PrismaClient } from "@prisma/client";
 
 
 export const EQUIPMENT = [
-    "Chest Press Machine",
-    "Chest Fly Machine",
-    "Dumbbells",
-    "Barbell",
-    "Plates",
-    "Lat Pulldown Machine",
-    "T-Bar Row Machine",
-    "Cable Machine",
-    "Leg Press Machine",
-    "Leg Extension Machine",
-    "Smith Machine",
-    "Leg Curl Machine",
-    "Rope",
-    "Bench",
-    "Ab Crunch Machine"
+    { name: "Chest Press Machine", category: "MACHINES" },
+    { name: "Chest Fly Machine", category: "MACHINES" },
+    { name: "Dumbbells", category: "FREE_WEIGHTS" },
+    { name: "Barbell", category: "FREE_WEIGHTS" },
+    { name: "Plates", category: "FREE_WEIGHTS" },
+    { name: "Lat Pulldown Machine", category: "MACHINES" },
+    { name: "T-Bar Row Machine", category: "MACHINES" },
+    { name: "Cable Machine", category: "CABLES_ATTACHMENTS" },
+    { name: "Leg Press Machine", category: "MACHINES" },
+    { name: "Leg Extension Machine", category: "MACHINES" },
+    { name: "Smith Machine", category: "BENCHES_RACKS" },
+    { name: "Leg Curl Machine", category: "MACHINES" },
+    { name: "Rope", category: "CABLES_ATTACHMENTS" },
+    { name: "Bench", category: "BENCHES_RACKS" },
+    { name: "Ab Crunch Machine", category: "MACHINES" }
 ] as const;
 
-export type EquipmentName = typeof EQUIPMENT[number];
+export type EquipmentName = typeof EQUIPMENT[number]["name"];
 
+// Upsert so databases seeded before categories existed get them too.
 export async function seedEquipment(prisma: PrismaClient) {
-    await prisma.equipment.createMany({
-        data: EQUIPMENT.map((name) => ({
-            name,
-        })),
-        skipDuplicates: true
-    });
+    for (const { name, category } of EQUIPMENT) {
+        await prisma.equipment.upsert({
+            where: { name },
+            update: { category },
+            create: { name, category },
+        });
+    }
 }
