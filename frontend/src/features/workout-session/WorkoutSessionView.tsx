@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import {finishWorkout, getWorkoutSession, updateSessionSet } from "./workout-session.api";
+import {addExercises, finishWorkout, getWorkoutSession, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -10,6 +10,9 @@ import ExerciseSessionCard from "./ExerciseSessionCard";
 import SessionHeader from "./SessionHeader";
 import DiscardWorkoutDialog from "./DiscardWorkoutDialog";
 import FinishingDialog from "./FinishingDialog";
+import type { Exercise } from "../exercises/exercise.types";
+import { ExercisePicker } from "../exercises/ExercisePicker";
+import Dialog from "../../components/ui/Dialog";
 
 type LoadStateType =
     | { status: "loading" }
@@ -28,6 +31,30 @@ export default function WorkoutSessionView(props: {sessionId: string})
 
     const [finishing, setFinishing] = useState(false)
     const [finishError, setFinishError] = useState<string|null>(null)
+
+    const [showPicker, setShowPicker] = useState(false)
+    const [addError, setAddError] = useState<string | null>(null)
+    const [adding, setAdding] = useState(false)
+
+    const addSelectedExercises = async (selected: Exercise[]) => {
+        setAdding(true)
+        setAddError(null)
+        try {
+            rememberSessionExercises(selected.map(e => ({
+                id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl,
+            })))
+            const added = await addExercises(props.sessionId, selected.map(e => e.id))
+            setLoadState(prev => prev.status !== "success" ? prev : {
+                ...prev,
+                session: { ...prev.session, exercises: [...prev.session.exercises, ...added] },
+            })
+            setShowPicker(false)
+        } catch (err) {
+            setAddError(err instanceof Error ? err.message : "Can't add exercises, try again.")
+        } finally {
+            setAdding(false)
+        }
+    }
 
     const getSession = useCallback( async () =>{
         setLoadState({status: "loading"})
@@ -124,6 +151,18 @@ export default function WorkoutSessionView(props: {sessionId: string})
             </ol>
         {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={props.sessionId}/>}
         {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
+        {!isReadOnly && <Button onClick={() => setShowPicker(true)}>Add exercises</Button>}
+        {showPicker &&
+            <Dialog 
+            variant="drawer"
+            title="Add exercises"
+            isWorking={adding} 
+            showClose
+            onClose={() => setShowPicker(false)}
+            >
+                <ExercisePicker onAdd={addSelectedExercises} />
+                {addError && <p className="text-app-danger">{addError}</p>}
+            </Dialog>}
         </div>
     )
 }
