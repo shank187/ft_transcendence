@@ -7,6 +7,7 @@ import { create_session } from './session.service';
 
 import {refreshCookieName,refreshCookieOptions} from './cookie.config';
 
+import { assignUserRole } from './auth.controller';
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
@@ -94,8 +95,10 @@ export const googleCallback = async (req: Request, res: Response) => {
                 where: { id: user.id },
                 data: { googleId: google_user.sub }
             });
-        }
 
+        }
+        await assignUserRole(prisma, user.id);
+        
         const { raw_token } = await create_session(user.id);
 
         res.cookie(refreshCookieName, raw_token, refreshCookieOptions);

@@ -17,6 +17,8 @@ import Progress from './pages/Progress';
 import Social from './pages/Social'
 import DayEditor from './pages/DayEditor';
 import NotFound from './pages/NotFound';
+import AdminRoute from './features/auth/AdminRoute';
+import Admin from './pages/Admin';
 
 
 function App() {
@@ -43,6 +45,11 @@ function App() {
           <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/social" element={<Social />} />
+
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<Admin />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
