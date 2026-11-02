@@ -19,11 +19,15 @@ import DayEditor from './pages/DayEditor';
 import NotFound from './pages/NotFound';
 import AdminRoute from './features/auth/AdminRoute';
 import Admin from './pages/Admin';
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 
 function App() {
   return (
     <Routes>
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
       <Route element={<GuestRoute />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
