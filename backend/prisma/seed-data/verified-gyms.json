@@ -1,0 +1,14 @@
+[
+    {
+        "name": "R1",
+        "city": "khouribga",
+        "address": "dorm 1337",
+        "latitude": 33.9716,
+        "longitude": -6.8498,
+        "phone": "+212 537 123456",
+        "website": "https://example.com",
+        "description": "Full-equipped gym in central Rabat",
+        "source": "TEAM",
+        "verified": "true"
+    }
+]
