@@ -4,6 +4,7 @@ import {
     find_session_by_raw_token,
     revoke_session,
 } from './session.service';
+import { PrismaClient } from "@prisma/client";
 
 import { refreshCookieName,refreshCookieOptions} from './cookie.config';
 const refresh_cookie_name = 'refreshToken';
@@ -133,3 +134,32 @@ export const check_session = async (req: Request, res: Response) => {
         });
     }
 };
+
+
+
+export async function assignUserRole(prisma: PrismaClient, userId: string)
+{
+    const userRole = await prisma.role.upsert({
+        where: {
+            name: "USER"
+        },
+        update: {},
+        create: {
+            name: "USER"
+        }
+    });
+
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId,
+                roleId: userRole.id
+            },
+        },
+        update: {},
+        create: {
+            userId,
+            roleId: userRole.id
+        }
+    });
+}

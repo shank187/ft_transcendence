@@ -100,7 +100,16 @@ export const get_me = async (req: AuthenticatedRequest,res: Response) => {
             weightKg: true,
             heightCm: true,
             onboardingCompletedAt: true,
-            passwordHash: true
+            passwordHash: true,
+            roles: {
+                select: {
+                    role: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            }
         }
     });
 
@@ -110,6 +119,7 @@ export const get_me = async (req: AuthenticatedRequest,res: Response) => {
     const { passwordHash, ...other_fields } = user;
     return res.json({
         ...other_fields,
+        roles: user.roles.map(entry => entry.role.name),
         hasPassword: Boolean(passwordHash)
     });
 };
