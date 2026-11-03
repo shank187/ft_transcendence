@@ -135,6 +135,8 @@ enum XpReason {
   WORKOUT_COMPLETED
   PR_SET
   GYM_APPROVED
+  EARLY_BIRD
+  NIGHT_OWL
 }
 
 // ============================================================

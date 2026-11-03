@@ -1,7 +1,6 @@
+export type ProgressTab = "Progress" | "Achievements" | "Analytics";
+
 export type ProgressSummary = {
     completedWorkouts: number;
-    totalVolume: number;
-    period: string;
+    totalXp: number;
 };
-
-export type ProgressTab = "Progress" | "Achievements" | "Analytics";

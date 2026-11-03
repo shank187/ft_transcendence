@@ -11,30 +11,31 @@ import ProgressTabs from "../features/progress/ProgressTabs";
 import Achievements from "../features/progress/Achievements";
 import { ChartLine } from "lucide-react"
 import { BrainCircuit } from "lucide-react"
-import { Crown } from "lucide-react"
 
-const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
 
 export default function Progress() {
     const { user } = useAuth();
+    console.log("My username:", user?.username);
 
     const [activeTab, setActiveTab] = useState("progress");
     const [summary, setSummary] = useState<ProgressSummary | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log("Fetching progress for tab:", activeTab);
+
         getProgressSummary()
             .then((data) => {
-                console.log("Progress summary:", data);
-                console.log(
-                    "Completed workouts:",
-                    data.completedWorkouts
-                );
+                console.log("Received summary:", data);
                 setSummary(data);
+                setError(null);
             })
-            .catch(() => setError("Could not load progress"));
-    }, []);
+            .catch((error) => {
+                console.error("Progress request failed:", error);
+                setError("Could not load progress");
+            });
+    }, [activeTab]);
 
     if (error) {
         return <ErrorState message={error} />;
@@ -44,7 +45,8 @@ export default function Progress() {
         return <LoadingState message="Loading progress..." />;
     }
 
-    const totalXp = summary.completedWorkouts * XP_PER_WORKOUT;
+    const totalXp = summary.totalXp;
+    
     const level = Math.floor(totalXp / XP_PER_LEVEL);
     const levelXp = totalXp % XP_PER_LEVEL;
     const xpPercentage = (levelXp / XP_PER_LEVEL) * 100;

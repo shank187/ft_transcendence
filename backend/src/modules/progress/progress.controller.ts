@@ -1,6 +1,9 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { countCompletedWorkouts } from "./progress.service";
+import {
+    countCompletedWorkouts,
+    getTotalXp,
+} from "./progress.service";
 
 export async function getProgressSummary(
     req: AuthenticatedRequest,
@@ -17,8 +20,11 @@ export async function getProgressSummary(
             req.userId
         );
 
+        const totalXp = await getTotalXp(req.userId);
+
         return res.status(200).json({
             completedWorkouts,
+            totalXp,
         });
     } catch (error) {
         console.error("Failed to load progress:", error);

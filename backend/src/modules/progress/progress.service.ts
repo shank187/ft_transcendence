@@ -7,3 +7,18 @@ export async function countCompletedWorkouts( userId : string ) : Promise<number
         },
     });
 }
+
+export async function getTotalXp(
+    userId: string
+): Promise<number> {
+    const result = await prisma.xpEvent.aggregate({
+        where: {
+            userId,
+        },
+        _sum: {
+            amount: true,
+        },
+    });
+
+    return result._sum.amount ?? 0;
+}
