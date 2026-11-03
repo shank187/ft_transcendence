@@ -6,6 +6,8 @@ import { refreshCookieName, refreshCookieOptions } from './cookie.config';
 import { sign_access_token } from './token.service';
 import { create_session } from './session.service';
 
+import { assignUserRole } from './auth.controller';
+
 export const verify_registration = async (req: Request, res: Response) => {
     const { registrationId, code } = req.body;
 
@@ -75,6 +77,8 @@ export const verify_registration = async (req: Request, res: Response) => {
             }
         });
 
+        await assignUserRole(prisma, user.id);
+        
         await prisma.pendingRegistration.deleteMany({
             where: { id: pending.id }
         });

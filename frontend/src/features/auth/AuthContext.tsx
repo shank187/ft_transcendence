@@ -20,10 +20,8 @@ type AuthContextType = {
 type User = {
     id: string;
     username: string;
-    email: string;
-    displayName: string | null;
-    avatarUrl: string | null;
     onboardingCompletedAt: string | null;
+    roles: string[];
 };
 
 

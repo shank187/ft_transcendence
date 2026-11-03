@@ -39,7 +39,14 @@ export const login = async (req: Request, res: Response) => {
     
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ 
+            where: { email },
+            include: {
+                roles: {
+                    include: { role: true }
+                }
+            }
+        });
         if (!user || !user.passwordHash)
             return res.status(401).json({
                 success: false,
@@ -61,7 +68,7 @@ export const login = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             access_token,
-            user: { id: user.id, username: user.username, email: user.email , onboardingCompletedAt: user.onboardingCompletedAt},
+            user: { id: user.id, username: user.username, email: user.email , onboardingCompletedAt: user.onboardingCompletedAt, roles: user.roles.map(entry => entry.role.name)}
         });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
