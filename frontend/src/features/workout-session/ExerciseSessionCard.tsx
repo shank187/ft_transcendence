@@ -2,12 +2,16 @@ import Card from "../../components/ui/Card";
 import type { PerformedValues, WorkoutSessionExercise } from "./workout-session.types";
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL } from "../day-editor/exercise-fields";
 import SetRowSession from "./SetRowSession";
+import Button from "../../components/ui/Button";
 
 export default function ExerciseSessionCard(props:{
     exercise: WorkoutSessionExercise,
     position: number,
     isReadOnly: boolean,
-    onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>
+    onAddSet: (exerciseId: string) => void,
+    onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>,
+    isAddingSet: boolean,
+    addSetError: string | null
 })
 {
     const exerciseType = EXERCISE_TYPE_LABEL[props.exercise.exerciseSummary.type];
@@ -42,6 +46,8 @@ export default function ExerciseSessionCard(props:{
                     />
                 )}
             </ol>
+            {(!props.isReadOnly && props.addSetError) && <p className="text-app-danger">{props.addSetError}</p>}
+            {!props.isReadOnly && <Button  disabled={props.isAddingSet} onClick={()=> props.onAddSet(props.exercise.id)}>Add set</Button>}
         </Card>
     )
 }

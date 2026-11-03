@@ -33,3 +33,5 @@ export function updateSet(
         : { ...exercise, sets: exercise.sets.map(set => set.id !== setId ? set : change(set)) }
     )
 }
+
+

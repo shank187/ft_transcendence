@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import {addExercises, finishWorkout, getWorkoutSession, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
+import {addExercises, addSet, finishWorkout, getWorkoutSession, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
 import { updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
@@ -35,6 +35,9 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [showPicker, setShowPicker] = useState(false)
     const [addError, setAddError] = useState<string | null>(null)
     const [adding, setAdding] = useState(false)
+
+    const [addSetError, setAddSetError] = useState<{ exerciseId: string, message: string } | null>(null)
+    const [addingSet, setAddingSet] = useState<boolean>(false)
 
     const addSelectedExercises = async (selected: Exercise[]) => {
         setAdding(true)
@@ -121,6 +124,31 @@ export default function WorkoutSessionView(props: {sessionId: string})
         ? setIncompleteFinish(true)   // some sets not done → ask first
         : void finish()
 
+    const addSessionSet = async (exId: string)=>{
+        setAddSetError(null)
+        setAddingSet(true)
+        const exIndex = loadState.session.exercises.findIndex((e)=> e.id === exId)
+        try{
+            const added = await addSet(loadState.session.id, exId)
+            if(exIndex !== -1)
+            {
+                setLoadState(prev => prev.status !== "success" ? prev: {
+                    ...prev,
+                    session:{
+                        ...prev.session,
+                        exercises: prev.session.exercises.map((e, i)=>(i!== exIndex ? e :{
+                            ...e,
+                            sets : [...e.sets, added]
+                        }))
+                    }
+                })
+            }
+        }catch(err){
+            setAddSetError({exerciseId: exId, message: err instanceof Error ? err.message : "cant Add set to this exercise."})
+        }finally{
+            setAddingSet(false)
+        }
+    }
     const isReadOnly = loadState.session.status !== "IN_PROGRESS"
 
     return(
@@ -141,10 +169,13 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 {loadState.session.exercises.map((exercise, i)=>
                     <li key={exercise.id}>
                         <ExerciseSessionCard
+                        isAddingSet={addingSet}
+                        addSetError={exercise.id === addSetError?.exerciseId ? addSetError.message : null}
                         isReadOnly={isReadOnly}
                         exercise={exercise}
                         position={i + 1}
                         onCompleteSet={completeSessionSet}
+                        onAddSet={addSessionSet}
                         />
                     </li>
                 )}

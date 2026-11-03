@@ -36,9 +36,8 @@ export default function SessionHeader(props:{
             const timer = setInterval(() => setNow(Date.now()), 1000)
             return () => clearInterval(timer)
         }
-    }, [])
+    }, [props.isReadOnly])
 
-    // todo rn calculate both status times correcty when finished or on live .
     let elapsed = null;
     if(! props.isReadOnly)
         elapsed= formatElapsed(now - new Date(props.startedAt).getTime())
