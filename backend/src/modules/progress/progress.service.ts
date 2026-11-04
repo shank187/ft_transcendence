@@ -23,6 +23,48 @@ export async function getTotalXp(
     return result._sum.amount ?? 0;
 }
 
+//////////////// achievements
+const workoutMilestones = [
+    { code: "WORKOUTS_1", requiredWorkouts: 1 },
+    { code: "WORKOUTS_10", requiredWorkouts: 10 },
+    { code: "WORKOUTS_50", requiredWorkouts: 50 },
+    { code: "WORKOUTS_100", requiredWorkouts: 100 },
+];
+
+export async function unlockWorkoutAchievements(userId: string) {
+    const completedWorkouts = await countCompletedWorkouts(userId);
+
+    const earnedAchievements = workoutMilestones.filter(
+        (achievement) =>
+            completedWorkouts >= achievement.requiredWorkouts
+    );
+
+    if (earnedAchievements.length === 0) return;
+
+    await prisma.userAchievement.createMany({
+        data: earnedAchievements.map((achievement) => ({
+            userId,
+            code: achievement.code,
+        })),
+        skipDuplicates: true,
+    });
+}
+
+export async function getUnlockedAchievements(userId: string) {
+    return prisma.userAchievement.findMany({
+        where: { userId },
+        select: {
+            code: true,
+            unlockedAt: true,
+        },
+        orderBy: {
+            unlockedAt: "asc",
+        },
+    });
+}
+
+
+//////////// leadeboard
 export async function getLeaderboardEntries() {
     // Get public identities.
     const users = await prisma.user.findMany({
