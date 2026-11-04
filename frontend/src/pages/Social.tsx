@@ -1,14 +1,14 @@
 
 import ChatWindow from "../features/chat/ChatWindow"
 import FriendsList from "../features/chat/FriendsList"
-import { useEffect, useState, useContext } from "react"
+import { useEffect, useState } from "react"
 import type { FriendData, ClientMessage } from "../features/chat/chat.types"
-import { WebSocketContext } from "./WebSocketContext"
+import { useWebSocket } from "./WebSocketContext"
 import api from "../features/auth/axiosInstance"
 import { ConversationsList } from "../features/chat/ConversationsList"
 
 function Social() {
-    const { wsRef, lastMessage, onlineUserIds } = useContext(WebSocketContext)
+    const { wsRef, lastMessage, onlineUserIds } = useWebSocket()
 
     const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(null)
     const [friends, setFriends] = useState<FriendData[]>([])

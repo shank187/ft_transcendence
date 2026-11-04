@@ -1,10 +1,10 @@
 
-import { useEffect, useLayoutEffect, useRef, useState, useContext } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { MessageData, ChatWindowProps, ClientMessage } from "./chat.types"
 import Message from "./Message"
 import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
-import { WebSocketContext } from "../../pages/WebSocketContext"
+import { useWebSocket  } from "../../pages/WebSocketContext"
 
 export default function ChatWindow({
     friend,
@@ -12,7 +12,7 @@ export default function ChatWindow({
     lastMessage,
     onBack
 }: ChatWindowProps) {
-    const { wsRef, connectionStatus } = useContext(WebSocketContext)
+    const { wsRef, connectionStatus } = useWebSocket()
     const { user } = useAuth()
 
     const [msgs, setMsgs] = useState<MessageData[]>([])
@@ -37,8 +37,30 @@ export default function ChatWindow({
                 )
 
                 if (cancelled) return
+    setMsgs(current => {
+        const messages = new Map<string, MessageData>()
 
-                setMsgs(response.data)
+        response.data.forEach(message => {
+            messages.set(message.id, message)
+        })
+
+    current.forEach(message => {
+            const existing = messages.get(message.id)
+
+        messages.set(message.id, {
+            ...existing,
+            ...message,
+            readAt: message.readAt ?? existing?.readAt ?? null
+        })
+    })
+
+    return Array.from(messages.values()).sort(
+        (a, b) =>
+            new Date(a.createdAt).getTime() -
+            new Date(b.createdAt).getTime()
+    )
+})
+                // setMsgs(response.data)
 
                 response.data.forEach(message => {
                     if (message.senderId === friend!.id && !message.readAt) {
@@ -112,14 +134,13 @@ export default function ChatWindow({
         if (!lastMessage || lastMessage.type !== "readMessage")
             return
 
-        setMsgs(current =>
-            current.map(message =>
-                message.id === lastMessage.messageId &&
-                message.conversationId === lastMessage.conversationId
-                    ? { ...message, readAt: lastMessage.readAt }
-                    : message
-            )
-        )
+setMsgs(current =>
+    current.map(message =>
+        message.id === lastMessage.messageId
+            ? { ...message, readAt: lastMessage.readAt }
+            : message
+    )
+)
     }, [lastMessage])
 
     function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {

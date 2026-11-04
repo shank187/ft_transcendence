@@ -1,13 +1,13 @@
 
-import { useEffect, useState, useContext } from "react"
+import { useEffect, useState } from "react"
 import api from "../auth/axiosInstance"
 import type { ConversationData, ConversationsListProps } from "./chat.types"
-import { WebSocketContext } from "../../pages/WebSocketContext"
+import { useWebSocket } from "../../pages/WebSocketContext"
 
 export function ConversationsList({ 
     onSelectFriend,
  }: ConversationsListProps) {
-    const { lastMessage } = useContext(WebSocketContext)
+    const { lastMessage } = useWebSocket()
     const [conversations, setConversations] = useState<ConversationData[]>([])
 
     useEffect(() => {

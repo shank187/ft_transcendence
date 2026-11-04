@@ -13,12 +13,13 @@ export type FriendsListProps = {
 };
 
 export type MessageData = {
-    id?: string;
-    senderId: string;
-    content: string;
-    createdAt: string;
-    readAt: string | null;
-};
+    id: string
+    conversationId: string
+    senderId: string
+    content: string
+    createdAt: string
+    readAt: string | null
+}
 
 export type MessageProps = {
     message: MessageData;
