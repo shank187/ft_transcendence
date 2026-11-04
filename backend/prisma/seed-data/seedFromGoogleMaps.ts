@@ -75,16 +75,11 @@ async function fetchGyms(city : string) : Promise<any[]>{
 
 export async function seedGyms(prisma : PrismaClient){
     try {
-        let adminUser = await prisma.user.findUnique({
-            where :{email : "zed@admin.com"}
+        const adminUser = await prisma.user.findUnique({
+            where : {email: process.env.ADMIN_EMAIL!}
         });
         if (!adminUser){
-            adminUser = await prisma.user.create({
-                data : {
-                    email : "zed@admin.com",
-                    username : "admin"
-                }
-            });
+            throw new Error("admin user not found");
         }
 
         const availableCites = ["khouribga", "kenitra", "beni mellal", "Rabat"];
@@ -110,11 +105,11 @@ export async function seedGyms(prisma : PrismaClient){
                             phone : gym.nationalPhoneNumber || null,
                             website: gym.websiteUri || null,
                             source : "IMPORTED",
-                            verify : false
+                            verified : false,
                         }
                     });
                 } catch (error) {
-                    console.error("Gym import failed");
+                    console.error("Gym import failed", error);
                 }
             }
         }
