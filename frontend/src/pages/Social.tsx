@@ -13,19 +13,22 @@ function Social() {
     const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(null)
     const [friends, setFriends] = useState<FriendData[]>([])
 
-    function sendMessage(recipientId: string, content: string) {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-            console.log("WebSocket is not connected")
-            return
-        }
-
-        const message: ClientMessage = {
+    function sendMessage(RecipientId: string, content: string): boolean {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
+            return false
+        
+            const message: ClientMessage = {
             type: "message",
-            to: recipientId,
-            content
+            to: RecipientId,
+            content: content
         }
 
-        wsRef.current.send(JSON.stringify(message))
+        try {
+            wsRef.current.send(JSON.stringify(message))
+            return true
+        } catch {
+            return false
+        }
     }
 
     function handleBack() {
@@ -120,6 +123,7 @@ function Social() {
                 `}
             >
                 <ChatWindow
+                    key={selectedFriend?.id ?? "no-friend"}
                     friend={selectedFriend}
                     onSendMessage={sendMessage}
                     lastMessage={lastMessage}

@@ -12,7 +12,7 @@ export default function ChatWindow({
     lastMessage,
     onBack
 }: ChatWindowProps) {
-    const { wsRef } = useContext(WebSocketContext)
+    const { wsRef, connectionStatus } = useContext(WebSocketContext)
     const { user } = useAuth()
 
     const [msgs, setMsgs] = useState<MessageData[]>([])
@@ -24,6 +24,9 @@ export default function ChatWindow({
             setMsgs([])
             return
         }
+
+        if (connectionStatus !== "connected")
+            return
 
         let cancelled = false
 
@@ -61,7 +64,7 @@ export default function ChatWindow({
         return () => {
             cancelled = true
         }
-    }, [friend?.id, wsRef])
+    }, [friend?.id, wsRef, connectionStatus])
 
     useLayoutEffect(() => {
         if (chatBodyRef.current)
@@ -124,8 +127,9 @@ export default function ChatWindow({
 
         if (!friend || !msg.trim()) return
 
-        onSendMessage(friend.id, msg.trim())
-        setMsg("")
+        const sent = onSendMessage(friend.id, msg.trim())
+        if (sent)
+            setMsg("")
     }
 
     if (!user)
@@ -193,7 +197,11 @@ export default function ChatWindow({
             >
                 <input
                     type="text"
-                    placeholder="Type a message..."
+                    placeholder={
+                        connectionStatus === "connected"
+                        ? "Type a message..."
+                        : "Waiting for connection..."
+                    }
                     aria-label="Message"
                     value={msg}
                     maxLength={500}
@@ -207,7 +215,7 @@ export default function ChatWindow({
 
                 <button
                     type="submit"
-                    disabled={!msg.trim()}
+                    disabled={!msg.trim() || connectionStatus !== "connected"}
                     className="shrink-0 rounded-lg bg-app-primary px-3 py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 sm:px-5"
                 >
                     Send
