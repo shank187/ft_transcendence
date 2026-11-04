@@ -1,10 +1,10 @@
 
 import { useEffect, useState } from "react";
-import { getProgressSummary } from "../features/progress/progress.api";
-import type { ProgressSummary } from "../features/progress/progress.types";
+import { getProgressSummary , getLeaderboard } from "../features/progress/progress.api";
+import type { ProgressSummary , LeaderboardEntry } from "../features/progress/progress.types";
+import Leaderboard from "../features/progress/Leaderboard";
 import LoadingState from "../components/states/LoadingState";
 import ErrorState from "../components/states/ErrorState";
-import Leaderboard, { fakeLeaderboard } from "../features/progress/Leaderboard";
 import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
 import ProgressTabs from "../features/progress/ProgressTabs";
@@ -12,30 +12,46 @@ import Achievements from "../features/progress/Achievements";
 import { ChartLine } from "lucide-react"
 import { BrainCircuit } from "lucide-react"
 
-
-const XP_PER_WORKOUT = 100;
 const XP_PER_LEVEL = 1000;
 
 export default function Progress() {
     const { user } = useAuth();
+    console.log("My username:", user?.username);
 
     const [activeTab, setActiveTab] = useState("progress");
     const [summary, setSummary] = useState<ProgressSummary | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // leaderboard
+    const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+    
     useEffect(() => {
-        getProgressSummary()
-            .then((data) => {
-                console.log("Progress summary:", data);
-                console.log(
-                    "Completed workouts:",
-                    data.completedWorkouts
-                );
+        if (!user?.id) return;
 
-                setSummary(data);
+        let ignore = false;
+
+        Promise.all([
+            getProgressSummary(),
+            getLeaderboard(),
+        ])
+            .then(([summaryData, leaderboardData]) => {
+                if (ignore) return;
+
+                setSummary(summaryData);
+                setLeaderboardEntries(leaderboardData);
+                setError(null);
             })
-            .catch(() => setError("Could not load progress"));
-    }, []);
+            .catch((error) => {
+                if (ignore) return;
+
+                console.error("Failed to load progress:", error);
+                setError("Could not load progress");
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, [activeTab, user?.id]);
 
     if (error) {
         return <ErrorState message={error} />;
@@ -45,21 +61,11 @@ export default function Progress() {
         return <LoadingState message="Loading progress..." />;
     }
 
-    const totalXp = summary.completedWorkouts * XP_PER_WORKOUT;
+    const totalXp = summary.totalXp;
+    
     const level = Math.floor(totalXp / XP_PER_LEVEL);
     const levelXp = totalXp % XP_PER_LEVEL;
     const xpPercentage = (levelXp / XP_PER_LEVEL) * 100;
-
-    const leaderboardEntries = user
-        ? [
-              ...fakeLeaderboard,
-              {
-                  id: user.id,
-                  username: user.username,
-                  xp: totalXp,
-              },
-          ].sort((a, b) => b.xp - a.xp)
-        : fakeLeaderboard;
 
     const leaderboardWinner = leaderboardEntries[0];
 
@@ -133,10 +139,12 @@ export default function Progress() {
                             currentUserId={user?.id ?? null}
                         />
 
-                        <GymBroOfTheMonth
-                            username={leaderboardWinner.username}
-                            xp={leaderboardWinner.xp}
-                        />
+                        {leaderboardWinner && (
+                            <GymBroOfTheMonth
+                                username={leaderboardWinner.username}
+                                xp={leaderboardWinner.xp}
+                            />
+                        )}
                     </div>
                 </>
             )}
