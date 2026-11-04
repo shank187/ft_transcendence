@@ -68,15 +68,16 @@ async function fetchGyms(city : string) : Promise<any[]>{
         if (axios.isAxiosError(error) && error.code === "ECONNABORTED")// is axiosError katkhali ts now know bli hoa an axios error 
             console.log(`Timeout fetching gyms in ${city}`);
         else 
-		    console.log("google error", error);
+		    console.log("google api error");
 	}
 	return [];
 }
 
 export async function seedGyms(prisma : PrismaClient){
     try {
+        const adminEMAIL = process.env.ADMIN_EMAIL?.trim().toLocaleLowerCase();
         const adminUser = await prisma.user.findUnique({
-            where : {email: process.env.ADMIN_EMAIL!}
+            where : {email: adminEMAIL!}
         });
         if (!adminUser){
             throw new Error("admin user not found");

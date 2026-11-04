@@ -5,8 +5,9 @@ import gyms from "./verified-gyms.json"
 
 export async function seedVerifiedGyms(prisma : PrismaClient){
     try{
+        const adminEMAIL = process.env.ADMIN_EMAIL?.trim().toLocaleLowerCase();
         const adminUser = await prisma.user.findUnique({
-            where : {email: process.env.ADMIN_EMAIL!}
+            where : {email: adminEMAIL!}
         });
         if (!adminUser){
             throw new Error("admin user not found");
