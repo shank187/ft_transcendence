@@ -10,7 +10,7 @@
     "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
     "source": "TEAM",
     "verified": true,
-    "imageUrl": "/gym-images/R1.jpg",
+    "imageUrl": "/gym-images/R1.png",
     "equipment": [
       "Dumbbells",
       "Barbell",
@@ -34,7 +34,7 @@
     "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
     "source": "TEAM",
     "verified": true,
-    "imageUrl": "/gym-images/R2.jpg",
+    "imageUrl": "/gym-images/R2.png",
     "equipment": [
       "Dumbbells",
       "Barbell",
@@ -58,7 +58,7 @@
     "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
     "source": "TEAM",
     "verified": true,
-    "imageUrl": "/gym-images/R3.jpg",
+    "imageUrl": "/gym-images/R3.png",
     "equipment": [
       "Dumbbells",
       "Barbell",
@@ -82,7 +82,7 @@
     "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
     "source": "TEAM",
     "verified": true,
-    "imageUrl": "/gym-images/R4.jpg",
+    "imageUrl": "/gym-images/R4.png",
     "equipment": [
       "Dumbbells",
       "Barbell",
@@ -106,7 +106,7 @@
     "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
     "source": "TEAM",
     "verified": true,
-    "imageUrl": "/gym-images/R5.jpg",
+    "imageUrl": "/gym-images/R5.png",
     "equipment": [
       "Dumbbells",
       "Barbell",

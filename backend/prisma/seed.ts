@@ -16,8 +16,13 @@ async function main() {
   await SeedExercises(prisma);
   
   await seedAdmin(prisma);
-  await seedGyms(prisma);
   await seedVerifiedGyms(prisma);
+
+  if (process.env.GOOGLE_PLACES_API_KEY){
+    await seedGyms(prisma);
+  }else {
+    console.log("GOOGLE_PLACES_API_KEY not found");
+  }
 }
 
 main()

@@ -42,6 +42,7 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
                         description: gym.description,
                         source: "TEAM",
                         verified: true,
+                        verifiedAt: new Date(),
                         createdById: adminUser.id,
                         equipment: {
                             create :equip.map(function(eq :any){
