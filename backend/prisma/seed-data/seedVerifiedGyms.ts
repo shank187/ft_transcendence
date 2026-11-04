@@ -55,6 +55,16 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
                     }
                 });
             }
+            else{
+                await prisma.gym.update({
+                    where : {id : existingGym.id},
+                    data:{
+                        imageUrl:gym.imageUrl,
+                        verifiedAt :existingGym.verifiedAt?? new Date(),
+                        // ?? : If the value on the left is NOT null/undefined, keep it. Otherwise, use the fallback on the right
+                    }
+                });
+            }
         }
     } catch (criticalError) {
         console.error("Critical Setup Error:", criticalError);
