@@ -38,6 +38,7 @@ export type ConversationsListProps = {
 export type ChatWindowProps = {
     friend: FriendData | null;
     onSendMessage: (recipientId: string, content: string) => void;
+    onBack?: () => void;
     lastMessage: ServerMessage | null;
 };
 

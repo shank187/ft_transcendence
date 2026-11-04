@@ -57,18 +57,19 @@ export default function WebSocketProvider({
                 };
 
                 connection.send(JSON.stringify(message));
+                // console.log(`${accessToken}`)
             };
 
             connection.onmessage = (event) => {
                 const message: ServerMessage = JSON.parse(event.data);
-
+                console.log(`${message}`)
                 setLastMessage(message);
 
                 if (message.type === "authenticated") {
                     setConnectionStatus("connected");
                 }
                 else if (message.type === "presence_snapshot") {
-                    setOnlineUserIds(message.onlineUserIds);
+                    setOnlineUserIds(message.onlineUserIds);                    
                 }
                 else if (message.type === "presence") {
                     if (message.status === "online") {
