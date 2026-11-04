@@ -4,10 +4,12 @@ import { updateOnboarding , get_me, update_me, change_password, update_avatar, d
 import { validate_profile } from "../../middleware/validate_profile";
 import { upload_avatar } from "../../middleware/upload_avatar";
 import { getUserFriends } from "../friends/friends.controller"
+import { add_admin } from './admin.controller';
 const router = Router();
 
 router.patch('/onboarding', authenticate,validate_onboarding, updateOnboarding)
 router.get('/me', authenticate, get_me);
+router.post('/add_admin', authenticate, add_admin);
 router.post('/update_me',authenticate, validate_profile,update_me);
 router.post('/change_password', authenticate ,change_password);
 router.post("/me/avatar", authenticate, upload_avatar, update_avatar);

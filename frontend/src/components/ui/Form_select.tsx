@@ -1,29 +1,57 @@
+import { select_classes } from "./form-select-classes";
+
+type SelectVariant =
+    | "auth"
+    | "workout"
+    | "gym"
+    | "profile";
+
 type FormSelectProps = {
     id: string;
     label: string;
     value: string;
     options: string[];
-    onChange: (value: string) => void;
+
+    variant?: SelectVariant;
+
+    onChange?: (value: string) => void;
+    required?: boolean;
+    disabled?: boolean;
 };
 
-function Form_select({id, label, value, options, onChange}: FormSelectProps) {
+function Form_select({
+    id,
+    label,
+    value,
+    options,
+    variant = "auth",
+    onChange,
+    required = true,
+    disabled = false,
+}: FormSelectProps) {
     return (
         <div>
-            <label htmlFor={id} className="mb-2 block text-sm text-app-text-secondary">
+            <label
+                htmlFor={id}
+                className={select_classes.label}
+            >
                 {label}
             </label>
 
             <select
                 id={id}
                 value={value}
-                onChange={(event) => onChange(event.target.value)}
-                className="w-full rounded-2xl border border-app-border bg-app-surface px-4 py-4 text-app-text focus:border-app-text-secondary focus:outline-none"
+                onChange={(event) => onChange?.(event.target.value)}
+                className={`${select_classes.base} ${select_classes.variant[variant]}`}
+                required={required}
+                disabled={disabled}
             >
-                <option value="">Select an option</option>
-
+                <option value="" disabled>
+                    {label}
+                </option>
                 {options.map((option) => (
-                    <option key={option} value={option}>
-                        {option.replaceAll('_', ' ')}
+                    <option key={option} value={option} className={select_classes.option}>
+                        {option}
                     </option>
                 ))}
             </select>

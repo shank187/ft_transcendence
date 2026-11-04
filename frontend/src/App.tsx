@@ -18,11 +18,17 @@ import Social from './pages/Social'
 import DayEditor from './pages/DayEditor';
 import NotFound from './pages/NotFound';
 import WorkoutSession from './pages/WorkoutSession';
+import AdminRoute from './features/auth/AdminRoute';
+import Admin from './pages/Admin';
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 
 function App() {
   return (
     <Routes>
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
       <Route element={<GuestRoute />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
@@ -45,6 +51,10 @@ function App() {
           <Route path="/workouts/session/:sessionId" element={<WorkoutSession />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/social" element={<Social />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<Admin />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
