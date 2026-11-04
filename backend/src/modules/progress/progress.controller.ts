@@ -4,6 +4,7 @@ import {
     countCompletedWorkouts,
     getTotalXp,
     getLeaderboardEntries,
+    getUnlockedAchievements,
 } from "./progress.service";
 
 
@@ -46,10 +47,15 @@ export async function getProgressSummary(
         );
 
         const totalXp = await getTotalXp(req.userId);
+        
+        const achievements = await getUnlockedAchievements(
+            req.userId
+        );
 
         return res.status(200).json({
             completedWorkouts,
             totalXp,
+            achievements,
         });
     } catch (error) {
         console.error("Failed to load progress:", error);
