@@ -11,7 +11,8 @@ export default function GymBroOfTheMonth({
 }: GymBroOfTheMonthProps) {
     return (
         <section className="min-h-96 w-full flex-1 rounded-md border-2 border-app-primary bg-app-primary/10 p-5 ">
-            <h2 className="text-center text-xl font-semibold text-amber-500">Gym Bro of the Month</h2>
+            <h2 className="text-center text-xl font-semibold text-amber-500">G.O.A.T</h2>
+            <h3 className="mt-1 text-center text-xl font-semibold text-amber-300">GymBro of all time</h3>
             <div className="mt-8 flex flex-col items-center text-center">
                 <div className="flex h-25 w-30 shrink-0 items-center justify-center rounded-full border-7 border-amber-500">
                     <Crown
