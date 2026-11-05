@@ -152,7 +152,7 @@ export default function Progress() {
             {/* ACHIEVEMENTS TAB */}
             {activeTab === "Achievements" && (
                 <Achievements
-                    completedWorkouts={summary.completedWorkouts}
+                    savedAchievements={summary.achievements}
                 />
             )}
 
