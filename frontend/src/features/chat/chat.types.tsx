@@ -13,12 +13,13 @@ export type FriendsListProps = {
 };
 
 export type MessageData = {
-    id?: string;
-    senderId: string;
-    content: string;
-    createdAt: string;
-    readAt: string | null;
-};
+    id: string
+    conversationId: string
+    senderId: string
+    content: string
+    createdAt: string
+    readAt: string | null
+}
 
 export type MessageProps = {
     message: MessageData;
@@ -37,7 +38,8 @@ export type ConversationsListProps = {
 
 export type ChatWindowProps = {
     friend: FriendData | null;
-    onSendMessage: (recipientId: string, content: string) => void;
+    onSendMessage: (recipientId: string, content: string) => boolean;
+    onBack?: () => void;
     lastMessage: ServerMessage | null;
 };
 

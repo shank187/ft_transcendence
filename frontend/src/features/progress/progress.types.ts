@@ -1,7 +1,12 @@
+export type ProgressTab = "Progress" | "Achievements" | "Analytics";
+
 export type ProgressSummary = {
     completedWorkouts: number;
-    totalVolume: number;
-    period: string;
+    totalXp: number;
 };
 
-export type ProgressTab = "Progress" | "Achievements" | "Analytics";
+export type LeaderboardEntry = {
+    id: string;
+    username: string;
+    xp: number;
+};

@@ -71,26 +71,26 @@ export default function AchievementCard({
                     />
                 </div>
 
-                {achievement.unlocked ? (
-                    <CheckCircle2 className="h-5 w-5 text-app-primary" />
-                ) : (
-                    <LockKeyhole className="h-5 w-5 text-app-text-muted" />
+                {achievement.unlocked ?
+                (<CheckCircle2 className="h-5 w-5 text-app-primary" 
+                />):(
+                <LockKeyhole className="h-5 w-5 text-app-text-muted" />
                 )}
             </div>
 
             {/* ACHIEVEMENT INFORMATION */}
             <div>
-                <h3 className="text-lg font-bold">
+                <div className="text-lg font-bold">
                     {achievement.title}
-                </h3>
+                </div>
 
-                <p className="mt-1 text-sm text-app-text-secondary">
+                <div className="mt-1 text-sm text-app-text-secondary">
                     {achievement.description}
-                </p>
+                </div>
             </div>
 
             {/* UNLOCK STATUS */}
-            <span
+            <div
                 className={`mt-auto text-xs font-semibold tracking-wider ${
                     achievement.unlocked
                         ? "text-app-primary"
@@ -98,7 +98,7 @@ export default function AchievementCard({
                 }`}
             >
                 {achievement.unlocked ? "UNLOCKED" : "LOCKED"}
-            </span>
+            </div>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { prisma } from "../../lib/prisma";
 import { Response } from "express";
+import { findConversation, createConversation } from "../chat/chat.service";
 
 export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response) => {
     const requesterId = req.userId
@@ -109,6 +110,9 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
                 }
             })
         }
+        const conversation = await findConversation(requestSenderId, accepterId)
+        if (!conversation)
+                await createConversation(requestSenderId, accepterId)
         return res.status(200).json({ message: "Friendship request accepted" })
     } catch (error) {
         console.error(error)
