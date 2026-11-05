@@ -54,7 +54,7 @@ export async function findConversation(user1: string, user2: string) {
     return conversation
 }
 
-async function createConversation(user1: string, user2: string) {
+export async function createConversation(user1: string, user2: string) {
     const [userA, userB] = user1.localeCompare(user2) < 0 ? [user1, user2] : [user2, user1];
     let conversation = await prisma.conversation.create({
         data: {
