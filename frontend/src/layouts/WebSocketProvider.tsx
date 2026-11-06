@@ -57,7 +57,7 @@ export default function WebSocketProvider({
                 };
 
                 connection.send(JSON.stringify(message));
-                console.log(`${accessToken}`)
+                // console.log(`${accessToken}`)
             };
 
             connection.onmessage = (event) => {
