@@ -40,6 +40,32 @@ export interface WorkoutSession {
     completedAt: string | null,
     bodyWeightKg: number | null,
     exercises: WorkoutSessionExercise[],
+    // Only a COMPLETED session has one.
+    summary: WorkoutSummary | null,
+}
+
+// S3 -> S5 contract ("Workout results").
+export interface WorkoutSummary {
+    durationSeconds: number,
+    setsCompleted: number,
+    setsTotal: number,
+    volumeKg: number,
+    exerciseCount: number,
+    prSetIds: string[],
+}
+
+// S3 -> S5 contract ("Award function"): what award() returns inside the finish transaction.
+export interface AwardResult {
+    xpGained: number,
+    levelUp: boolean,
+    unlocked: string[],
+}
+
+// POST /api/workout-sessions/:id/finish. The award comes only from this
+// response, so XP is shown once and not after a reload.
+export interface FinishResult {
+    summary: WorkoutSummary,
+    award: AwardResult,
 }
 
 // What the user did in one set, sent when the set is ticked.

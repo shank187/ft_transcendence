@@ -39,7 +39,7 @@ interface Results {
     total: number
 }
 
-export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void})
+export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void | Promise<void>})
 {
     const [resultState, setResultState] = useState<LoadStateType>({status:"loading"})
     const [results, setResults] = useState<Results>({items:[], total:0})
@@ -231,9 +231,13 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" onClick={() => setSelected([])}>Reset</Button>
                         <Button
-                            onClick={() => {
+                            onClick={async () => {
                                 setAddGuard(true)
-                                onAdd(selected)
+                                try {
+                                    await onAdd(selected)
+                                } finally {
+                                    setAddGuard(false)
+                                }
                             }}
                             disabled={addGuard}
                         >

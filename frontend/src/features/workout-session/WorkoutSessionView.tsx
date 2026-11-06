@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { PerformedValues, WorkoutSession } from "./workout-session.types";
+import type { AwardResult, PerformedValues, WorkoutSession } from "./workout-session.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
 import { orderExercises, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
@@ -14,6 +14,8 @@ import type { Exercise } from "../exercises/exercise.types";
 import { ExercisePicker } from "../exercises/ExercisePicker";
 import Dialog from "../../components/ui/Dialog";
 import type { SetType } from "../day-editor/day-editor.types";
+import SessionSummaryCard from "./SessionSummaryCard";
+import EmptyState from "../../components/states/EmptyState";
 
 type LoadStateType =
     | { status: "loading" }
@@ -30,6 +32,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [incompleteFinish, setIncompleteFinish] = useState(false)
     const [finishing, setFinishing] = useState(false)
     const [finishError, setFinishError] = useState<string|null>(null)
+    // Kept only in memory: the contract shows XP once, from the finish response.
+    const [award, setAward] = useState<AwardResult | null>(null)
 
     const [showPicker, setShowPicker] = useState(false)
     const [addError, setAddError] = useState<string | null>(null)
@@ -40,6 +44,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
 
     const [openSetMenuId, setOpenSetMenuId] = useState<string | null>(null)
     const [setError, setSetError] = useState<{ setId: string, message: string } | null>(null)
+    const [savingSetId, setSavingSetId] = useState<string | null>(null)
 
     const [moving, setMoving] = useState(false)
     const [moveError, setMoveError] = useState<{ id: string, message: string } | null>(null)
@@ -66,22 +71,29 @@ export default function WorkoutSessionView(props: {sessionId: string})
 
     const toggleSetMenu = (setId: string) => setOpenSetMenuId(prev => prev === setId ? null : setId)
 
+    // The menu closes at once and its button stays disabled until the save ends,
+    // so the same set can't get a second request.
     const changeSetType = async (exerciseId: string, setId: string, setType: SetType) => {
         setSetError(null)
+        setOpenSetMenuId(null)
+        setSavingSetId(setId)
         try {
             const saved = await updateSessionSet(sessionId, setId, { setType })
             setLoadState(prev => prev.status !== "success" ? prev : {
                 ...prev,
                 session: { ...prev.session, exercises: updateSet(prev.session.exercises, exerciseId, setId, () => saved) },
             })
-            setOpenSetMenuId(null)
         } catch (err) {
             setSetError({ setId, message: err instanceof Error ? err.message : "Can't change the set type, try again." })
+        } finally {
+            setSavingSetId(null)
         }
     }
 
     const removeSessionSet = async (exerciseId: string, setId: string) => {
         setSetError(null)
+        setOpenSetMenuId(null)
+        setSavingSetId(setId)
         try {
             await deleteSet(sessionId, setId)
             setLoadState(prev => prev.status !== "success" ? prev : {
@@ -94,9 +106,10 @@ export default function WorkoutSessionView(props: {sessionId: string})
                     }),
                 },
             })
-            setOpenSetMenuId(null)
         } catch (err) {
             setSetError({ setId, message: err instanceof Error ? err.message : "Can't remove the set, try again." })
+        } finally {
+            setSavingSetId(null)
         }
     }
 
@@ -162,7 +175,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
         setFinishing(true)
         setFinishError(null)
         try {
-            await finishWorkout(sessionId)
+            const result = await finishWorkout(sessionId)
+            setAward(result.award)
             setIncompleteFinish(false)
             reloadSession()
         } catch (err) {
@@ -222,60 +236,71 @@ export default function WorkoutSessionView(props: {sessionId: string})
     }
     const isReadOnly = session.status !== "IN_PROGRESS"
 
+    const addExercisesButton = <Button variant="secondary" onClick={() => setShowPicker(true)}>Add exercises</Button>
+
     return(
         <div className="flex flex-col gap-5">
             <SessionHeader
             name={session.name}
             startedAt={session.startedAt}
+            finishedAt={session.completedAt}
+            status={session.status}
             doneCount={doneCount}
             totalCount={sets.length}
-            onDiscard = {()=> setShowDiscard(true)}
-            onFinish = {()=> requestFinish()}
-            finishing={finishing}
-            status={session.status}
             isReadOnly={isReadOnly}
-            finishedAt={session.completedAt}
+            finishing={finishing}
+            onFinish={requestFinish}
+            onDiscard={() => setShowDiscard(true)}
             />
-            <ol className="flex flex-col gap-5">
-                {session.exercises.map((exercise, i)=>
-                    <li key={exercise.id}>
-                        <ExerciseSessionCard
-                        toggleSetMenu={toggleSetMenu}
-                        openSetMenuId={openSetMenuId}
-                        setError={setError}
-                        onChangeSetType={changeSetType}
-                        onRemoveSet={removeSessionSet}
-                        isAddingSet={addingSet}
-                        addSetError={exercise.id === addSetError?.exerciseId ? addSetError.message : null}
-                        isReadOnly={isReadOnly}
-                        exercise={exercise}
-                        position={i + 1}
-                        isFirst={i === 0}
-                        isLast={i === session.exercises.length - 1}
-                        isMoving={moving}
-                        moveError={moveError?.id === exercise.id ? moveError.message : null}
-                        onMove={(direction) => void moveSessionExercise(exercise.id, direction)}
-                        onCompleteSet={completeSessionSet}
-                        onUncompleteSet={uncompleteSessionSet}
-                        onAddSet={addSessionSet}
-                        />
-                    </li>
-                )}
-            </ol>
-        {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
-        {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
-        {!isReadOnly && <Button onClick={() => setShowPicker(true)}>Add exercises</Button>}
-        {showPicker &&
-            <Dialog 
-            variant="drawer"
-            title="Add exercises"
-            isWorking={adding} 
-            showClose
-            onClose={() => setShowPicker(false)}
-            >
-                <ExercisePicker onAdd={addSelectedExercises} />
-                {addError && <p className="text-app-danger">{addError}</p>}
-            </Dialog>}
+            {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
+            {session.status === "COMPLETED" && session.summary &&
+                <SessionSummaryCard summary={session.summary} award={award}/>
+            }
+            {!isReadOnly && session.exercises.length === 0
+                ? <EmptyState title="No exercises yet" action={addExercisesButton}/>
+                : <ol className="flex flex-col gap-5">
+                    {session.exercises.map((exercise, i)=>
+                        <li key={exercise.id}>
+                            <ExerciseSessionCard
+                            exercise={exercise}
+                            position={i + 1}
+                            isFirst={i === 0}
+                            isLast={i === session.exercises.length - 1}
+                            isReadOnly={isReadOnly}
+                            isAddingSet={addingSet}
+                            isMoving={moving}
+                            openSetMenuId={openSetMenuId}
+                            savingSetId={savingSetId}
+                            addSetError={exercise.id === addSetError?.exerciseId ? addSetError.message : null}
+                            moveError={moveError?.id === exercise.id ? moveError.message : null}
+                            setError={setError}
+                            toggleSetMenu={toggleSetMenu}
+                            onMove={(direction) => void moveSessionExercise(exercise.id, direction)}
+                            onAddSet={addSessionSet}
+                            onCompleteSet={completeSessionSet}
+                            onUncompleteSet={uncompleteSessionSet}
+                            onChangeSetType={changeSetType}
+                            onRemoveSet={removeSessionSet}
+                            />
+                        </li>
+                    )}
+                </ol>
+            }
+            {!isReadOnly && session.exercises.length > 0 && addExercisesButton}
+            {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
+            {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
+            {showPicker &&
+                <Dialog
+                variant="drawer"
+                title="Add exercises"
+                isWorking={adding}
+                showClose
+                onClose={() => setShowPicker(false)}
+                >
+                    {addError && <p role="alert" className="text-app-danger">{addError}</p>}
+                    <ExercisePicker onAdd={addSelectedExercises} />
+                </Dialog>
+            }
         </div>
     )
 }

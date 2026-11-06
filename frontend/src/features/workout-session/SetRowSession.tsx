@@ -14,6 +14,7 @@ export default function SetRowSession(props:{
     isReadOnly:boolean,
     label: string
     isMenuOpen: boolean
+    isMenuBusy: boolean
     toggleSetMenu: () => void,
     onComplete: (setId: string, values: PerformedValues) => Promise<void>
     onUncomplete: () => Promise<void>
@@ -85,7 +86,7 @@ export default function SetRowSession(props:{
                 label={props.label}
                 currentSetType={props.set.setType}
                 isOpen={props.isMenuOpen}
-                disabled={props.isReadOnly}
+                disabled={props.isReadOnly || props.isMenuBusy}
                 toggleSetMenu={props.toggleSetMenu}
                 onChangeSetType={props.onChangeSetType}
                 onRemoveSet={props.onRemoveSet}

@@ -1,6 +1,7 @@
 import getWorkoutDay from "../day-editor/day-editor.api";
 import type { ExerciseSummary, PlannedSet, SetType } from "../day-editor/day-editor.types";
-import type { SetPatch, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
+import type { AwardResult, FinishResult, SetPatch, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "./workout-session.types";
+import { buildSummary } from "./workout-session.helpers";
 
 // FAKE-DATA: in-memory mock of /api/workout-sessions.
 // State resets on every page reload.
@@ -17,6 +18,8 @@ import type { SetPatch, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSe
 //                                              retry succeeds (until reload)
 //   page URL ?fake=save-fail -> updateSessionSet, addSet, deleteSet,
 //                               addExercises and moveExercise always reject
+//   page URL ?fake=levelup -> the first finishWorkout returns levelUp: true
+//                             and unlocked: ["WORKOUTS_1"]
 //   addExercises only knows exercises from a started day or passed to
 //   rememberFakeExercises; any other id rejects "Exercise not found"
 
@@ -117,6 +120,7 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
         completedAt: null,
         bodyWeightKg: null,
         exercises: [],
+        summary: null,
     }
     sessions.set(session.id, session)
     return copySession(session)
@@ -144,6 +148,7 @@ export async function startWorkoutFromDay(planId: string, dayId: string): Promis
             restSeconds: e.restSeconds,
             sets: e.sets.map(toSessionSet),
         })),
+        summary: null,
     }
     sessions.set(session.id, session)
     return copySession(session)
@@ -159,7 +164,7 @@ export async function getWorkoutSession(id: string): Promise<WorkoutSession | nu
 
     const session = sessions.get(id)
     if (!session) return null
-    return copySession(session)
+    return { ...copySession(session), summary: session.status === "COMPLETED" ? fakeSummary(session) : null }
 }
 
 // FAKE-DATA: real version will be PATCH /api/workout-sessions/:id
@@ -325,15 +330,33 @@ export async function moveExercise(sessionId: string, exerciseId: string, direct
 }
 
 
-   // workout-session.api.ts
-   // FAKE-DATA: real version will be POST /api/workout-sessions/:id/finish
-export async function finishWorkout(id: string): Promise<void> {
+// FAKE-DATA: PR detection is server-side (WorkoutSet.isPr), so prSetIds stays empty here.
+function fakeSummary(session: WorkoutSession): WorkoutSummary {
+    return buildSummary(session)
+}
+
+const NO_AWARD: AwardResult = { xpGained: 0, levelUp: false, unlocked: [] }
+
+// FAKE-DATA: real version will be POST /api/workout-sessions/:id/finish
+// Safe to repeat: finishing a COMPLETED workout returns the same summary and never pays twice.
+export async function finishWorkout(id: string): Promise<FinishResult> {
     await wait()
     const session = sessions.get(id)
     if (!session) throw new Error("Workout not found")
     if (session.status === "CANCELLED") throw new Error("This workout was discarded.")
-    if (session.status === "COMPLETED") return
+    if (session.status === "COMPLETED") return { summary: fakeSummary(session), award: { ...NO_AWARD, unlocked: [] } }
     const done = session.exercises.some(e => e.sets.some(s => s.completedAt !== null))
     if (!done) throw new Error("Complete at least one set to finish.")
-    sessions.set(id, { ...session, status: "COMPLETED", completedAt: new Date().toISOString() })
+
+    const finished: WorkoutSession = { ...session, status: "COMPLETED", completedAt: new Date().toISOString() }
+    sessions.set(id, finished)
+    const summary = fakeSummary(finished)
+    const levelUp = new URLSearchParams(window.location.search).get("fake") === "levelup"
+    // FAKE-DATA: the real values come from S5's award(tx, userId, events) inside the finish transaction.
+    const award: AwardResult = {
+        xpGained: 100 + 50 * summary.prSetIds.length,
+        levelUp,
+        unlocked: levelUp ? ["WORKOUTS_1"] : [],
+    }
+    return { summary, award }
 }
