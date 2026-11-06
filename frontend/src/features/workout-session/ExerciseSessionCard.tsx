@@ -1,6 +1,7 @@
 import Card from "../../components/ui/Card";
 import type { PerformedValues, WorkoutSessionExercise } from "./workout-session.types";
-import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL } from "../day-editor/exercise-fields";
+import type { SetType } from "../day-editor/day-editor.types";
+import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel } from "../day-editor/exercise-fields";
 import SetRowSession from "./SetRowSession";
 import Button from "../../components/ui/Button";
 
@@ -10,8 +11,13 @@ export default function ExerciseSessionCard(props:{
     isReadOnly: boolean,
     onAddSet: (exerciseId: string) => void,
     onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>,
+    onChangeSetType: (exerciseId: string, setId: string, setType: SetType) => void,
+    onRemoveSet: (exerciseId: string, setId: string) => void,
     isAddingSet: boolean,
-    addSetError: string | null
+    addSetError: string | null,
+    setError: { setId: string, message: string } | null,
+    toggleSetMenu: (setId: string) => void,
+    openSetMenuId: string | null,
 })
 {
     const exerciseType = EXERCISE_TYPE_LABEL[props.exercise.exerciseSummary.type];
@@ -37,17 +43,23 @@ export default function ExerciseSessionCard(props:{
             <ol className="flex flex-col gap-3">
                 {props.exercise.sets.map((set, i)=>
                     <SetRowSession
-                    isReadOnly={props.isReadOnly}
                     key={set.id}
-                    position={i + 1}
                     set={set}
+                    position={i + 1}
+                    label={setLabel(props.exercise.sets, i)}
                     fields={fields}
+                    isReadOnly={props.isReadOnly}
+                    isMenuOpen={props.openSetMenuId === set.id}
+                    toggleSetMenu={() => props.toggleSetMenu(set.id)}
                     onComplete={(setId, values) => props.onCompleteSet(props.exercise.id, setId, values)}
+                    onChangeSetType={(setType) => props.onChangeSetType(props.exercise.id, set.id, setType)}
+                    onRemoveSet={() => props.onRemoveSet(props.exercise.id, set.id)}
+                    menuError={props.setError?.setId === set.id ? props.setError.message : null}
                     />
                 )}
             </ol>
             {(!props.isReadOnly && props.addSetError) && <p className="text-app-danger">{props.addSetError}</p>}
-            {!props.isReadOnly && <Button  disabled={props.isAddingSet} onClick={()=> props.onAddSet(props.exercise.id)}>Add set</Button>}
+            {!props.isReadOnly && <Button disabled={props.isAddingSet} onClick={()=> props.onAddSet(props.exercise.id)}>Add set</Button>}
         </Card>
     )
 }

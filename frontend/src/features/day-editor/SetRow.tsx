@@ -38,7 +38,7 @@ export default function SetRow(props:
             <SetTypeMenu
             id={menuId}
             label={props.label}
-            CurrentSetType={set.setType}
+            currentSetType={set.setType}
             isOpen={isMenuOpen}
             toggleSetMenu={()=>setOpenSetMenu(isMenuOpen? null :set.key)}
             onChangeSetType={chooseType}

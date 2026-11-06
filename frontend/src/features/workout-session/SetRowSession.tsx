@@ -4,13 +4,21 @@ import { validateSet } from "../day-editor/day-editor.draft";
 import type { FieldKey, SetField } from "../day-editor/exercise-fields";
 import { toPerformed, toText } from "./workout-session.helpers";
 import { PLANNED_KEY, type PerformedValues, type WorkoutSessionSet } from "./workout-session.types";
+import SetTypeMenu from "../day-editor/SetTypeMenu";
+import type { SetType } from "../day-editor/day-editor.types";
 
 export default function SetRowSession(props:{
     set: WorkoutSessionSet,
     position: number
-    fields: SetField[]
+    fields: SetField[],
     isReadOnly:boolean,
+    label: string
+    isMenuOpen: boolean
+    toggleSetMenu: () => void,
     onComplete: (setId: string, values: PerformedValues) => Promise<void>
+    onChangeSetType: (setType: SetType) => void
+    onRemoveSet: () => void
+    menuError: string | null
 })
 {
     const id = useId()
@@ -29,6 +37,7 @@ export default function SetRowSession(props:{
     const hasErrors = Object.keys(errors).length > 0
     // Untick is not built yet, so a done set is read-only.
     const done = props.set.completedAt !== null
+    const menuId = `${id}-set-menu`
 
     async function handleTick()
     {
@@ -58,7 +67,16 @@ export default function SetRowSession(props:{
     return(
         <li className="flex flex-col gap-1">
             <div className="flex items-start gap-2">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center">{props.position}</span>
+                <SetTypeMenu
+                id={menuId}
+                label={props.label}
+                currentSetType={props.set.setType}
+                isOpen={props.isMenuOpen}
+                disabled={props.isReadOnly}
+                toggleSetMenu={props.toggleSetMenu}
+                onChangeSetType={props.onChangeSetType}
+                onRemoveSet={props.onRemoveSet}
+                />
                 {props.fields.map((field)=>
                     <div key={field.key} className="flex w-22 shrink-0 flex-col gap-1">
                         <label htmlFor={`${id}-${field.key}`} className="sr-only">
@@ -94,6 +112,7 @@ export default function SetRowSession(props:{
                 </Button>
             </div>
             {error && <p role="alert" className="text-xs text-app-danger">{error}</p>}
+            {props.menuError && <p role="alert" className="text-xs text-app-danger">{props.menuError}</p>}
         </li>
     )
 }

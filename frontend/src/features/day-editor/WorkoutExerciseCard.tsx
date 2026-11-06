@@ -2,7 +2,7 @@ import { useId } from "react"
 import Button from "../../components/ui/Button"
 import Card from "../../components/ui/Card"
 import type { DraftExercise, SetType} from "./day-editor.types"
-import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, SET_TYPE_LETTER, type FieldKey } from "./exercise-fields"
+import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel, type FieldKey } from "./exercise-fields"
 import SetRow from "./SetRow"
 import { validateRest } from "./day-editor.draft"
 import exercisePlaceholder from "../../assets/exercise-placeholder.svg"
@@ -90,9 +90,7 @@ export default function WorkoutExerciseCard(props: {
                             isMenuOpen={props.openSetMenu === set.key}
                             setOpenSetMenu={props.setOpenSetMenu}
                             set={set}
-                            label={set.setType === "NORMAL"
-                                ? String(exercise.sets.slice(0, i + 1).filter(s => s.setType === "NORMAL").length)
-                                : SET_TYPE_LETTER[set.setType]}
+                            label={setLabel(exercise.sets, i)}
                             fields={fields}
                             />
                         </li>

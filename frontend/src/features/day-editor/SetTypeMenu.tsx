@@ -27,12 +27,14 @@ export default function SetTypeMenu(props:{
     onRemoveSet: () => void,
     label: string
     id: string
-    CurrentSetType: SetType
+    currentSetType: SetType
     isOpen: boolean
+    disabled?: boolean,
 }){
 
     const menuRef = useRef<HTMLDivElement>(null)
-    const ButtonRef = useRef<HTMLButtonElement>(null)
+    const buttonRef = useRef<HTMLButtonElement>(null)
+    const { disabled = false } = props
 
     useEffect(()=>{
         if(!props.isOpen)
@@ -47,7 +49,7 @@ export default function SetTypeMenu(props:{
         const keysClicks = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 props.toggleSetMenu()
-                ButtonRef.current?.focus()
+                buttonRef.current?.focus()
                 return
             }
             const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role^="menuitem"]') ?? [])
@@ -75,14 +77,15 @@ export default function SetTypeMenu(props:{
         className="relative shrink-0"
         >
             <button
-            ref={ButtonRef}
+            ref={buttonRef}
             type="button"
-            aria-label={`Set ${props.label}, type ${SET_TYPE_LABEL[props.CurrentSetType]}. Change type or remove`}
+            aria-label={`Set ${props.label}, type ${SET_TYPE_LABEL[props.currentSetType]}. Change type or remove`}
             aria-haspopup="menu"
             aria-expanded={props.isOpen}
             aria-controls={props.isOpen ? props.id : undefined}
+            disabled={disabled}
             onClick={() => props.toggleSetMenu()}
-            className={`flex size-11 items-center justify-center rounded-md border text-sm font-medium hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.CurrentSetType]}`}
+            className={`flex size-11 items-center justify-center rounded-md border text-sm font-medium hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
             >
                 {props.label}
             </button>
@@ -98,10 +101,10 @@ export default function SetTypeMenu(props:{
                         type="button"
                         role="menuitemradio"
                         className={menuItemClasses}
-                        aria-checked={props.CurrentSetType === setType}
+                        aria-checked={props.currentSetType === setType}
                         onClick={()=>{
                             props.onChangeSetType(setType)
-                            ButtonRef.current?.focus()
+                            buttonRef.current?.focus()
                         }}
                         key={setType}
                         >
@@ -109,7 +112,7 @@ export default function SetTypeMenu(props:{
                                 <span aria-hidden={true} className={`size-2 rounded-full ${SET_TYPE_DOT[setType]}`}/>
                                 {SET_TYPE_LABEL[setType]}
                             </span>
-                            {props.CurrentSetType === setType && <span className="text-app-primary" aria-hidden={true}>✓</span>}
+                            {props.currentSetType === setType && <span className="text-app-primary" aria-hidden={true}>✓</span>}
                         </button>
                     ))}
                     <div role="separator" className="my-1 h-px bg-app-border"/>
