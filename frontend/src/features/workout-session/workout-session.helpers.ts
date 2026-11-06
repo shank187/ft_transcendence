@@ -35,11 +35,14 @@ export function updateSet(
 }
 
 // Rebuilds the list in the order the server returned; ids it does not know are dropped.
+// The existing order values are handed out again in that sequence, the same swap the server makes.
 export function orderExercises(exercises: WorkoutSessionExercise[], ids: string[]): WorkoutSessionExercise[]
 {
+    const orders = exercises.map(exercise => exercise.order).sort((a, b) => a - b)
     return ids
         .map(id => exercises.find(exercise => exercise.id === id))
         .filter(exercise => exercise !== undefined)
+        .map((exercise, i) => exercise.order === orders[i] ? exercise : { ...exercise, order: orders[i] })
 }
 
 // 38:42 under an hour, 1:02:05 after.
