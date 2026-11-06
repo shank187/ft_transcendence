@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import DropDownMenu from "../../components/ui/DropdownMenu";
 import type { PlanDay } from "./plan-detail.types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { buttonClasses } from "../../components/ui/button-classes";
+import { ActiveWorkoutError, startWorkoutFromDay } from "../workout-session/workout-session.api";
+import ActiveWorkoutDialog from "../workout-session/ActiveWorkoutDialog";
 
 
 
@@ -18,6 +20,10 @@ export default function DayRow(
         onDelete: (day: PlanDay) => void
     }
 ){
+    const [startState, setStartState] = useState(false)
+    const [startError, setStartError] = useState<string|null>(null)
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+    const navigate = useNavigate()
 
     const day = props.day;
     const exercises = `${day.exerciseCount} ${day.exerciseCount === 1 ? "exercise" : "exercises"}`;
@@ -26,6 +32,7 @@ export default function DayRow(
     const menuWrapper = useRef<HTMLDivElement>(null);
     const isMenuOpen = props.dropDownMenu === day.id;
     const { setDropDown } = props;
+
 
     // close the menu on a press outside the ⋮ button and the menu
     useEffect(() => {
@@ -76,6 +83,7 @@ export default function DayRow(
                     )}
                 </div>
             </div>
+            {startError && <p className="text-app-danger">{startError}</p>}
             <div className="flex items-center gap-2">
                 <Link
                     to={`/workouts/plans/${props.planId}/days/${day.id}`}
@@ -84,10 +92,38 @@ export default function DayRow(
                     Edit
                 </Link>
                 {/* TODO(UI 5/7): start a workout from this day */}
-                <Button variant="primary" className="flex-1 min-h-11" disabled>
-                    ▶ Start
+                <Button
+                variant="primary"
+                className="flex-1 min-h-11"
+                disabled = {startState}
+                onClick={async ()=>{
+                    setStartState(true)
+                    setStartError(null)
+                    try{
+                        const session = await startWorkoutFromDay(props.planId, props.day.id)
+                        navigate(`/workouts/session/${session.id}`)
+                    }catch(err){
+                        if (err instanceof ActiveWorkoutError)
+                            setActiveSessionId(err.activeSessionId)
+                        else
+                            setStartError(err instanceof Error ? err.message : "Cant start your session.")
+                    }finally{
+                        setStartState(false)
+                    }
+                }}
+                >
+                    {(!startError && !startState) && "▶ Start"}
+                    {(!startError && startState) && "▶ Starting..."}
+                    {(startError) && "Retry"}
                 </Button>
             </div>
+            {activeSessionId &&
+                <ActiveWorkoutDialog
+                activeSessionId={activeSessionId}
+                startNew={() => startWorkoutFromDay(props.planId, day.id)}
+                onClose={() => setActiveSessionId(null)}
+                />
+            }
         </Card>
     );
 }
