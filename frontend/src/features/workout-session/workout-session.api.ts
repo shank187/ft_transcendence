@@ -3,8 +3,9 @@ import type { ExerciseSummary, PlannedSet, SetType } from "../day-editor/day-edi
 import type { AwardResult, FinishResult, SetPatch, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "./workout-session.types";
 import { buildSummary } from "./workout-session.helpers";
 
-// FAKE-DATA: in-memory mock of /api/workout-sessions.
-// State resets on every page reload.
+// FAKE-DATA: mock of /api/workout-sessions.
+// Sessions are kept in localStorage so a reload keeps them, like the real
+// database. Remove the "fake-workout-sessions" key to start clean.
 //
 // FAKE-DATA: scenarios
 //   startWorkoutFromDay, dayId "fail"    -> rejects (from getWorkoutDay)
@@ -28,7 +29,27 @@ const MAX_EXERCISES = 20
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
 // FAKE-DATA: stands in for the WorkoutSession table, one entry per session id.
-const sessions = new Map<string, WorkoutSession>()
+const STORAGE_KEY = "fake-workout-sessions"
+const sessions = loadStoredSessions()
+
+// Storage can be blocked or hold old shapes; then the fake starts empty.
+function loadStoredSessions(): Map<string, WorkoutSession> {
+    try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as WorkoutSession[]
+        return new Map(stored.map(session => [session.id, session]))
+    } catch {
+        return new Map()
+    }
+}
+
+function storeSession(session: WorkoutSession) {
+    sessions.set(session.id, session)
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([...sessions.values()]))
+    } catch {
+        // The in-memory copy still works for this page load.
+    }
+}
 
 // FAKE-DATA: stands in for the Exercise table, so addExercises can build a
 // summary from an id. Filled by started days and rememberFakeExercises.
@@ -122,7 +143,7 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
         exercises: [],
         summary: null,
     }
-    sessions.set(session.id, session)
+    storeSession(session)
     return copySession(session)
 }
 
@@ -150,7 +171,7 @@ export async function startWorkoutFromDay(planId: string, dayId: string): Promis
         })),
         summary: null,
     }
-    sessions.set(session.id, session)
+    storeSession(session)
     return copySession(session)
 }
 
@@ -172,7 +193,7 @@ export async function discardWorkout(id: string): Promise<void> {
     await wait()
     const session = sessions.get(id)
     if (!session) throw new Error("Workout not found")
-    sessions.set(id, { ...session, status: "CANCELLED" })
+    storeSession({ ...session, status: "CANCELLED" })
 }
 
 
@@ -191,7 +212,7 @@ function getOpenSession(sessionId: string): WorkoutSession {
 }
 
 function saveExercises(session: WorkoutSession, exercises: WorkoutSessionExercise[]) {
-    sessions.set(session.id, { ...session, exercises })
+    storeSession({ ...session, exercises })
 }
 
 function emptySet(setNumber: number): WorkoutSessionSet {
@@ -349,7 +370,7 @@ export async function finishWorkout(id: string): Promise<FinishResult> {
     if (!done) throw new Error("Complete at least one set to finish.")
 
     const finished: WorkoutSession = { ...session, status: "COMPLETED", completedAt: new Date().toISOString() }
-    sessions.set(id, finished)
+    storeSession(finished)
     const summary = fakeSummary(finished)
     const levelUp = new URLSearchParams(window.location.search).get("fake") === "levelup"
     // FAKE-DATA: the real values come from S5's award(tx, userId, events) inside the finish transaction.
