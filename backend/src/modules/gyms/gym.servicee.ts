@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
-    let limit : number = 5;
+    let limit : number = 3;
     if (!page)
             page = 1;
     const gymskiped = (page - 1) * limit;
