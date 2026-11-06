@@ -23,12 +23,6 @@ export default function Message({ message, myUserId }: MessageProps) {
                             minute: "2-digit"
                         })}
                     </span>
-
-                    {isMine && (
-                        <span>
-                            {message.readAt ? "Read" : "Sent"}
-                        </span>
-                    )}
                 </div>
             </div>
         </div>

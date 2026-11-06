@@ -1,12 +1,11 @@
-
 import { useEffect, useState } from "react"
 import api from "../auth/axiosInstance"
 import type { ConversationData, ConversationsListProps } from "./chat.types"
 import { useWebSocket } from "../../pages/WebSocketContext"
 
-export function ConversationsList({ 
+export function ConversationsList({
     onSelectFriend,
- }: ConversationsListProps) {
+}: ConversationsListProps) {
     const { lastMessage } = useWebSocket()
     const [conversations, setConversations] = useState<ConversationData[]>([])
 
@@ -31,16 +30,7 @@ export function ConversationsList({
             cancelled = true
         }
     }, [lastMessage])
-    function handleSelectConversation(conversation: ConversationData) {
-        setConversations(current =>
-            current.map(item => 
-                item.conversationId === conversation.conversationId ? 
-                    {...item, lastMessage: item.lastMessage ? {...item.lastMessage, readAt: item.lastMessage.readAt ?? new Date().toISOString()}: null} : item
-            )
-        )
 
-    onSelectFriend(conversation.user)
-}
     return (
         <section className="flex h-full min-h-0 flex-col gap-4">
             <h2 className="shrink-0 text-center text-lg font-semibold text-app-text">
@@ -64,16 +54,12 @@ export function ConversationsList({
                             : "/default-avatar.png"
 
                         const last = conversation.lastMessage
-                        const unread = Boolean(
-                            last && !last.readAt &&
-                            last.senderId === conversation.user.id
-                        )
 
                         return (
                             <button
                                 key={conversation.conversationId}
                                 type="button"
-                                onClick={() => handleSelectConversation(conversation)}
+                                onClick={() => onSelectFriend(conversation.user)}
                                 className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-app-surface-hover"
                             >
                                 <img
@@ -88,11 +74,7 @@ export function ConversationsList({
                                             conversation.user.username}
                                     </p>
 
-                                    <p className={`truncate text-xs ${
-                                        unread
-                                            ? "font-bold text-app-text"
-                                            : "text-app-text-muted"
-                                    }`}>
+                                    <p className="truncate text-xs text-app-text-muted">
                                         {last?.senderId !== conversation.user.id && last
                                             ? "You: "
                                             : ""}
@@ -101,11 +83,7 @@ export function ConversationsList({
                                 </div>
 
                                 {last?.createdAt && (
-                                    <span className={`shrink-0 text-xs ${
-                                        unread
-                                            ? "font-bold text-app-text"
-                                            : "text-app-text-muted"
-                                    }`}>
+                                    <span className="shrink-0 text-xs text-app-text-muted">
                                         {new Date(last.createdAt).toLocaleTimeString([], {
                                             hour: "2-digit",
                                             minute: "2-digit"

@@ -1,10 +1,9 @@
-
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import type { MessageData, ChatWindowProps, ClientMessage } from "./chat.types"
+import type { MessageData, ChatWindowProps } from "./chat.types"
 import Message from "./Message"
 import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
-import { useWebSocket  } from "../../pages/WebSocketContext"
+import { useWebSocket } from "../../pages/WebSocketContext"
 
 export default function ChatWindow({
     friend,
@@ -12,7 +11,7 @@ export default function ChatWindow({
     lastMessage,
     onBack
 }: ChatWindowProps) {
-    const { wsRef, connectionStatus } = useWebSocket()
+    const { connectionStatus } = useWebSocket()
     const { user } = useAuth()
 
     const [msgs, setMsgs] = useState<MessageData[]>([])
@@ -37,42 +36,23 @@ export default function ChatWindow({
                 )
 
                 if (cancelled) return
-    setMsgs(current => {
-        const messages = new Map<string, MessageData>()
 
-        response.data.forEach(message => {
-            messages.set(message.id, message)
-        })
+                setMsgs(current => {
+                    const messages = new Map<string, MessageData>()
 
-    current.forEach(message => {
-            const existing = messages.get(message.id)
+                    response.data.forEach(message => {
+                        messages.set(message.id, message)
+                    })
 
-        messages.set(message.id, {
-            ...existing,
-            ...message,
-            readAt: message.readAt ?? existing?.readAt ?? null
-        })
-    })
+                    current.forEach(message => {
+                        messages.set(message.id, message)
+                    })
 
-    return Array.from(messages.values()).sort(
-        (a, b) =>
-            new Date(a.createdAt).getTime() -
-            new Date(b.createdAt).getTime()
-    )
-})
-                // setMsgs(response.data)
-
-                response.data.forEach(message => {
-                    if (message.senderId === friend!.id && !message.readAt) {
-                        const readMessage: ClientMessage = {
-                            type: "readMessage",
-                            target: friend!.id,
-                            messageId: message.id
-                        }
-
-                        if (wsRef.current?.readyState === WebSocket.OPEN)
-                            wsRef.current.send(JSON.stringify(readMessage))
-                    }
+                    return Array.from(messages.values()).sort(
+                        (a, b) =>
+                            new Date(a.createdAt).getTime() -
+                            new Date(b.createdAt).getTime()
+                    )
                 })
             } catch (error) {
                 if (!cancelled)
@@ -80,13 +60,12 @@ export default function ChatWindow({
             }
         }
 
-        setMsgs([])
         getMessageHistory()
 
         return () => {
             cancelled = true
         }
-    }, [friend?.id, wsRef, connectionStatus])
+    }, [friend?.id, connectionStatus])
 
     useLayoutEffect(() => {
         if (chatBodyRef.current)
@@ -101,7 +80,8 @@ export default function ChatWindow({
             (lastMessage.from === user.id && lastMessage.to === friend.id) ||
             (lastMessage.from === friend.id && lastMessage.to === user.id)
 
-        if (!isCurrentConversation) return
+        if (!isCurrentConversation)
+            return
 
         const incomingMessage: MessageData = {
             id: lastMessage.messageId,
@@ -109,46 +89,28 @@ export default function ChatWindow({
             content: lastMessage.content,
             conversationId: lastMessage.conversationId,
             createdAt: lastMessage.createdAt,
-            readAt: null
         }
 
-        if (lastMessage.from === friend.id) {
-            const readMessage: ClientMessage = {
-                type: "readMessage",
-                target: friend.id,
-                messageId: incomingMessage.id
-            }
+        setMsgs(current => {
+            if (current.some(message => message.id === incomingMessage.id))
+                return current
 
-            if (wsRef.current?.readyState === WebSocket.OPEN)
-                wsRef.current.send(JSON.stringify(readMessage))
-        }
-
-        setMsgs(current =>
-            current.some(message => message.id === incomingMessage.id)
-                ? current
-                : [...current, incomingMessage]
-        )
-    }, [lastMessage, friend?.id, user?.id, wsRef])
-
-    useEffect(() => {
-        if (!lastMessage || lastMessage.type !== "readMessage")
-            return
-
-setMsgs(current =>
-    current.map(message =>
-        message.id === lastMessage.messageId
-            ? { ...message, readAt: lastMessage.readAt }
-            : message
-    )
-)
-    }, [lastMessage])
+            return [...current, incomingMessage].sort(
+                (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+            )
+        })
+    }, [lastMessage, friend?.id, user?.id])
 
     function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (!friend || !msg.trim()) return
+        if (!friend || !msg.trim())
+            return
 
         const sent = onSendMessage(friend.id, msg.trim())
+
         if (sent)
             setMsg("")
     }
@@ -220,8 +182,8 @@ setMsgs(current =>
                     type="text"
                     placeholder={
                         connectionStatus === "connected"
-                        ? "Type a message..."
-                        : "Waiting for connection..."
+                            ? "Type a message..."
+                            : "Waiting for connection..."
                     }
                     aria-label="Message"
                     value={msg}

@@ -18,7 +18,6 @@ export type MessageData = {
     senderId: string
     content: string
     createdAt: string
-    readAt: string | null
 }
 
 export type MessageProps = {
@@ -53,11 +52,6 @@ export type ClientMessage =
         to: string;
         content: string;
     }
-    | {
-        type: "readMessage";
-        target: string;
-        messageId: string;
-    };
 
 export type ServerMessage =
     | {
@@ -80,12 +74,6 @@ export type ServerMessage =
     | {
         type: "presence_snapshot";
         onlineUserIds: string[];
-    }
-    | {
-        type: "readMessage";
-        from: string;
-        messageId: string;
-        readAt: string;
     }
     | {
         type: "error";
