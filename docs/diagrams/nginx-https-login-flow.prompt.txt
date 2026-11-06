@@ -1,0 +1,72 @@
+Generated with the built-in image_gen tool.
+
+INITIAL PROMPT
+
+Create a new, complete PNG educational architecture infographic by REDRAWING AND EXTENDING the user's attached sketch. Use the attached image as the visual reference / edit target. All text must be in clear correct ENGLISH. Keep its recognizable dark charcoal background, light outlined boxes, and Browser -> Nginx -> Frontend/Vite structure, but professionally clean up alignment, typography, arrow direction, spelling, spacing, and completeness. High resolution, landscape, roughly 4:3 or 16:10, enough room for very readable text. This is a teaching diagram for a beginner, NOT a wall of paragraphs. Strong visual hierarchy, clean sans-serif headings and legible monospaced code labels. Use cyan for encrypted HTTPS/WSS connections, orange for internal HTTP/WS connections, green for successful responses. Use distinct arrows for requests going right and responses coming left. No decorative people, no watermarks.
+
+TITLE: "How https://localhost/login loads"
+SUBTITLE: "The browser uses HTTPS. Nginx forwards HTTP inside Docker."
+
+MAIN DIAGRAM: Three clear vertical swimlanes / large actor panels, keeping Browser on the left, Nginx in the middle, Vite on the right.
+LEFT HEADER: "BROWSER" / "React runs here"
+CENTER HEADER: "NGINX" / "Public port 443" with small lock icon and "TLS certificate + private key"
+RIGHT HEADER: "FRONTEND / VITE" / "Docker service frontend" / "Internal port 5173"
+Put a subtle Docker-network enclosure around Nginx and Vite (not around Browser).
+
+Use these accurately numbered steps, with strong arrowheads and generous spacing:
+1. Browser connects to Nginx: cyan arrow labeled "TLS handshake (port 443)". Small note "Nginx presents the localhost certificate. Browser checks hostname and trust." Tiny note "Self-signed: local trust must be configured."
+2. Browser -> Nginx cyan request arrow: "HTTPS request (encrypted)" and a readable request card:
+"GET /login"
+"Host: localhost"
+3. Nginx processing card:
+"Decrypt TLS"
+"$host = localhost"
+"$scheme = https"
+"Match: location /"
+Nginx -> Vite orange arrow labeled "HTTP request (inside Docker)" and readable forwarded-request card:
+"Destination: http://frontend:5173/login"
+"GET /login"
+"Host: localhost"
+"X-Forwarded-Proto: https"
+Add two short callouts anchored to that card:
+"Host preserves the public hostname."
+"X-Forwarded-Proto records the original protocol; it does not encrypt this hop."
+4. Vite small processing card:
+"Read req.headers.host"
+"localhost is allowed -> serve page"
+Tiny comparison note: "Without the Host override, Host: frontend:5173 is rejected by default (403)."
+Vite -> Nginx orange response arrow: "HTTP 200 OK + HTML".
+5. Nginx -> Browser cyan response arrow: "Encrypt response -> HTTPS 200 OK + HTML".
+6. Under Browser, show a local execution card:
+"Browser requests JS/CSS through the same proxy."
+"Browser executes JavaScript."
+"React renders the login page."
+"Address bar stays https://localhost/login"
+IMPORTANT: Do not imply HTML contains all JS/CSS bytes in one response; there are separate asset requests following the same route.
+
+BOTTOM SECONDARY PANEL, clearly separate from the main page-loading flow:
+HEADING: "After the page loads: separate browser requests"
+A compact API flow:
+"React in the browser -> HTTPS POST /api/auth/login -> Nginx -> HTTP backend:3000 -> Express"
+Return arrows or a second short line: "JSON response -> Nginx -> HTTPS -> Browser / React"
+Short note: "The browser sends API requests. The Vite container does not call Express for this client-side flow."
+Small routing legend:
+"/api/* and /uploads/* -> backend:3000 over HTTP"
+"/chat -> browser-to-Nginx WSS -> backend:3000 WS (WebSocket Upgrade)"
+"Other page paths -> frontend:5173 over HTTP"
+
+Bottom takeaway strip:
+"Public address: https://localhost | Docker-only names: frontend:5173 and backend:3000"
+Accuracy is essential. Host header is metadata, not the TCP destination. HTTPS terminates at Nginx. The existing internal HTTP hop is intentional. Do not show a browser redirect to http://frontend:5173. No app source code changes. Output one polished PNG infographic.
+
+CORRECTION PROMPT
+
+Edit this existing English educational infographic with a PRECISE LIMITED CORRECTION. Keep the overall layout, all three main actor panels, all top flow steps, all text, colors, and typography unchanged except the two explicit changes below.
+
+1. Correct ONLY the BOTTOM LEFT API panel headed "After the page loads: separate browser requests". Its request flow remains Browser/React -> Nginx -> Express. The current response arrow visually bypasses the Nginx node, which is incorrect. Redraw this panel as a small clean two-lane network diagram with three actors: React (in the browser), Nginx, Express. The Nginx box can be taller to span both lanes.
+Upper request lane: cyan rightward arrow React -> Nginx labeled "HTTPS POST /api/auth/login", then orange rightward arrow Nginx -> Express labeled "HTTP backend:3000".
+Lower response lane: orange LEFTWARD arrow Express -> Nginx labeled "HTTP JSON response", then cyan LEFTWARD arrow Nginx -> React labeled "HTTPS JSON response". Both return arrows MUST visibly connect to the same middle NGINX actor. There must be NO direct arrow or curved line between Express and React that skips Nginx. Use adequate spacing so text does not overlap. Retain the note "The browser sends API requests. The Vite container does not call Express for this client-side flow."
+2. The narrow legend currently has a green response color box even though response arrows should follow their transport colors. Replace just that third legend box with a neutral note: "Arrow color shows the protocol in both directions." Keep cyan "HTTPS / WSS (encrypted, public)" and orange "HTTP / WS (internal, inside Docker)".
+
+Do not change any other panels, routing rows, variables, URLs, labels, or text. Preserve accurate spelling, especially "$host", "$scheme", "Host", and "X-Forwarded-Proto". Output a crisp readable PNG.
+
