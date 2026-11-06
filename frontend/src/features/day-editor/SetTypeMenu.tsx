@@ -57,6 +57,9 @@ export default function SetTypeMenu(props:{
                 buttonRef.current?.focus()
                 return
             }
+            // The listener is on document, so leave the keys alone once focus has left the menu.
+            if (!menuRef.current?.contains(document.activeElement))
+                return
             const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role^="menuitem"]') ?? [])
             const current = items.indexOf(document.activeElement as HTMLButtonElement)
             let next: number
