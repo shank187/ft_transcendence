@@ -34,21 +34,26 @@ export default function SetTypeMenu(props:{
 
     const menuRef = useRef<HTMLDivElement>(null)
     const buttonRef = useRef<HTMLButtonElement>(null)
-    const { disabled = false } = props
+    const { disabled = false, isOpen, toggleSetMenu } = props
+
+    // Focus only when the menu opens, not on every re-render while it is open.
+    useEffect(()=>{
+        if(isOpen)
+            menuRef.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus()
+    }, [isOpen])
 
     useEffect(()=>{
-        if(!props.isOpen)
+        if(!isOpen)
             return
-        menuRef.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus()
-    
+
         const closeOnOutsidePress = (e: PointerEvent)=>{
             if(! menuRef.current?.contains(e.target as Node))
-                props.toggleSetMenu()
+                toggleSetMenu()
         }
 
         const keysClicks = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                props.toggleSetMenu()
+                toggleSetMenu()
                 buttonRef.current?.focus()
                 return
             }
@@ -69,7 +74,7 @@ export default function SetTypeMenu(props:{
             document.removeEventListener("pointerdown", closeOnOutsidePress)
             document.removeEventListener("keydown", keysClicks)
         }
-    }, [props.isOpen, props.toggleSetMenu])
+    }, [isOpen, toggleSetMenu])
 
     return(
         <div
@@ -81,15 +86,15 @@ export default function SetTypeMenu(props:{
             type="button"
             aria-label={`Set ${props.label}, type ${SET_TYPE_LABEL[props.currentSetType]}. Change type or remove`}
             aria-haspopup="menu"
-            aria-expanded={props.isOpen}
-            aria-controls={props.isOpen ? props.id : undefined}
+            aria-expanded={isOpen}
+            aria-controls={isOpen ? props.id : undefined}
             disabled={disabled}
-            onClick={() => props.toggleSetMenu()}
+            onClick={toggleSetMenu}
             className={`flex size-11 items-center justify-center rounded-md border text-sm font-medium hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
             >
                 {props.label}
             </button>
-            { props.isOpen &&
+            { isOpen &&
                 <div
                 id={props.id}
                 role="menu"
