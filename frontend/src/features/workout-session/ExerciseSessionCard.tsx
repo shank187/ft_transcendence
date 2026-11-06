@@ -11,6 +11,11 @@ export default function ExerciseSessionCard(props:{
     isReadOnly: boolean,
     onAddSet: (exerciseId: string) => void,
     onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>,
+    isFirst: boolean,
+    isLast: boolean,
+    isMoving: boolean,
+    moveError: string | null,
+    onMove: (direction: -1 | 1) => void,
     onChangeSetType: (exerciseId: string, setId: string, setType: SetType) => void,
     onRemoveSet: (exerciseId: string, setId: string) => void,
     isAddingSet: boolean,
@@ -22,17 +27,29 @@ export default function ExerciseSessionCard(props:{
 {
     const exerciseType = EXERCISE_TYPE_LABEL[props.exercise.exerciseSummary.type];
     const fields = EXERCISE_FIELDS[props.exercise.exerciseSummary.type]
+    const name = props.exercise.exerciseSummary.name
     return(
         <Card className="p-5">
             <div className="flex gap-3">
                 <p>{props.position}</p>
-                <div>
-                    <h2>{props.exercise.exerciseSummary.name}</h2>
+                <div className="min-w-0 flex-1">
+                    <h2>{name}</h2>
                     <p className="text-app-text-muted">
                         {props.exercise.exerciseSummary.primaryMuscle} | {exerciseType}
                     </p>
                 </div>
+                {!props.isReadOnly &&
+                    <div className="flex shrink-0 gap-2">
+                        {!props.isFirst &&
+                            <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} up`} onClick={() => props.onMove(-1)} className="size-11">↑</Button>
+                        }
+                        {!props.isLast &&
+                            <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} down`} onClick={() => props.onMove(1)} className="size-11">↓</Button>
+                        }
+                    </div>
+                }
             </div>
+            {props.moveError && <p role="alert" className="text-app-danger">{props.moveError}</p>}
 
             <div className="flex gap-2 text-[11px] font-medium tracking-wider text-app-text-muted" aria-hidden="true">
                 <span className="w-11 shrink-0">SET</span>

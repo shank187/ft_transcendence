@@ -34,4 +34,12 @@ export function updateSet(
     )
 }
 
+// Rebuilds the list in the order the server returned; ids it does not know are dropped.
+export function orderExercises(exercises: WorkoutSessionExercise[], ids: string[]): WorkoutSessionExercise[]
+{
+    return ids
+        .map(id => exercises.find(exercise => exercise.id === id))
+        .filter(exercise => exercise !== undefined)
+}
+
 

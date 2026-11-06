@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
-import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
-import { updateSet } from "./workout-session.helpers";
+import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
+import { orderExercises, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../components/states/LoadingState";
 import NotFoundState from "../../components/states/NotFoundState";
 import ErrorState from "../../components/states/ErrorState";
@@ -39,6 +39,9 @@ export default function WorkoutSessionView(props: {sessionId: string})
 
     const [openSetMenuId, setOpenSetMenuId] = useState<string | null>(null)
     const [setError, setSetError] = useState<{ setId: string, message: string } | null>(null)
+
+    const [moving, setMoving] = useState(false)
+    const [moveError, setMoveError] = useState<{ id: string, message: string } | null>(null)
 
     const addSelectedExercises = async (selected: Exercise[]) => {
         setAdding(true)
@@ -123,6 +126,23 @@ export default function WorkoutSessionView(props: {sessionId: string})
             ...prev,
             session: { ...prev.session, exercises: updateSet(prev.session.exercises, exerciseId, setId, () => saved) },
         })
+    }
+
+    // The server's order is the truth: rebuild from the ids it returns instead of swapping locally.
+    const moveSessionExercise = async (exerciseId: string, direction: -1 | 1) => {
+        setMoveError(null)
+        setMoving(true)
+        try {
+            const ids = await moveExercise(sessionId, exerciseId, direction)
+            setLoadState(prev => prev.status !== "success" ? prev : {
+                ...prev,
+                session: { ...prev.session, exercises: orderExercises(prev.session.exercises, ids) },
+            })
+        } catch (err) {
+            setMoveError({ id: exerciseId, message: err instanceof Error ? err.message : "Can't move this exercise, try again." })
+        } finally {
+            setMoving(false)
+        }
     }
 
     const finish = async () => {
@@ -217,6 +237,11 @@ export default function WorkoutSessionView(props: {sessionId: string})
                         isReadOnly={isReadOnly}
                         exercise={exercise}
                         position={i + 1}
+                        isFirst={i === 0}
+                        isLast={i === session.exercises.length - 1}
+                        isMoving={moving}
+                        moveError={moveError?.id === exercise.id ? moveError.message : null}
+                        onMove={(direction) => void moveSessionExercise(exercise.id, direction)}
                         onCompleteSet={completeSessionSet}
                         onAddSet={addSessionSet}
                         />
