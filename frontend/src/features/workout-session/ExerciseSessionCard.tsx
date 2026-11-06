@@ -11,6 +11,7 @@ export default function ExerciseSessionCard(props:{
     isReadOnly: boolean,
     onAddSet: (exerciseId: string) => void,
     onCompleteSet: (exerciseId: string, setId: string, values: PerformedValues) => Promise<void>,
+    onUncompleteSet: (exerciseId: string, setId: string) => Promise<void>,
     isFirst: boolean,
     isLast: boolean,
     isMoving: boolean,
@@ -69,6 +70,7 @@ export default function ExerciseSessionCard(props:{
                     isMenuOpen={props.openSetMenuId === set.id}
                     toggleSetMenu={() => props.toggleSetMenu(set.id)}
                     onComplete={(setId, values) => props.onCompleteSet(props.exercise.id, setId, values)}
+                    onUncomplete={() => props.onUncompleteSet(props.exercise.id, set.id)}
                     onChangeSetType={(setType) => props.onChangeSetType(props.exercise.id, set.id, setType)}
                     onRemoveSet={() => props.onRemoveSet(props.exercise.id, set.id)}
                     menuError={props.setError?.setId === set.id ? props.setError.message : null}

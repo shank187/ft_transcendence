@@ -16,6 +16,7 @@ export default function SetRowSession(props:{
     isMenuOpen: boolean
     toggleSetMenu: () => void,
     onComplete: (setId: string, values: PerformedValues) => Promise<void>
+    onUncomplete: () => Promise<void>
     onChangeSetType: (setType: SetType) => void
     onRemoveSet: () => void
     menuError: string | null
@@ -35,9 +36,21 @@ export default function SetRowSession(props:{
 
     const errors = validateSet(text, props.fields)
     const hasErrors = Object.keys(errors).length > 0
-    // Untick is not built yet, so a done set is read-only.
     const done = props.set.completedAt !== null
     const menuId = `${id}-set-menu`
+
+    async function handleUntick()
+    {
+        setSaving(true)
+        setError(null)
+        try {
+            await props.onUncomplete()
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to save set.")
+        } finally {
+            setSaving(false)
+        }
+    }
 
     async function handleTick()
     {
@@ -102,10 +115,10 @@ export default function SetRowSession(props:{
                 {/* STYLE: done look (green row) is layer 4 */}
                 <Button
                 variant="ghost"
-                aria-label={`Complete set ${props.position}`}
+                aria-label={done ? `Mark set ${props.position} not done` : `Complete set ${props.position}`}
                 aria-pressed={done}
-                disabled={saving || done || hasErrors || props.isReadOnly}
-                onClick={() => void handleTick()}
+                disabled={saving || (!done && hasErrors) || props.isReadOnly}
+                onClick={() => void (done ? handleUntick() : handleTick())}
                 className="size-11 shrink-0 border border-app-border"
                 >
                     {saving ? "…" : "✓"}

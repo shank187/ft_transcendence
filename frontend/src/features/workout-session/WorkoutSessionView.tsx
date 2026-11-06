@@ -128,6 +128,14 @@ export default function WorkoutSessionView(props: {sessionId: string})
         })
     }
 
+    const uncompleteSessionSet = async (exerciseId: string, setId: string) => {
+        const saved = await updateSessionSet(sessionId, setId, { completed: false })
+        setLoadState(prev => prev.status !== "success" ? prev : {
+            ...prev,
+            session: { ...prev.session, exercises: updateSet(prev.session.exercises, exerciseId, setId, () => saved) },
+        })
+    }
+
     // The server's order is the truth: rebuild from the ids it returns instead of swapping locally.
     const moveSessionExercise = async (exerciseId: string, direction: -1 | 1) => {
         setMoveError(null)
@@ -243,6 +251,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                         moveError={moveError?.id === exercise.id ? moveError.message : null}
                         onMove={(direction) => void moveSessionExercise(exercise.id, direction)}
                         onCompleteSet={completeSessionSet}
+                        onUncompleteSet={uncompleteSessionSet}
                         onAddSet={addSessionSet}
                         />
                     </li>
