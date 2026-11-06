@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type {WorkoutPlan} from "./workout.types";
 import getWorkouts from "./workout.api";
 import WorkoutPlanCard from "./WorkoutPlanCard";
@@ -16,31 +16,36 @@ export default function WorkoutPlanCatalog()
     const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
     
-    const loadWorkouts = useCallback(
-        async () => {
-                try{
-                    const data = await getWorkouts();
-                    setWorkouts(data)
-
-                }
-                catch(err){
-                    setError(err instanceof Error ? err.message : "Failed to load Workouts.")
-                }
-                finally{
-                    setLoading(false)
-                }
-            }
-    ,[])
+    const [reloadCount, setReloadCount] = useState(0)
 
     const retryWorkouts = () =>{
         setLoading(true)
         setError(null)
-        void loadWorkouts()
+        setReloadCount(count => count + 1)
     }
+
+    // The load lives inside the effect so its cleanup can ignore an answer that
+    // arrives after the page left or a newer retry started.
     useEffect(()=>{
-        void loadWorkouts();
+        let ignore = false
+        const loadWorkouts = async () => {
+            try{
+                const data = await getWorkouts();
+                if (ignore) return
+                setWorkouts(data)
+            }
+            catch(err){
+                if (ignore) return
+                setError(err instanceof Error ? err.message : "Failed to load Workouts.")
+            }
+            finally{
+                if (!ignore) setLoading(false)
+            }
+        }
+        void loadWorkouts()
+        return () => { ignore = true }
     }
-    ,[loadWorkouts])
+    ,[reloadCount])
 
     if(loading)
         return(

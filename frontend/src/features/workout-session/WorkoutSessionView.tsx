@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import type { PerformedValues, WorkoutSession } from "./workout-session.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, rememberSessionExercises, updateSessionSet } from "./workout-session.api";
 import { orderExercises, updateSet } from "./workout-session.helpers";
@@ -25,6 +25,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
 {
     const { sessionId } = props
     const [loadState, setLoadState] = useState<LoadStateType>({status:"loading"});
+    const [reloadCount, setReloadCount] = useState(0)
     const [showDiscard, setShowDiscard] = useState(false);
     const [incompleteFinish, setIncompleteFinish] = useState(false)
     const [finishing, setFinishing] = useState(false)
@@ -99,24 +100,28 @@ export default function WorkoutSessionView(props: {sessionId: string})
         }
     }
 
-    const getSession = useCallback( async () =>{
+    const reloadSession = () => {
         setLoadState({status: "loading"})
-        try{
-            const resp = await getWorkoutSession(sessionId)
-            if(resp)
-                setLoadState({status: "success", session: resp})
-            else
-                setLoadState({status: "notFound"})
-        }catch(err){
-            setLoadState({status: "error", message: err instanceof Error ? err.message : "Session failed to load."})
-        }
+        setReloadCount(count => count + 1)
     }
-    , [sessionId])
 
+    // The load lives inside the effect so its cleanup can ignore an answer for an
+    // older sessionId or an older reload.
     useEffect(()=>{
-        void getSession();
-    }
-    ,[getSession])
+        let ignore = false
+        const loadSession = async () => {
+            try{
+                const resp = await getWorkoutSession(sessionId)
+                if (ignore) return
+                setLoadState(resp ? {status: "success", session: resp} : {status: "notFound"})
+            }catch(err){
+                if (ignore) return
+                setLoadState({status: "error", message: err instanceof Error ? err.message : "Session failed to load."})
+            }
+        }
+        void loadSession()
+        return () => { ignore = true }
+    }, [sessionId, reloadCount])
 
     // Errors are not caught here: they reach the row, which shows them next to its tick.
     // The saved set from the server replaces ours, so completedAt comes from the server.
@@ -159,7 +164,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
         try {
             await finishWorkout(sessionId)
             setIncompleteFinish(false)
-            await getSession()
+            reloadSession()
         } catch (err) {
             setFinishError(err instanceof Error ? err.message : "Can't finish your workout, try again.")
         } finally {
@@ -174,7 +179,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
             message={loadState.message}
             action={
                 <Button
-                    onClick={()=> getSession()}
+                    onClick={reloadSession}
                     variant="secondary"
                 >
                     Retry

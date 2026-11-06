@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import type { Exercise, ExerciseFilters, ExerciseQuery } from "./exercise.types"
 import { getExerciseFilter, getExercises } from "./exercise.api"
 import LoadingState from "../../components/states/LoadingState"
@@ -45,7 +45,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     const [results, setResults] = useState<Results>({items:[], total:0})
     const [query, setQuery] = useState<ExerciseQuery>(INITIAL_QUERY)
     const [searchText, setSearchText] = useState("")
-    const latestRequest = useRef(0)
+    const [reloadCount, setReloadCount] = useState(0)
 
     const [filters, setFilters] = useState<ExerciseFilters|null>(null)
     const [filterState, setFilterState] = useState<LoadStateType>({status: "loading"})
@@ -61,30 +61,6 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     }
 
     const isSelected = (id: string): boolean => selected.some((exercise) => id === exercise.id)
-
-    const load = useCallback(async (q: ExerciseQuery)=>{
-        // drop responses that are not the latest, so a slow older search can't overwrite newer results
-        latestRequest.current += 1
-        const check = latestRequest.current
-        setResultState({status:"loading"})
-        try{
-            const resp = await getExercises(cleanQuery(q))
-            if(check !== latestRequest.current)
-                return
-            setResults((prev)=>({
-                items: resp.page === 1 ? resp.items : [...prev.items, ...resp.items],
-                total: resp.total
-            }))
-            setResultState({status: "success"})
-        }catch(err){
-            if(check !== latestRequest.current)
-                return
-            setResultState({
-                status: "error",
-                message: err instanceof Error ? err.message : "Failed to Load Exercises"
-            })
-        }
-    }, [])
 
     useEffect(()=>{
         const loadFilters = async ()=>{
@@ -103,9 +79,31 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
         void loadFilters()
     }, [])
 
+    // The cleanup marks the previous request as stale, so a slow older search
+    // can't overwrite newer results.
     useEffect(()=>{
-        void load(query)
-    }, [load, query])
+        let ignore = false
+        const loadExercises = async () => {
+            setResultState({status:"loading"})
+            try{
+                const resp = await getExercises(cleanQuery(query))
+                if (ignore) return
+                setResults((prev)=>({
+                    items: resp.page === 1 ? resp.items : [...prev.items, ...resp.items],
+                    total: resp.total
+                }))
+                setResultState({status: "success"})
+            }catch(err){
+                if (ignore) return
+                setResultState({
+                    status: "error",
+                    message: err instanceof Error ? err.message : "Failed to Load Exercises"
+                })
+            }
+        }
+        void loadExercises()
+        return () => { ignore = true }
+    }, [query, reloadCount])
 
     useEffect(()=>{
         const id = setTimeout(()=>{
@@ -115,7 +113,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void}
     }, [searchText])
 
     const loadMore = () => setQuery((prev)=> ({...prev, page: prev.page + 1}) )
-    const RetryButton = <Button variant="secondary" className="border border-app-border" onClick={()=>load(query)}>Retry</Button>
+    const RetryButton = <Button variant="secondary" className="border border-app-border" onClick={() => setReloadCount(count => count + 1)}>Retry</Button>
 
     const isLoading = resultState.status === "loading"
     const isError = resultState.status === "error"

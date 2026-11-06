@@ -9,6 +9,6 @@ export default function WorkoutSession ()
     if(!sessionId) return <NotFoundState title="Workout not found."/>
 
     return(
-        <WorkoutSessionView sessionId={sessionId}/>
+        <WorkoutSessionView key={sessionId} sessionId={sessionId}/>
     )
 }
