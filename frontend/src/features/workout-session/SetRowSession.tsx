@@ -105,21 +105,20 @@ export default function SetRowSession(props:{
                         aria-describedby={errors[field.key] ? `${id}-${field.key}-error` : undefined}
                         value={text[field.key]}
                         onChange={(e) => setText(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        className="h-11 w-full rounded-md border border-app-border bg-app-canvas text-center text-sm font-medium placeholder:text-app-text-muted aria-invalid:border-app-danger"
+                        className={`h-11 w-full rounded-md border text-center text-sm font-medium placeholder:text-app-text-muted aria-invalid:border-app-danger ${done ? "border-app-primary/40 bg-app-primary/10" : "border-app-border bg-app-canvas"}`}
                         />
                         {errors[field.key] &&
                             <p id={`${id}-${field.key}-error`} className="text-xs text-app-danger">{errors[field.key]}</p>
                         }
                     </div>
                 )}
-                {/* STYLE: done look (green row) is layer 4 */}
                 <Button
                 variant="ghost"
                 aria-label={done ? `Mark set ${props.position} not done` : `Complete set ${props.position}`}
                 aria-pressed={done}
                 disabled={saving || (!done && hasErrors) || props.isReadOnly}
                 onClick={() => void (done ? handleUntick() : handleTick())}
-                className="size-11 shrink-0 border border-app-border"
+                className="size-11 shrink-0 border border-app-border aria-pressed:border-app-primary aria-pressed:bg-app-primary aria-pressed:text-app-canvas"
                 >
                     {saving ? "…" : "✓"}
                 </Button>
