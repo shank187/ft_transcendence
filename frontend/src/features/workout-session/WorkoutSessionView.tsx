@@ -212,22 +212,19 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const addSessionSet = async (exId: string)=>{
         setAddSetError(null)
         setAddingSet(true)
-        const exIndex = session.exercises.findIndex((e)=> e.id === exId)
         try{
             const added = await addSet(session.id, exId)
-            if(exIndex !== -1)
-            {
-                setLoadState(prev => prev.status !== "success" ? prev: {
-                    ...prev,
-                    session:{
-                        ...prev.session,
-                        exercises: prev.session.exercises.map((e, i)=>(i!== exIndex ? e :{
-                            ...e,
-                            sets : [...e.sets, added]
-                        }))
-                    }
-                })
-            }
+            // Match by id, not by index: a move can reorder the list while the request runs.
+            setLoadState(prev => prev.status !== "success" ? prev: {
+                ...prev,
+                session:{
+                    ...prev.session,
+                    exercises: prev.session.exercises.map((e)=>(e.id !== exId ? e :{
+                        ...e,
+                        sets : [...e.sets, added]
+                    }))
+                }
+            })
         }catch(err){
             setAddSetError({exerciseId: exId, message: err instanceof Error ? err.message : "cant Add set to this exercise."})
         }finally{
