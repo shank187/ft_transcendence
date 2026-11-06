@@ -9,6 +9,7 @@ import workoutRouter from "./modules/workouts/workout.route"
 import progressRouter from "./modules/progress/progress.route";
 import friendsRoutes from "./modules/friends/friends.routes";
 import conversationsRoutes from "./modules/chat/chat.router";
+import gymsRoutes from "./modules/gyms/gym.routes"
 
 
 const app = express();
@@ -33,6 +34,8 @@ app.use("/api/progress", progressRouter);
 
 app.use('/api/friends', friendsRoutes);
 app.use('/api/conversations', conversationsRoutes);
+
+app.use('/api/gyms', gymsRoutes);
 
 
 export default app;

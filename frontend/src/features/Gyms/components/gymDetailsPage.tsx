@@ -1,9 +1,11 @@
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import type { Gym } from "../data/FakeData";
-import { getGymById } from "../data/FakeData"; 
+// import type { Gym } from "../data/FakeData";
+import type { Gym } from "../type/gym";
+// import { getGymById } from "../data/FakeData"; 
 import LoadingState from '../../../components/states/LoadingState';
 import {Link }from "react-router-dom"
+import api from '../../auth/axiosInstance';
 
 
 function GymDetailsPage() {
@@ -14,11 +16,15 @@ function GymDetailsPage() {
     useEffect(function(){
         async function getGymDetails(){
             setLoading(true);
-            if (!id)return;
+            if (!id)
+                return;
             try {
-                const data = await getGymById(id);
-                if (data)
-                    setGym(data);
+                // const data = await getGymById(id);
+                const req = await api.get("/api/gyms/id/", {params :{id: id}});
+                // if (data)
+                    // setGym(data);
+                setGym(req.data);
+
             } catch (error) {
                 console.log(error);
             }
@@ -93,7 +99,7 @@ function GymDetailsPage() {
             <div className="h-[300px] mr-3 border-t border-gray-700 p-5">
                 <h2 className="text-lg font-medium mb-4">Available Equipment</h2>
                 <ul className="flex flex-col gap-3 mt-2">
-                    {gym.equipment.map((equi) => (
+                    {gym.equipment?.map((equi) => (
                         <li
                             key={equi.id}
                             className="flex items-center justify-between gap-3 text-lg mb-2 bg-[#1c1c1c] px-4 py-3 rounded-2xl hover:bg-[#2d2d2d] shadow-sm"
