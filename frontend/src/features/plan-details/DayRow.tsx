@@ -5,7 +5,8 @@ import DropDownMenu from "../../components/ui/DropdownMenu";
 import type { PlanDay } from "./plan-detail.types";
 import { Link, useNavigate } from "react-router-dom";
 import { buttonClasses } from "../../components/ui/button-classes";
-import { startWorkoutFromDay } from "../workout-session/workout-session.api";
+import { ActiveWorkoutError, startWorkoutFromDay } from "../workout-session/workout-session.api";
+import ActiveWorkoutDialog from "../workout-session/ActiveWorkoutDialog";
 
 
 
@@ -21,6 +22,7 @@ export default function DayRow(
 ){
     const [startState, setStartState] = useState(false)
     const [startError, setStartError] = useState<string|null>(null)
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
     const navigate = useNavigate()
 
     const day = props.day;
@@ -101,7 +103,10 @@ export default function DayRow(
                         const session = await startWorkoutFromDay(props.planId, props.day.id)
                         navigate(`/workouts/session/${session.id}`)
                     }catch(err){
-                        setStartError(err instanceof Error ? err.message : "Cant start your session.")
+                        if (err instanceof ActiveWorkoutError)
+                            setActiveSessionId(err.activeSessionId)
+                        else
+                            setStartError(err instanceof Error ? err.message : "Cant start your session.")
                     }finally{
                         setStartState(false)
                     }
@@ -112,6 +117,13 @@ export default function DayRow(
                     {(startError) && "Retry"}
                 </Button>
             </div>
+            {activeSessionId &&
+                <ActiveWorkoutDialog
+                activeSessionId={activeSessionId}
+                startNew={() => startWorkoutFromDay(props.planId, day.id)}
+                onClose={() => setActiveSessionId(null)}
+                />
+            }
         </Card>
     );
 }

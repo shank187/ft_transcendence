@@ -11,6 +11,8 @@ import type { SetPatch, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSe
 //   getWorkoutSession, id "missing"      -> returns null
 //   getWorkoutSession, id "fail"         -> rejects
 //   startEmptyWorkout, page URL ?fake=fail  -> always rejects
+//   startEmptyWorkout / startWorkoutFromDay while a session is IN_PROGRESS
+//                                        -> rejects ActiveWorkoutError
 //   startEmptyWorkout, page URL ?fake=flaky -> the first call rejects, the
 //                                              retry succeeds (until reload)
 //   page URL ?fake=save-fail -> updateSessionSet, addSet, deleteSet,
@@ -32,6 +34,23 @@ const catalog = new Map<string, ExerciseSummary>()
 // FAKE-DATA: the picker adds real catalog exercises; remember them so addExercises can find their summary. Remove with the real session API (Phase 2).
 export function rememberSessionExercises(summaries: ExerciseSummary[]) {
     for (const summary of summaries) catalog.set(summary.id, summary)
+}
+
+// Only one workout can be in progress. The real API answers 409 with the
+// active session id; callers offer to resume it or discard it.
+export class ActiveWorkoutError extends Error {
+    activeSessionId: string
+    constructor(activeSessionId: string) {
+        super("You have a workout in progress.")
+        this.name = "ActiveWorkoutError"
+        this.activeSessionId = activeSessionId
+    }
+}
+
+// FAKE-DATA: stands in for the server's one-active-workout check.
+function failIfActive() {
+    for (const session of sessions.values())
+        if (session.status === "IN_PROGRESS") throw new ActiveWorkoutError(session.id)
 }
 
 // FAKE-DATA: set once a "flaky" empty start has failed.
@@ -87,6 +106,7 @@ function failEmptyStart() {
 export async function startEmptyWorkout(): Promise<WorkoutSession> {
     await wait()
     failEmptyStart()
+    failIfActive()
 
     const session: WorkoutSession = {
         id: crypto.randomUUID(),
@@ -107,6 +127,7 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
 export async function startWorkoutFromDay(planId: string, dayId: string): Promise<WorkoutSession> {
     const day = await getWorkoutDay(planId, dayId)
     if (!day) throw new Error("Day not found")
+    failIfActive()
     rememberSessionExercises(day.exercises.map(e => e.exerciseSummary))
     const session: WorkoutSession = {
         id: crypto.randomUUID(),
