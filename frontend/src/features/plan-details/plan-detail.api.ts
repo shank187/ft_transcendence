@@ -1,3 +1,5 @@
+import { isAxiosError } from "axios";
+import api from "../auth/axiosInstance";
 import type {PlanDay, PlanDetail } from "./plan-detail.types";
 
 // FAKE-DATA: every function in this file is a mock until the real
@@ -91,16 +93,14 @@ function sortedDays(days: PlanDay[]): PlanDay[] {
     return [...days].sort((a, b) => a.dayOrder - b.dayOrder)
 }
 
-// FAKE-DATA: real version will be GET /api/workout-plans/:planId
 export default async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
-    await wait()
-
-    if (planId === "fail")
-        throw new Error("Failed to load workout, try again")
-
-    const plan = findPlan(planId)
-    if (!plan) return null
-    return { ...plan, days: sortedDays(plan.days).map(copyDay) }
+    try{
+        const resp = await api.get<PlanDetail>(`/api/workout-plans/${planId}`)
+        return resp.data
+    }catch(err){
+        if(isAxiosError(err) && err.response?.status == 404) return null
+        throw err
+    }
 }
 
 // FAKE-DATA: real version will be POST /api/workout-plans/:planId/days
