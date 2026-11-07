@@ -24,15 +24,14 @@ app.use(cookieParser());
 
 
 app.use("/api/exercises", exerciseRouter)
+app.use('/api/workout-plans', workoutRouter)
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/workout-plans', workoutRouter)
 
 app.use("/api/progress", progressRouter);
 
 app.use('/api/friends', friendsRoutes);
 app.use('/api/conversations', conversationsRoutes);
-
 
 export default app;

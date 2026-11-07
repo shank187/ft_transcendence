@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { getWorkoutPlans, postWorkoutPlan } from "./workout.service";
+import { getWorkoutDetail, getWorkoutPlans, postWorkoutPlan } from "./workout.service";
 import { createWorkoutPlanBody } from "./workout.schema";
 
 export async function getWorkoutPlansController(req: AuthenticatedRequest, res: Response)
@@ -33,5 +33,18 @@ export async function postWorkoutPlansController(req: AuthenticatedRequest, res:
     catch(err){
         console.error("POST /api/workout-plans failed:", err); 
         return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getWorkoutDetailsController(req: AuthenticatedRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(typeof req.params.planId !== "string" ) return res.status(400).json({message: "Missing plan's Id in the parametres"})
+    try{
+        const data = await getWorkoutDetail(req.userId, req.params.planId);
+        if(!data) return res.status(404).json({message: "Plan Not Found"})
+        return res.status(200).json(data)
+    }catch(err){
+        console.error(err)
+        return res.status(500).json({message: "Internal server error"})
     }
 }
