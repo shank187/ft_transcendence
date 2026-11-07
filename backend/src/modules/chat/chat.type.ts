@@ -41,3 +41,7 @@ export type ServerMessage =
     | {
         type: "authenticated"
     }
+    | {
+    type: "friendship_updated"
+    userId: string
+}

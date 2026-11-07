@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import api from "../auth/axiosInstance"
 import type { ConversationData, ConversationsListProps } from "./chat.types"
 import { useWebSocket } from "../../pages/WebSocketContext"
+import {formatMessageDate} from "./Message"
 
 export function ConversationsList({
     onSelectFriend,
@@ -11,11 +12,9 @@ export function ConversationsList({
 
     useEffect(() => {
         let cancelled = false
-
         async function loadConversations() {
             try {
                 const response = await api.get<ConversationData[]>("/api/conversations")
-
                 if (!cancelled)
                     setConversations(response.data)
             } catch (error) {
@@ -84,10 +83,7 @@ export function ConversationsList({
 
                                 {last?.createdAt && (
                                     <span className="shrink-0 text-xs text-app-text-muted">
-                                        {new Date(last.createdAt).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit"
-                                        })}
+                                        {formatMessageDate(last.createdAt)}
                                     </span>
                                 )}
                             </button>

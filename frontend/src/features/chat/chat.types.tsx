@@ -78,4 +78,8 @@ export type ServerMessage =
     | {
         type: "error";
         message: string;
-    };
+    } | {
+    type: "friendship_updated"
+    userId: string
+};
+

@@ -4,19 +4,51 @@ import Message from "./Message"
 import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
 import { useWebSocket } from "../../pages/WebSocketContext"
-
 export default function ChatWindow({
     friend,
     onSendMessage,
     lastMessage,
     onBack
 }: ChatWindowProps) {
-    const { connectionStatus } = useWebSocket()
+    const { connectionStatus, lastMessage: wsMessage } = useWebSocket()
     const { user } = useAuth()
+    const [canMessage, setCanMessage] = useState(false)
 
     const [msgs, setMsgs] = useState<MessageData[]>([])
     const [msg, setMsg] = useState("")
     const chatBodyRef = useRef<HTMLDivElement>(null)
+    const friendshipUpdate =
+        wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
+    useEffect(() => {
+        if (!friend) {
+            setCanMessage(false)
+            return
+        }
+
+        let cancelled = false
+        setCanMessage(false)
+async function checkPermission() {
+    try {
+        const response = await api.get<{ canMessage: boolean }>(
+            `/api/friends/${friend!.id}/can-message`
+        )
+
+        if (!cancelled)
+            setCanMessage(response.data.canMessage)
+    } catch (error) {
+        console.error("Permission check failed:", error)
+
+        if (!cancelled)
+            setCanMessage(false)
+    }
+}
+
+        checkPermission()
+
+        return () => {
+            cancelled = true
+        }
+    }, [friend?.id, connectionStatus, friendshipUpdate])
 
     useEffect(() => {
         if (!friend) {
@@ -106,7 +138,7 @@ export default function ChatWindow({
     function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (!friend || !msg.trim())
+        if (!friend || !canMessage  || !msg.trim() || connectionStatus !== "connected" || !msg.trim())
             return
 
         const sent = onSendMessage(friend.id, msg.trim())
@@ -179,17 +211,21 @@ export default function ChatWindow({
                 className="flex shrink-0 items-center gap-2 border-t border-app-border p-3 sm:gap-3 sm:p-4"
             >
                 <input
+                    disabled={!canMessage || connectionStatus !== "connected"}
                     type="text"
                     placeholder={
-                        connectionStatus === "connected"
-                            ? "Type a message..."
-                            : "Waiting for connection..."
+                    connectionStatus !== "connected"
+                        ? "Waiting for connection..."
+                        : !canMessage
+                        ? "Messaging unavailable"
+                        : "Type a message..."
                     }
                     aria-label="Message"
                     value={msg}
                     maxLength={500}
+                    
                     onChange={event => setMsg(event.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-app-border bg-app-surface-raised px-3 py-3 text-base text-app-text outline-none focus:border-app-primary sm:px-4 sm:text-sm"
+                    className="disabled:opacity-50 min-w-0 flex-1 rounded-lg border border-app-border bg-app-surface-raised px-3 py-3 text-base text-app-text outline-none focus:border-app-primary sm:px-4 sm:text-sm"
                 />
 
                 <span className="hidden shrink-0 text-xs text-app-text-secondary sm:block">
@@ -198,7 +234,7 @@ export default function ChatWindow({
 
                 <button
                     type="submit"
-                    disabled={!msg.trim() || connectionStatus !== "connected"}
+                    disabled={!canMessage || !msg.trim() || connectionStatus !== "connected"}
                     className="shrink-0 rounded-lg bg-app-primary px-3 py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 sm:px-5"
                 >
                     Send

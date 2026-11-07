@@ -7,6 +7,18 @@ import { storeMessage } from "./chat.service"
 
 export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
 
+// export function notifyFriendshipUpdate(userId: string, targetId: string) {
+//     const response: ServerMessage = {
+//         type: "friendship_updated",
+//         userId: userId
+//     }
+
+//     connectedUsers.get(targetId)?.forEach(socket => {
+//         if (socket.readyState === WebSocket.OPEN)
+//             socket.send(JSON.stringify(response))
+//     })
+// }
+
 function isValidMessage(message: unknown): message is ClientMessage {
     if (typeof message === "object" && message !== null) {
         if ("type" in message && message.type === "message") {
@@ -60,7 +72,7 @@ async function handlePresence(
     })
 }
 
-async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
+export async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
     const userId = ws.userId
 
     if (!userId) return
