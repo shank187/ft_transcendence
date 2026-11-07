@@ -3,6 +3,17 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import "dotenv/config";
 import gyms from "./unverifiedGyms.json"
 
+interface importedGyms{
+    googleId: string;
+    name: string;
+    description: string | null;
+    address: string | null;
+    city: string;
+    latitude: number | null;
+    longitude: number | null;
+    phone: string | null;
+    website: string | null;
+}
 
 export async function seedUnverifiedGyms(prisma : PrismaClient){
     try{
@@ -14,7 +25,8 @@ export async function seedUnverifiedGyms(prisma : PrismaClient){
         if (!adminUser){
             throw new Error("admin user not found");
         }
-        for(let gym of gyms){
+
+        for(let gym of(gyms as importedGyms[])){
             await prisma.gym.upsert({
                     where : {googleId : gym.googleId},
                     update : {},

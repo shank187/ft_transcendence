@@ -74,7 +74,12 @@ export async function fetchAndSave(){
         }
     }
     const jsonString = JSON.stringify(allGyms, null,3);
-    const filePath = "./prisma/seed-data/unverifieGyms.json";
+    const filePath = "./prisma/seed-data/unverifiedGyms.json";
+
+    if (allGyms.length === 0){
+        console.log("no gyms fetched (API error or key missing). Kept existing seed data.");
+        return ;
+    }
     fs.writeFileSync(filePath, jsonString, "utf-8");
 
 
