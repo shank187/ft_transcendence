@@ -85,7 +85,7 @@ function GymsearchPage(){
             </div>)
         }
         <div>
-            <PaginationButtons currentPage={page} onPageChange={setPage} hasNextPage={GymList.length === 5}/>
+            <PaginationButtons currentPage={page} onPageChange={setPage} hasNextPage={GymList.length === 3}/>
         </div>
         </div>
     )

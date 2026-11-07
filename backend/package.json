@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "gyms:fetch": "tsx prisma/seed-data/fetchFromGoogleMaps.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
