@@ -7,7 +7,7 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
             page = 1;
     const gymskiped = (page - 1) * limit;
 
-    const searchCondiions : Prisma.GymWhereInput = {};
+    const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC"};
 
     if (textSearched)
             searchCondiions.name = {contains: textSearched, mode: "insensitive"};

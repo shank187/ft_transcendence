@@ -34,11 +34,20 @@ export async function getGymByIdController(req :AuthenticatedRequest, res:Respon
 
     try{
         const id = req.params.id;
+        const userId = req.userId;
+
+
         if (typeof id != "string")
             return res.status(400).json({ error: "Invalid or missing gym ID" });
         const gym = await getGymById(id);
+
         if (!gym)
             return res.status(404).json({message: "Gym not found"});
+
+        if (gym.visibility === "PRIVATE" && gym.createdById !== userId){
+            return res.status(403).json({ message: "Access denied" });
+        }
+
         res.status(200).json(gym);
     }
     catch(e){
