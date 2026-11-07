@@ -2,25 +2,23 @@ import { isAxiosError } from "axios";
 import api from "../auth/axiosInstance";
 import type {PlanDay, PlanDetail } from "./plan-detail.types";
 
-// FAKE-DATA: every function in this file is a mock until the real
-// /api/workout-plans/:planId endpoints exist. Data lives only in memory,
-// so it resets to the seed below on every browser reload.
+// getPlanDetails and createWorkoutDay call the real API. The functions marked
+// FAKE-DATA are mocks until their endpoints exist: they work on an in-memory
+// seed per planId, not on the real plan, and reset on every browser reload.
 //
 // FAKE-DATA: scenarios, chosen by the planId in /workouts/plans/:planId
-//   any other id (e.g. "1", "2") -> Push / Pull / Legs, every mutation succeeds
-//   "empty"   -> plan with no days
-//   "missing" -> GET returns null, every mutation rejects "Plan not found"
-//   "fail"    -> GET always rejects
-//   "flaky"   -> Push / Pull / Legs, each create/rename/delete rejects on its
-//                first attempt and succeeds when retried with the same input
+//   any other id -> Push / Pull / Legs seed, every mutation succeeds
+//   "empty"   -> seed with no days
+//   "missing" -> every mutation rejects "Plan not found"
+//   "flaky"   -> each rename/delete rejects on its first attempt and
+//                succeeds when retried with the same input
 // FAKE-DATA: name triggers, on any plan
-//   create "fail"           -> always rejects
 //   rename "fail" / "fail2" -> always rejects
 //   plan rename "fail"      -> always rejects
-// FAKE-DATA: a deleted plan stays deleted (GET returns null) until reload
+// FAKE-DATA: deletePlan only hides the plan from the other mocks; the real
+// GET still returns it.
 
 const FAKE_DELAY_MS = 500
-const MAX_DAYS = 7
 const MAX_NAME_LENGTH = 30
 
 // FAKE-DATA: the "database". One entry per planId, created on first use.
@@ -103,32 +101,10 @@ export default async function getPlanDetails(planId: string): Promise<PlanDetail
     }
 }
 
-// FAKE-DATA: real version will be POST /api/workout-plans/:planId/days
-// The mock assigns the ID and dayOrder itself.
-// still compiles; remove it once the caller stops passing it.
-export async function createWorkoutDay(
-    planId: string,
-    name: string
-    ): Promise<PlanDay> {
-    await wait()
-
-    const plan = findPlanOrThrow(planId)
-    const dayName = validName(name)
-    if (plan.days.length >= MAX_DAYS)
-        throw new Error(`A plan can contain at most ${MAX_DAYS} days.`)
-    if (dayName === "fail")
-        throw new Error("Failed to create your day, try again.")
-    failFirstAttempt(planId, `create:${dayName}`, "Failed to create your day, try again.")
-
-    const newDay: PlanDay = {
-        id: crypto.randomUUID(),
-        name: dayName,
-        dayOrder: Math.max(0, ...plan.days.map(day => day.dayOrder)) + 1,
-        exerciseCount: 0,
-        setCount: 0,
-    }
-    plans.set(planId, { ...plan, days: [...plan.days, newDay] })
-    return copyDay(newDay)
+// The server picks the day's id and dayOrder.
+export async function createWorkoutDay(planId: string, name: string): Promise<PlanDay> {
+    const resp = await api.post<PlanDay>(`/api/workout-plans/${planId}/days`, { name })
+    return resp.data
 }
 
 // FAKE-DATA: real version will be PATCH /api/workout-plans/:planId/days/:dayId

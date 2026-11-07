@@ -33,9 +33,9 @@ export default function AddDayForm(props: {
             const createdDay = await createWorkoutDay(props.planId, name);
             props.onAdded(createdDay)
             props.onClose()
-        }catch(err)
+        }catch
         {
-            setErrorForm(err instanceof Error ? err.message : "could not add day.")
+            setErrorForm("Could not add the day. Please try again.")
         }finally{
             setSubmitting(false)
         }
