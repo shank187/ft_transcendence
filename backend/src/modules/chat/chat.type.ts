@@ -13,11 +13,6 @@ export type ClientMessage =
     | {
         type: "authenticate"
         token: string
-    } 
-    | {
-        type: "readMessage"
-        target: string
-        messageId: string
     }
 
 export type ServerMessage =
@@ -29,28 +24,24 @@ export type ServerMessage =
         messageId: string
         conversationId: string
         createdAt: string
-        readAt: string | null
     }
     | {
-        type: "presence";
-        userId: string;
-        status: "online" | "offline";
+        type: "presence"
+        userId: string
+        status: "online" | "offline"
     }
     | {
         type: "presence_snapshot"
         onlineUserIds: string[]
     }
     | {
-        type: "error";
-        message: string;
+        type: "error"
+        message: string
     }
     | {
         type: "authenticated"
     }
     | {
-        type: "readMessage"
-        readAt: string
-        conversationId: string
-        messageId: string
-    }
-    
+    type: "friendship_updated"
+    userId: string
+}

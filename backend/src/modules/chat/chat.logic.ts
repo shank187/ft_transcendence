@@ -1,55 +1,80 @@
-import WebSocket, { WebSocketServer } from 'ws'
-import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from './chat.type'
-import jwt from "jsonwebtoken";
-import { getFriendsId , areUsersFriends} from "../friends/friends.service";
-import { storeMessage, setReadMessageTime } from "./chat.service"
+
+import WebSocket, { WebSocketServer } from "ws"
+import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from "./chat.type"
+import jwt from "jsonwebtoken"
+import { getFriendsId, areUsersFriends } from "../friends/friends.service"
+import { storeMessage } from "./chat.service"
 
 export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
+
+// export function notifyFriendshipUpdate(userId: string, targetId: string) {
+//     const response: ServerMessage = {
+//         type: "friendship_updated",
+//         userId: userId
+//     }
+
+//     connectedUsers.get(targetId)?.forEach(socket => {
+//         if (socket.readyState === WebSocket.OPEN)
+//             socket.send(JSON.stringify(response))
+//     })
+// }
 
 function isValidMessage(message: unknown): message is ClientMessage {
     if (typeof message === "object" && message !== null) {
         if ("type" in message && message.type === "message") {
-            return ("to" in message &&  "content" in message &&  typeof message.to === "string" &&
-                typeof message.content === "string")
+            return (
+                "to" in message &&
+                "content" in message &&
+                typeof message.to === "string" &&
+                typeof message.content === "string"
+            )
         }
-        else if ("type" in message && message.type === "authenticate")
-            return ("token" in message && typeof message.token === "string")
-        else if ("type" in message && message.type === "readMessage")
-            return ("target" in message && typeof message.target === "string" && 
-                    "messageId" in message && typeof message.messageId === "string")
+        else if ("type" in message && message.type === "authenticate") {
+            return (
+                "token" in message &&
+                typeof message.token === "string"
+            )
+        }
     }
+
     return false
 }
 
-async function handlePresence(ws: AuthenticatedWebSocket, status: "online" | "offline") {
+async function handlePresence(
+    ws: AuthenticatedWebSocket,
+    status: "online" | "offline"
+) {
     const userId = ws.userId
 
     if (!userId) return
+
     const friends = await getFriendsId(userId)
     const isOnline = connectedUsers.has(userId)
 
     if (status === "online" && !isOnline) return
     if (status === "offline" && isOnline) return
+
     const response: ServerMessage = {
         type: "presence",
         userId: userId,
         status: status
     }
+
     const onlineFriendIds = friends.filter(friend =>
         connectedUsers.has(friend)
     )
 
-    onlineFriendIds.forEach( friendId => {
-        connectedUsers.get(friendId)?.forEach( Socket => {
-            if (Socket.readyState === WebSocket.OPEN)
-                Socket.send(JSON.stringify(response))
+    onlineFriendIds.forEach(friendId => {
+        connectedUsers.get(friendId)?.forEach(socket => {
+            if (socket.readyState === WebSocket.OPEN)
+                socket.send(JSON.stringify(response))
         })
-    }
-    )
+    })
 }
 
-async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
+export async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
     const userId = ws.userId
+
     if (!userId) return
 
     const friends = await getFriendsId(userId)
@@ -70,188 +95,224 @@ async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
 }
 
 export function initializeChat(wss: WebSocketServer) {
-    wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
+    wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
         let messageQueue = Promise.resolve()
-        console.log(`client connected.`)
-        ws.on('message',  rawData => {
+
+        console.log("client connected.")
+
+        ws.on("message", rawData => {
             messageQueue = messageQueue
                 .then(async () => {
-            try {
-                let message: unknown
-                try {
-                    message = JSON.parse(rawData.toString())
-                } catch {
-                    const response: ServerMessage = {
-                        type: "error",
-                        message: "Invalid JSON"
-                    }
-                    ws.send(JSON.stringify(response))
-                    return
-                }
-                if (!isValidMessage(message)) {
-                    const response: ServerMessage = {
-                        type: "error",
-                        message: "Invalid message"
-                    }
-                    ws.send(JSON.stringify(response))
-                    return
-                }
-                if (!ws.userId) {
-                    if (message.type !== "authenticate") {
-                        ws.close(1008, "Authentication required");
-                        return
-                    }
                     try {
-                        const secret = process.env.JWT_SECRET
-                        if (!secret) {
-                            ws.close(1011, "Server configuration error");
-                            return
-                        }
-                        const decoded = jwt.verify(message.token, secret)
-                        if (typeof decoded === "string" || typeof decoded.userId !== "string") {
-                            ws.close(1008, "Invalid access token");
-                            return
-                        }
-                        ws.userId = decoded.userId;
-                    } catch {
-                            ws.close(1008, "Invalid or expired access token");
-                            return;
-                    }
-                    const response: ServerMessage = {
-                        type: "authenticated",
-                    }
-                    ws.send(JSON.stringify(response))
-                    if (!connectedUsers.has(ws.userId))
-                        connectedUsers.set(ws.userId, new Set)
-                    connectedUsers.get(ws.userId)?.add(ws)
-                    if (connectedUsers.get(ws.userId)?.size === 1) {
+                        let message: unknown
+
                         try {
-                            await handlePresence(ws, "online")
-                        } catch (error) {
-                            console.error("Failed to notify friends:", error)
+                            message = JSON.parse(rawData.toString())
+                        } catch {
+                            const response: ServerMessage = {
+                                type: "error",
+                                message: "Invalid JSON"
+                            }
+
+                            ws.send(JSON.stringify(response))
+                            return
                         }
-                    }
-                    try {
-                        if (ws.readyState !== WebSocket.OPEN) return
-                        await sendPresenceSnapshot(ws)
+
+                        if (!isValidMessage(message)) {
+                            const response: ServerMessage = {
+                                type: "error",
+                                message: "Invalid message"
+                            }
+
+                            ws.send(JSON.stringify(response))
+                            return
+                        }
+
+                        if (!ws.userId) {
+                            if (message.type !== "authenticate") {
+                                ws.close(1008, "Authentication required")
+                                return
+                            }
+
+                            try {
+                                const secret = process.env.JWT_SECRET
+
+                                if (!secret) {
+                                    ws.close(1011, "Server configuration error")
+                                    return
+                                }
+
+                                const decoded = jwt.verify(message.token, secret)
+
+                                if (
+                                    typeof decoded === "string" ||
+                                    typeof decoded.userId !== "string"
+                                ) {
+                                    ws.close(1008, "Invalid access token")
+                                    return
+                                }
+
+                                ws.userId = decoded.userId
+                            } catch {
+                                ws.close(1008, "Invalid or expired access token")
+                                return
+                            }
+
+                            const response: ServerMessage = {
+                                type: "authenticated"
+                            }
+
+                            ws.send(JSON.stringify(response))
+
+                            if (!connectedUsers.has(ws.userId))
+                                connectedUsers.set(ws.userId, new Set())
+
+                            connectedUsers.get(ws.userId)?.add(ws)
+
+                            if (connectedUsers.get(ws.userId)?.size === 1) {
+                                try {
+                                    await handlePresence(ws, "online")
+                                } catch (error) {
+                                    console.error(
+                                        "Failed to notify friends:",
+                                        error
+                                    )
+                                }
+                            }
+
+                            try {
+                                if (ws.readyState !== WebSocket.OPEN)
+                                    return
+
+                                await sendPresenceSnapshot(ws)
+                            } catch (error) {
+                                console.error(
+                                    "Failed to load presence snapshot:",
+                                    error
+                                )
+
+                                if (ws.readyState === WebSocket.OPEN) {
+                                    const response: ServerMessage = {
+                                        type: "error",
+                                        message: "Failed to load friends' online status"
+                                    }
+
+                                    ws.send(JSON.stringify(response))
+                                }
+                            }
+
+                            return
+                        }
+
+                        else if (message.type === "authenticate") {
+                            const response: ServerMessage = {
+                                type: "error",
+                                message: "Already authenticated"
+                            }
+
+                            ws.send(JSON.stringify(response))
+                            return
+                        }
+
+                        else if (message.type === "message") {
+                            if (message.to === ws.userId) {
+                                const response: ServerMessage = {
+                                    type: "error",
+                                    message: "You can't message yourself"
+                                }
+
+                                ws.send(JSON.stringify(response))
+                                return
+                            }
+
+                            if (!(await areUsersFriends(message.to, ws.userId))) {
+                                const response: ServerMessage = {
+                                    type: "error",
+                                    message: "You can only message accepted friends"
+                                }
+
+                                ws.send(JSON.stringify(response))
+                                return
+                            }
+
+                            const msgRecord = await storeMessage(
+                                message.to,
+                                message.content,
+                                ws.userId
+                            )
+
+                            const response: ServerMessage = {
+                                type: "message",
+                                from: ws.userId,
+                                to: message.to,
+                                content: message.content,
+                                messageId: msgRecord.id,
+                                conversationId: msgRecord.conversationId,
+                                createdAt: msgRecord.createdAt.toISOString()
+                            }
+
+                            connectedUsers.get(message.to)?.forEach(toSocket => {
+                                if (toSocket.readyState === WebSocket.OPEN)
+                                    toSocket.send(JSON.stringify(response))
+                            })
+
+                            connectedUsers.get(ws.userId)?.forEach(toSocket => {
+                                if (toSocket.readyState === WebSocket.OPEN)
+                                    toSocket.send(JSON.stringify(response))
+                            })
+
+                            console.log(
+                                `Message received from user ${ws.userId}`
+                            )
+                        }
                     } catch (error) {
-                        console.error("Failed to load presence snapshot:", error)
-                    
+                        console.error(
+                            "WebSocket message processing failed:",
+                            error
+                        )
+
                         if (ws.readyState === WebSocket.OPEN) {
                             const response: ServerMessage = {
                                 type: "error",
-                                message: "Failed to load friends' online status"
+                                message: "Internal server error"
                             }
-                        
+
                             ws.send(JSON.stringify(response))
                         }
                     }
-                    return
-                }
-                else if (message.type === "authenticate") {
-                    const response: ServerMessage = {
-                        type: "error",
-                        message: "Already authenticated"
-                    }
-                    ws.send(JSON.stringify(response))
-                    return
-                }
-                else if (message.type === "readMessage") {
-                    if (!( await areUsersFriends(message.target, ws.userId)) || message.target === ws.userId) {
-                        const response : ServerMessage = {
-                            type: "error",
-                            message: "You can only read messages from accepted friends"
-                        }
-                        ws.send(JSON.stringify(response))
-                        return
-                    }
-                    const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
-                    if (response.type === "error") {
-                        connectedUsers.get(ws.userId)?.forEach( toSocket => {
-                            if (toSocket.readyState === WebSocket.OPEN)
-                                toSocket.send(JSON.stringify(response))
-                        })
-                    }
-                    else {
-                        connectedUsers.get(message.target)?.forEach( toSocket => {
-                            if (toSocket.readyState === WebSocket.OPEN)
-                                toSocket.send(JSON.stringify(response))
-                        })
-                    }
-                    return
-                }
-                else if (message.type === "message") {
-                    if (message.to === ws.userId) {
-                        const response : ServerMessage = {
-                            type: "error",
-                            message: "You can't message yourself"
-                        }
-                        ws.send(JSON.stringify(response))
-                        return
-                    }
-                    if (!( await areUsersFriends(message.to, ws.userId))) {
-                        const response : ServerMessage = {
-                            type: "error",
-                            message: "You can only message accepted friends"
-                        }
-                        ws.send(JSON.stringify(response))
-                        return
-                    }
-                    const msgRecord = await storeMessage(message.to, message.content, ws.userId)
-                    const response : ServerMessage = {
-                        type: "message",
-                        from: ws.userId,
-                        to: message.to,
-                        content: message.content,
-                        messageId: msgRecord.id,
-                        conversationId: msgRecord.conversationId,
-                        createdAt: msgRecord.createdAt.toISOString(),
-                        readAt: null
-                    }
-                    connectedUsers.get(message.to)?.forEach( toSocket => {
-                        if (toSocket.readyState === WebSocket.OPEN)
-                            toSocket.send(JSON.stringify(response))
-                    })
-                    connectedUsers.get(ws.userId)?.forEach(toSocket => {
-                        if (toSocket.readyState === WebSocket.OPEN)
-                            toSocket.send(JSON.stringify(response))
-                    })
-                    console.log(
-                        `Message received from user ${ws.userId}`
-                    );
-                }
-            } catch (error) {
-                console.error("WebSocket message processing failed:", error)
-                if (ws.readyState === WebSocket.OPEN) {
-                    const response : ServerMessage = {
-                        type: "error",
-                        message: "Internal server error"
-                    }
-                    ws.send(JSON.stringify(response))
-                }
-            }
-                }
-            ) 
-            .catch(error => {
-            console.error("Queue error:", error);
-        });
-}) 
-    
-        ws.on('close', async (code, reason) => {
+                })
+                .catch(error => {
+                    console.error("Queue error:", error)
+                })
+        })
+
+        ws.on("close", async (code, reason) => {
             const userId = ws.userId
+
             if (!userId) return
+
             const sockets = connectedUsers.get(userId)
+
             if (!sockets) return
+
             sockets.delete(ws)
+
             if (sockets.size === 0) {
                 connectedUsers.delete(userId)
+
                 try {
                     await handlePresence(ws, "offline")
                 } catch (error) {
-                    console.error("Failed to broadcast offline presence:", error)
+                    console.error(
+                        "Failed to broadcast offline presence:",
+                        error
+                    )
                 }
             }
-            console.log(`connection closed with ${code} and reason: ${reason}`)
+
+            console.log(
+                `connection closed with ${code} and reason: ${reason}`
+            )
         })
     })
 }
