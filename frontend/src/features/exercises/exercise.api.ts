@@ -1,5 +1,6 @@
 import api from '../auth/axiosInstance'
 import type { Exercise, ExerciseFilters, ExerciseQuery, PaginatedExercises } from './exercise.types'
+import { toApiError } from '../workouts/api-error'
 
 // FAKE-DATA: switch the gym id in getExerciseFilter to test the states:
 //   FAKE_GYM_ID        -> gym with exercises
@@ -53,23 +54,31 @@ export async function getExercises(query: ExerciseQuery): Promise<PaginatedExerc
     if (query.gymId)
         return getFakeGymExercises(query)
 
-    const response = await api.get<PaginatedExercises>(
-        '/api/exercises',
-        {
-            params: query
-        }
-    )
-    return response.data
+    try {
+        const response = await api.get<PaginatedExercises>(
+            '/api/exercises',
+            {
+                params: query
+            }
+        )
+        return response.data
+    } catch (error) {
+        throw toApiError(error, "Could not load exercises. Please try again.")
+    }
 }
 
 export async function getExerciseFilter():
 Promise<ExerciseFilters>
 {
-    const resp = await api.get<ExerciseFilters>('/api/exercises/filters')
-    return {
-        ...resp.data,
-        // FAKE-DATA: gym comes from the user's current gym once S1 adds gymId on User.
-        // For the no-gym state: gym: null
-        gym: { id: FAKE_GYM_ID, name: "1337 Gym" },
+    try {
+        const resp = await api.get<ExerciseFilters>('/api/exercises/filters')
+        return {
+            ...resp.data,
+            // FAKE-DATA: gym comes from the user's current gym once S1 adds gymId on User.
+            // For the no-gym state: gym: null
+            gym: { id: FAKE_GYM_ID, name: "1337 Gym" },
+        }
+    } catch (error) {
+        throw toApiError(error, "Could not load the filters. Please try again.")
     }
 }

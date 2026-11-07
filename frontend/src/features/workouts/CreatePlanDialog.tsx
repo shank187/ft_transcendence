@@ -26,8 +26,8 @@ export default function CreatePlanDialog(props: { onClose: () => void })
             })
             // A new plan has no days yet, so the next step is always the plan page.
             navigate(`/workouts/plans/${plan.id}`)
-        } catch {
-            setError("Could not create plan. Please try again.")
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Could not create the plan. Please try again.")
             setSubmitting(false)
         }
     }

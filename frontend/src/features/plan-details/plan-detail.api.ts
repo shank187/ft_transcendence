@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import api from "../auth/axiosInstance";
 import type {PlanDay, PlanDetail } from "./plan-detail.types";
+import { toApiError } from "../workouts/api-error";
 
 // getPlanDetails and createWorkoutDay call the real API. The functions marked
 // FAKE-DATA are mocks until their endpoints exist: they work on an in-memory
@@ -97,14 +98,18 @@ export default async function getPlanDetails(planId: string): Promise<PlanDetail
         return resp.data
     }catch(err){
         if(isAxiosError(err) && err.response?.status == 404) return null
-        throw err
+        throw toApiError(err, "Could not load the plan. Please try again.")
     }
 }
 
 // The server picks the day's id and dayOrder.
 export async function createWorkoutDay(planId: string, name: string): Promise<PlanDay> {
-    const resp = await api.post<PlanDay>(`/api/workout-plans/${planId}/days`, { name })
-    return resp.data
+    try{
+        const resp = await api.post<PlanDay>(`/api/workout-plans/${planId}/days`, { name })
+        return resp.data
+    }catch(error){
+        throw toApiError(error, "Could not add the day. Please try again.")
+    }
 }
 
 // FAKE-DATA: real version will be PATCH /api/workout-plans/:planId/days/:dayId
