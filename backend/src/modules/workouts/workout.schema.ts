@@ -6,7 +6,7 @@ export const createWorkoutPlanBody = z.object({
 });
 
 export const createWorkoutDayBody = z.object({
-    name: z.string().trim().min(1, "name is required.")
+    name: z.string().trim().min(1, "name is required.").max(30, "name cant be more than 30 character.")
 })
 
 export type CreateWorkoutPlanBody = z.infer<typeof createWorkoutPlanBody>;
