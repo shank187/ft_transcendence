@@ -4,6 +4,7 @@ import { renameWorkoutDay } from "./plan-detail.api"
 import Form_input from "../../components/ui/Form_input"
 import Button from "../../components/ui/Button"
 import Dialog from "../../components/ui/Dialog"
+import { DAY_NAME_MAX } from "../workouts/workout.limits"
 
 export default function RenameDayDialog(props: {
     planId: string
@@ -21,7 +22,8 @@ export default function RenameDayDialog(props: {
         e.preventDefault()
         if (submitting) return
         const name = renameName.trim()
-        if (name.length === 0 || name.length > 30) { setRenameError("Invalid name"); return }
+        if (name.length === 0) { setRenameError("Day name is required."); return }
+        if (name.length > DAY_NAME_MAX) { setRenameError(`Day name can't be more than ${DAY_NAME_MAX} characters.`); return }
         setSubmitting(true)
         setRenameError(null)
         try {

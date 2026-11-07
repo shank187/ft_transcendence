@@ -4,6 +4,7 @@ import { postWorkoutPlan } from "./workout.api"
 import Form_input from "../../components/ui/Form_input"
 import Button from "../../components/ui/Button"
 import Dialog from "../../components/ui/Dialog"
+import { PLAN_DESCRIPTION_MAX, PLAN_NAME_MAX } from "./workout.limits"
 
 export default function CreatePlanDialog(props: { onClose: () => void })
 {
@@ -17,6 +18,8 @@ export default function CreatePlanDialog(props: { onClose: () => void })
         e.preventDefault()
         if (submitting) return
         if (name.trim().length === 0) { setError("Plan name is required."); return }
+        if (name.trim().length > PLAN_NAME_MAX) { setError(`Plan name can't be more than ${PLAN_NAME_MAX} characters.`); return }
+        if (description.trim().length > PLAN_DESCRIPTION_MAX) { setError(`Description can't be more than ${PLAN_DESCRIPTION_MAX} characters.`); return }
         setSubmitting(true)
         setError(null)
         try {

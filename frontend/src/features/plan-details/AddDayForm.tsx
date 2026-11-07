@@ -3,6 +3,7 @@ import type { PlanDay } from "./plan-detail.types"
 import { createWorkoutDay } from "./plan-detail.api"
 import Form_input from "../../components/ui/Form_input"
 import Button from "../../components/ui/Button"
+import { DAY_NAME_MAX } from "../workouts/workout.limits"
 
 export default function AddDayForm(props: {
     planId: string
@@ -20,10 +21,8 @@ export default function AddDayForm(props: {
         if(submitting) return
         const name = dayname.trim()
         setErrorForm(null)
-        if( name.length === 0  || name.length  > 30){
-            setErrorForm("Invalid name")
-            return
-        }
+        if (name.length === 0) { setErrorForm("Day name is required."); return }
+        if (name.length > DAY_NAME_MAX) { setErrorForm(`Day name can't be more than ${DAY_NAME_MAX} characters.`); return }
         if (props.dayCount >= 7) {
             setErrorForm("Maximum 7 days per plan reached.")
             return
