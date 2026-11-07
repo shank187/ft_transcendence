@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import type {WorkoutPlan} from "./workout.types";
-import getWorkouts from "./workout.api";
+import {getWorkouts} from "./workout.api";
 import WorkoutPlanCard from "./WorkoutPlanCard";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/states/EmptyState";
 import emptyStateIcon from "../../assets/empty-icon.png"
-import { useNavigate } from "react-router-dom";
 import LoadingState from "../../components/states/LoadingState";
 import ErrorState from "../../components/states/ErrorState";
+import CreatePlanDialog from "./CreatePlanDialog";
 
 export default function WorkoutPlanCatalog()
 {
     const [workouts, setWorkouts] = useState<WorkoutPlan[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null)
-    const navigate = useNavigate()
+    const [isCreateOpen, setIsCreateOpen] = useState(false)
     
     const [reloadCount, setReloadCount] = useState(0)
 
@@ -24,8 +24,6 @@ export default function WorkoutPlanCatalog()
         setReloadCount(count => count + 1)
     }
 
-    // The load lives inside the effect so its cleanup can ignore an answer that
-    // arrives after the page left or a newer retry started.
     useEffect(()=>{
         let ignore = false
         const loadWorkouts = async () => {
@@ -47,6 +45,8 @@ export default function WorkoutPlanCatalog()
     }
     ,[reloadCount])
 
+    const createDialog = isCreateOpen && <CreatePlanDialog onClose={() => setIsCreateOpen(false)} />
+
     if(loading)
         return(
             <LoadingState message="Loading Plans..."/>
@@ -65,6 +65,7 @@ export default function WorkoutPlanCatalog()
         )
     if(workouts.length === 0)
         return(
+            <>
             <EmptyState
             icon={
                 <img
@@ -77,18 +78,20 @@ export default function WorkoutPlanCatalog()
             description="Create your first plan to get started."
             action={<Button
                         className="m-5"
-                        onClick={()=> navigate('/workouts/new-plan')}
+                        onClick={() => setIsCreateOpen(true)}
                     >
                 Create Plan
             </Button>}
             />
+            {createDialog}
+            </>
     )
     return (
         <section className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold">My Plans</h1>
 
-                <Button onClick={() => navigate('/workouts/new-plan')}>
+                <Button onClick={() => setIsCreateOpen(true)}>
                     Create Plan
                 </Button>
             </div>
@@ -101,6 +104,7 @@ export default function WorkoutPlanCatalog()
                     />
                 ))}
             </div>
+            {createDialog}
         </section>
     )
 }

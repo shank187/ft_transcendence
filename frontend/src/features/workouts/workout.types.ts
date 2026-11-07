@@ -7,3 +7,9 @@ export interface WorkoutPlan
     days: number,
 }
 
+export interface PostWorkoutPlan
+{
+    name: string,
+    description: string | null,
+}
+
