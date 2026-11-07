@@ -1,8 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-// import type { Gym } from "../data/FakeData";
 import type { Gym } from "../type/gym";
-// import { getGymById } from "../data/FakeData"; 
 import LoadingState from '../../../components/states/LoadingState';
 import {Link }from "react-router-dom"
 import api from '../../auth/axiosInstance';
@@ -20,7 +18,7 @@ function GymDetailsPage() {
                 return;
             try {
                 // const data = await getGymById(id);
-                const req = await api.get("/api/gyms/id/", {params :{id: id}});
+                const req = await api.get(`/api/gyms/${id}`);
                 // if (data)
                     // setGym(data);
                 setGym(req.data);
@@ -101,14 +99,15 @@ function GymDetailsPage() {
                 <ul className="flex flex-col gap-3 mt-2">
                     {gym.equipment?.map((equi) => (
                         <li
-                            key={equi.id}
+                            key={equi.equipmentId}
                             className="flex items-center justify-between gap-3 text-lg mb-2 bg-[#1c1c1c] px-4 py-3 rounded-2xl hover:bg-[#2d2d2d] shadow-sm"
                         >
-                            <span>{equi.name}</span>
-                            {equi.imageUrl ? (
+                            <span>{equi.equipment.name}</span>
+                            <span>{equi.quantity}</span>
+                            {equi.equipment.imageUrl ? (
                                 <img
-                                    src={equi.imageUrl}
-                                    alt={equi.name}
+                                    src={equi.equipment.imageUrl}
+                                    alt={equi.equipment.name}
                                     className="w-12 h-12 rounded-xl object-cover"
                                 />
                             ) : (

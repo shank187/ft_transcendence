@@ -1,8 +1,7 @@
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { Request, Response } from "express";
-import {searchForGyms} from "./gym.servicee"
-import { prisma } from "../../lib/prisma";
-import {getGymById} from "./gym.servicee";
+import {searchForGyms} from "./gym.service"
+import {getGymById} from "./gym.service";
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -34,7 +33,7 @@ export async function getGymByIdController(req :AuthenticatedRequest, res:Respon
         return res.status(401).json({message :  "unauthorized"});
 
     try{
-        const id = req.query.id;
+        const id = req.params.id;
         if (typeof id != "string")
             return res.status(400).json({ error: "Invalid or missing gym ID" });
         const gym = await getGymById(id);

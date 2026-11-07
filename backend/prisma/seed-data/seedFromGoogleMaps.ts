@@ -1,10 +1,10 @@
 import axios from "axios";
 import { Prisma, PrismaClient } from "@prisma/client";
 import "dotenv/config";
-import gyms from "./unverifieGyms.json"
+import gyms from "./unverifiedGyms.json"
 
 
-export async function seedUnerifiedGyms(prisma : PrismaClient){
+export async function seedUnverifiedGyms(prisma : PrismaClient){
     try{
         // @ts-ignore
         const adminEMAIL = process.env.ADMIN_EMAIL?.trim().toLocaleLowerCase();

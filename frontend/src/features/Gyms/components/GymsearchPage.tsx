@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import type { Gym } from "../data/FakeData";
+// import type { Gym } from "../data/FakeData";
+import type {Gym} from "../type/gym"
 import SearchBar from "./SearchBar";
 import GymCard from "./GymCard";
 
 // import {getFakeData} from "../data/FakeData";
+
 import LoadingState from "../../../components/states/LoadingState";
 import GymFilters from "./gymFilters";
 import api from "../../auth/axiosInstance";

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Gym } from "../data/FakeData";
+import type { Gym } from "../type/gym";
 
 interface GymCardPara {
     gym : Gym;

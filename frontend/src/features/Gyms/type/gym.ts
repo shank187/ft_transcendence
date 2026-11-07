@@ -1,3 +1,14 @@
+export interface Equipment {
+    id: string;
+    name : string;
+    imageUrl? : string;
+}
+export interface GymEquipmentItem {
+    gymId: string;
+    equipmentId: string;
+    quantity?: number | null;
+    equipment: Equipment;
+}
 export interface Gym{
     id: string;
     name: string;
@@ -8,12 +19,7 @@ export interface Gym{
     phone?: string | null;
     website?: string | null;
     verified?: boolean;   
-    equipment: Equipment[];
+    equipment: GymEquipmentItem[];
     
 }
 
-export interface Equipment {
-    id: string;
-    name : string;
-    imageUrl? : string;
-}

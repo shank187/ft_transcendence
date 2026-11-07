@@ -38,7 +38,14 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
 
 export async function getGymById(id :string){
     const gym = await prisma.gym.findUnique({
-        where : {id : id}
+        where : {id : id},
+        include :{
+            equipment : {
+                include :{equipment : true}
+            }
+        }
     });
+    if (!gym)
+            return null;
     return gym;
 }

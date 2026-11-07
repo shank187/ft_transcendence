@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { seedMuscleGroups } from "./seed-data/muscle-groups";
 import { seedEquipment } from "./seed-data/equipment";
 import { SeedExercises } from "./seed-data/exercises";
-import { seedUnerifiedGyms  } from "./seed-data/seedFromGoogleMaps";
+import { seedUnverifiedGyms  } from "./seed-data/seedFromGoogleMaps";
 import { seedAdmin } from "./seed-data/admin";
 import {seedVerifiedGyms} from "./seed-data/seedVerifiedGyms"
 
@@ -17,7 +17,7 @@ async function main() {
   
   await seedAdmin(prisma);
   await seedVerifiedGyms(prisma);
-  await seedUnerifiedGyms(prisma);
+  await seedUnverifiedGyms(prisma);
 
 }
 
