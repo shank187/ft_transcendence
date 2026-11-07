@@ -54,14 +54,14 @@ export const deleteFriendship = async (req: AuthenticatedRequest, res: Response)
 }
 
 
-export const return_uses_id = async (req: AuthenticatedRequest, res: Response) => {
-    const users = prisma.user.findMany({
-        select: {
-            id: true,
-            email: true
-        }
-    })
-    const users_Ids = (await users).map(user => user.id)
-    const user_Emails = (await users).map(user => user.email)
-    res.json({ users_Ids, user_Emails})
-}
+// export const return_uses_id = async (req: AuthenticatedRequest, res: Response) => {
+//     const users = prisma.user.findMany({
+//         select: {
+//             id: true,
+//             email: true
+//         }
+//     })
+//     const users_Ids = (await users).map(user => user.id)
+//     const user_Emails = (await users).map(user => user.email)
+//     res.json({ users_Ids, user_Emails})
+// }

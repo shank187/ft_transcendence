@@ -15,5 +15,5 @@ router.post("/:userId/unblock", authenticate, unblockUser)
 router.get("/", authenticate, getFriends)
 router.get("/:userId/can-message", authenticate, canMessageUser)
 
-router.get("/usersIds", authenticate, return_uses_id)
+// router.get("/usersIds", authenticate, return_uses_id)
 export default router;
