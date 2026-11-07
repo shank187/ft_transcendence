@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import type { WorkoutPlanType } from "@prisma/client";
 import type { CreateWorkoutPlanBody } from "./workout.schema";
-import {PlanDetail} from "./workouts.types";
+import {PlanDay, PlanDetail} from "./workouts.types";
 
 type PlanRowDb = {
     id: string;
@@ -54,6 +54,29 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
             setCount: day.exercises.reduce((accumulator, next)=>(accumulator + next._count.sets), 0)
         }))
     }
+}
+
+type CreateDayResult =
+    | { ok: true; day: PlanDay}
+    | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS"};
+
+export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
+{
+    const plan = await prisma.workoutPlan.findUnique({
+        where: { id: planId, userId },
+        select: {
+            _count: { select: { days: true } },
+            days: { select: { dayOrder: true }, orderBy: { dayOrder: "desc" }, take: 1 },
+        },
+    })
+    if (!plan) return { ok: false, reason: "NOT_FOUND" }
+    if (plan._count.days >= 7) return { ok: false, reason: "TOO_MANY_DAYS" }
+
+    const day = await prisma.workoutDay.create({
+        data: { workoutPlanId: planId, name, dayOrder: (plan.days[0]?.dayOrder ?? 0) + 1 },
+        select: { id: true, name: true, dayOrder: true },
+    })
+    return { ok: true, day: { ...day, exerciseCount: 0, setCount: 0 } }
 }
 
 export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
