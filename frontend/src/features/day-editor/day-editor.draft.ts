@@ -169,7 +169,8 @@ export function validateRest(value: string): string | null
         return "Rest must be between 0 and 3600 seconds."
     return null
 }
-export function validateSet(set: DraftSet, fields: SetField[]): Partial<Record<FieldKey, string>>
+// Only reads the four value fields, so the session rows can reuse it.
+export function validateSet(set: Pick<DraftSet, FieldKey>, fields: SetField[]): Partial<Record<FieldKey, string>>
 {
     const errors: Partial<Record<FieldKey, string>> = {}
     for (const field of fields) {

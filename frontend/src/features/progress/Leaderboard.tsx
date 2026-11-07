@@ -1,19 +1,4 @@
-type LeaderboardEntry = {
-    id: string;
-    username: string;
-    xp: number;
-};
-
-export const fakeLeaderboard: LeaderboardEntry[] = [
-    { id: "aymen", username: "Aymen", xp: 512 },
-    { id: "mohhamed", username: "Moha.med", xp: 133 },
-    { id: "ziad", username: "Ziad", xp: 430 },
-    { id: "abdlhamid", username: "Abdlhamid", xp: 390 },
-    { id: "mehdi", username: "Mehdi", xp: 350 },
-    { id: "nour", username: "Nour", xp: 310 },
-    { id: "hamza", username: "Hamza", xp: 270 },
-    { id: "khadija", username: "Khadija", xp: 9000 }
-];
+import type { LeaderboardEntry } from "./progress.types";
 
 type LeaderboardProps = {
     entries: LeaderboardEntry[];

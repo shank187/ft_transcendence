@@ -8,6 +8,6 @@ export default function DayEditor()
     if(!planId || !dayId) return <NotFoundState title="Day not found."/>
 
     return(
-        <DayEditorView planId={planId} dayId={dayId}/>
+        <DayEditorView key={dayId} planId={planId} dayId={dayId}/>
     )
 }

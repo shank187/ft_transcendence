@@ -28,3 +28,10 @@ export const SET_TYPE_LABEL: Record<SetType, string> = {
 export const SET_TYPE_LETTER: Record<Exclude<SetType, "NORMAL">, string> = {
     WARMUP: "W", DROP: "D", FAILURE: "F",
 }
+
+export function setLabel(sets: { setType: SetType }[], index: number): string {
+    const setType = sets[index].setType
+    return setType === "NORMAL"
+        ? String(sets.slice(0, index + 1).filter(s => s.setType === "NORMAL").length)
+        : SET_TYPE_LETTER[setType]
+}
