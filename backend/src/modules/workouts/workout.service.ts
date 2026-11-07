@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import type { WorkoutPlanType } from "@prisma/client";
+import { Prisma, type WorkoutPlanType } from "@prisma/client";
 import type { CreateWorkoutPlanBody } from "./workout.schema";
 import {PlanDay, PlanDetail} from "./workouts.types";
 
@@ -39,6 +39,12 @@ function toWorkoutPlanDto(plan: PlanRowDb)
     };
 }
 
+
+function isUniqueViolation(error: unknown): boolean
+{
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
 function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
 {
     return{
@@ -58,7 +64,7 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
 
 type CreateDayResult =
     | { ok: true; day: PlanDay}
-    | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS"};
+    | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS" | "CONFLICT"};
 
 export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
 {
@@ -71,12 +77,18 @@ export async function postWorkoutDay(userId: string, planId: string, name: strin
     })
     if (!plan) return { ok: false, reason: "NOT_FOUND" }
     if (plan._count.days >= 7) return { ok: false, reason: "TOO_MANY_DAYS" }
-
-    const day = await prisma.workoutDay.create({
-        data: { workoutPlanId: planId, name, dayOrder: (plan.days[0]?.dayOrder ?? 0) + 1 },
-        select: { id: true, name: true, dayOrder: true },
-    })
-    return { ok: true, day: { ...day, exerciseCount: 0, setCount: 0 } }
+    try
+    {
+        const day = await prisma.workoutDay.create({
+            data: { workoutPlanId: planId, name, dayOrder: (plan.days[0]?.dayOrder ?? 0) + 1 },
+            select: { id: true, name: true, dayOrder: true },
+        })
+        return { ok: true, day: { ...day, exerciseCount: 0, setCount: 0 } }
+    }catch(error){
+        if(isUniqueViolation(error))
+            return({ok: false, reason:"CONFLICT"})
+        throw error
+    }
 }
 
 export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>

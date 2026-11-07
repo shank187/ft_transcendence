@@ -61,6 +61,8 @@ export async function postWorkoutDayController(req: AuthenticatedRequest, res: R
             return res.status(422).json({message: "A plan can have at most 7 days."})
         else if(!data.ok && data.reason === "NOT_FOUND")
             return res.status(404).json({message: "Plan not found."})
+        else if (!data.ok && data.reason === "CONFLICT")
+            return res.status(409).json({ message: "The plan changed. Please try again." });
         else if(data.ok)
             return res.status(201).json(data.day)
     }
