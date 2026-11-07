@@ -1,4 +1,32 @@
 import { prisma } from "../../lib/prisma"
+import { ServerMessage } from "../chat/chat.type"
+import { connectedUsers, sendPresenceSnapshot } from "../chat/chat.logic"
+ 
+
+export async function notifyFriendshipUpdate(
+    userId: string,
+    targetId: string
+) {
+
+    const response: ServerMessage = {
+        type: "friendship_updated",
+        userId
+    }
+
+    const sockets = connectedUsers.get(targetId)
+
+    if (!sockets) {
+        return
+    }
+
+    for (const socket of sockets) {
+        if (socket.readyState !== WebSocket.OPEN)
+            continue
+        socket.send(JSON.stringify(response))
+
+        await sendPresenceSnapshot(socket)
+    }
+}
 
 export async function getFriendsForUser(userId: string) {
     const friendIds = await getFriendsId(userId)

@@ -1,6 +1,6 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { Response } from "express";
-import { getFriendsForUser } from "./friends.service";
+import { getFriendsForUser, areUsersFriends } from "./friends.service";
 
 export const getFriends = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId
@@ -28,6 +28,31 @@ export const getUserFriends = async (req: AuthenticatedRequest, res: Response) =
     } catch (error) {
         console.error(error)
         return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+
+
+export const canMessageUser = async (req: AuthenticatedRequest, res: Response) => {
+    const callerId = req.userId
+    const { userId } = req.params
+
+    if (!callerId)
+        return res.status(401).json({ message: "Unauthorized" })
+
+    if (typeof userId !== "string")
+        return res.status(400).json({ message: "Invalid user ID" })
+
+    if (callerId === userId)
+        return res.status(200).json({ canMessage: false })
+
+    try {
+        const canMessage = await areUsersFriends(callerId, userId)
+
+        return res.status(200).json({ canMessage })
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ message: "Internal server error" })
     }
 }
 
