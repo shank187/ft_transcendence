@@ -33,23 +33,23 @@ export const refresh = async (req: Request, res: Response) => {
 
     try {
         if (!raw_token)
-            return res.status(401).json({ error: 'No refresh token provided' });
+            return res.status(401).json({ message: 'No refresh token provided' });
 
         const session = await find_session_by_raw_token(raw_token);
 
         if (!session)
-            return res.status(403).json({ error: 'Invalid refresh token' });
+            return res.status(403).json({ message: 'Invalid refresh token' });
 
         if (session.revokedAt)
         {
             res.clearCookie(refresh_cookie_name, refresh_cookie_options);
-            return res.status(403).json({error: 'Refresh token revoked'});
+            return res.status(403).json({ message: 'Refresh token revoked' });
         }
         if (session.expiresAt < new Date())
         {
             await revoke_session(session.id);
             res.clearCookie(refresh_cookie_name, refresh_cookie_options);
-            return res.status(403).json({ error: 'Refresh token expired' });
+            return res.status(403).json({ message: 'Refresh token expired' });
         }
 
         const access_token = sign_access_token(session.userId);
@@ -57,7 +57,7 @@ export const refresh = async (req: Request, res: Response) => {
         res.status(200).json({ access_token });
     } catch (error)
     {
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -98,7 +98,7 @@ export const logout = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error)
     {
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -129,9 +129,7 @@ export const check_session = async (req: Request, res: Response) => {
         });
 
     } catch {
-        return res.status(500).json({
-            error: 'Internal server error'
-        });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 

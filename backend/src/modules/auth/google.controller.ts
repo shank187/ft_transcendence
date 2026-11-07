@@ -50,12 +50,12 @@ export const googleCallback = async (req: Request, res: Response) => {
         });
 
         if (typeof code !== 'string' || typeof state !== 'string' || state !== saved_state) // Check that the Google request is valid
-            return res.status(400).json({ error: 'Invalid Google request' });
+            return res.status(400).json({ message: 'Invalid Google request' });
 
         const { tokens } = await googleClient.getToken(code); // Send the temporary code to Google and get tokens
 
         if (!tokens.id_token)
-            return res.status(401).json({ error: 'Google login failed' });
+            return res.status(401).json({ message: 'Google login failed' });
 
 
         // Check that the ID token is valid and belongs to our app
@@ -69,7 +69,7 @@ export const googleCallback = async (req: Request, res: Response) => {
 
         // Make sure the Google user has valid information
         if (!google_user || !google_user.email || !google_user.sub || !google_user.email_verified) //means the email is trusted by Google.
-            return res.status(401).json({ error: 'Invalid Google account' });
+            return res.status(401).json({ message: 'Invalid Google account' });
 
         const email = google_user.email.toLowerCase();
 

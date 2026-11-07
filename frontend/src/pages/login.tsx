@@ -37,7 +37,7 @@ function Login()
             const response = await api.post('/api/auth/login', {email: email, password: password});
             if (!response.data.success)
             {
-                set_err_msg(response.data.error);
+                set_err_msg(response.data.message);
                 return;
             }
                 
@@ -53,7 +53,7 @@ function Login()
 
         } catch (error) {
             if (axios.isAxiosError(error))
-                set_err_msg(error.response?.data?.error || "invalid email or password");
+                set_err_msg(error.response?.data?.message || "invalid email or password");
             else
                 set_err_msg("invalid email or password");
         }
