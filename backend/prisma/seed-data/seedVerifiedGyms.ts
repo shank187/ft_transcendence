@@ -68,5 +68,6 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
         }
     } catch (criticalError) {
         console.error("Critical Setup Error:", criticalError);
+        throw criticalError;
     }
 }

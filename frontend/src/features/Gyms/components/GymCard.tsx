@@ -23,7 +23,7 @@ function GymCard({gym} : GymCardPara){
                     View Details
                 </Link>
             </div>
-            <img src={gym.imageUrl || "/default-gym.png"} alt={gym.name} className="w-32 h-32 object-cover  border"/>
+            <img src={gym.imageUrl || "/gym-images/default-gym.png"} alt={gym.name} className="w-32 h-32 object-cover  border"/>
         </div>
     )
 }
