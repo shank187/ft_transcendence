@@ -112,6 +112,48 @@ export async function renameWorkoutDay(userId: string, planId: string, dayId: st
     return{ok:true, day: planDayDto(renamedDay)}
 }
 
+type DeleteDayResult =
+    | { ok: true; days: PlanDay[]}
+    | { ok: false; reason: "NOT_FOUND" | "CONFLICT"};
+
+// Deletes the day, then renumbers the remaining days 1..n.
+// Its exercises are deleted with it (Cascade); its past sessions stay, with no day (SetNull).
+export async function deleteWorkoutDay(userId: string, planId: string, dayId: string): Promise<DeleteDayResult>
+{
+    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
+    const day = await prisma.workoutDay.findUnique({
+        where:{id: dayId, workoutPlanId: planId}
+    })
+    if(!day || !plan)
+        return {ok: false, reason: "NOT_FOUND"}
+    try{
+        // All or nothing: if one step fails, the day is not deleted.
+        const remainingDays = await prisma.$transaction(async (tx) => {
+            await tx.workoutDay.delete({where:{id: dayId}})
+            const days = await tx.workoutDay.findMany({
+                where:{workoutPlanId: planId},
+                orderBy:{dayOrder: "asc"},
+                select:{id: true}
+            })
+            // Lowest first, one day at a time: the new number is always free,
+            // so @@unique([workoutPlanId, dayOrder]) never sees two days with the same number.
+            for (const [index, d] of days.entries())
+                await tx.workoutDay.update({where:{id: d.id}, data:{dayOrder: index + 1}})
+            return tx.workoutDay.findMany({
+                where:{workoutPlanId: planId},
+                orderBy:{dayOrder: "asc"},
+                select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
+            })
+        })
+        return {ok: true, days: remainingDays.map(planDayDto)}
+    }catch(error){
+        // Another request (e.g. add day) changed this plan's day numbers at the same time.
+        if(isUniqueViolation(error))
+            return({ok: false, reason:"CONFLICT"})
+        throw error
+    }
+}
+
 
 export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
 {

@@ -57,17 +57,6 @@ function failFirstAttempt(planId: string, requestKey: string, message: string) {
     throw new Error(message)
 }
 
-// FAKE-DATA: PlanDay only holds strings and numbers, so a spread is a full
-// copy. Callers get copies, never the stored objects.
-function copyDay(day: PlanDay): PlanDay {
-    return { ...day }
-}
-
-// FAKE-DATA:
-function sortedDays(days: PlanDay[]): PlanDay[] {
-    return [...days].sort((a, b) => a.dayOrder - b.dayOrder)
-}
-
 export default async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
     try{
         const resp = await api.get<PlanDetail>(`/api/workout-plans/${planId}`)
@@ -97,21 +86,14 @@ export async function renameWorkoutDay(planId: string, dayId: string, name: stri
     }
 }
 
-// FAKE-DATA: proposed real version: DELETE /api/workout-plans/:planId/days/:dayId
-// returning 200 with the remaining days, renumbered 1..n and sorted by dayOrder.
+// The server returns the remaining days, renumbered 1..n and sorted by dayOrder.
 export async function deleteWorkoutDay(planId: string, dayId: string): Promise<PlanDay[]> {
-    await wait()
-
-    const plan = findPlanOrThrow(planId)
-    if (!plan.days.some(d => d.id === dayId)) throw new Error("Day not found")
-    failFirstAttempt(planId, `delete:${dayId}`, "Failed to delete your day, try again.")
-
-    // Keep the old order, then give the remaining days 1, 2, 3...
-    const remainingDays = sortedDays(plan.days)
-        .filter(d => d.id !== dayId)
-        .map((d, index) => ({ ...d, dayOrder: index + 1 }))
-    plans.set(planId, { ...plan, days: remainingDays })
-    return remainingDays.map(copyDay)
+    try{
+        const resp = await api.delete<PlanDay[]>(`/api/workout-plans/${planId}/days/${dayId}`)
+        return resp.data
+    }catch(error){
+        throw toApiError(error, "Could not delete the day. Please try again.")
+    }
 }
 
 // Sends name + description every time, like create.

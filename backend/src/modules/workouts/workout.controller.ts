@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
+import { deleteWorkoutDay, getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
 import { createWorkoutDayBody, createWorkoutPlanBody } from "./workout.schema";
 
 export async function getWorkoutPlansController(req: AuthenticatedRequest, res: Response)
@@ -104,6 +104,23 @@ export async function patchWorkoutPlanController(req: AuthenticatedRequest, res:
         if(!resp)
             return res.status(404).json({message: "Plan not found."})
         return res.status(200).json(resp)
+    }catch(error){
+        console.error(error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function deleteWorkoutDayController(req: AuthenticatedRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(typeof req.params.planId !== "string" || typeof req.params.dayId !== "string") return res.status(400).json({message: "the Parameters are not valid"})
+    try{
+        const result = await deleteWorkoutDay(req.userId, req.params.planId, req.params.dayId)
+        if(!result.ok && result.reason === "NOT_FOUND")
+            return res.status(404).json({message: "Day not found."})
+        else if(!result.ok && result.reason === "CONFLICT")
+            return res.status(409).json({message: "The plan changed. Please try again."})
+        else if(result.ok)
+            return res.status(200).json(result.days)
     }catch(error){
         console.error(error)
         return res.status(500).json({message: "Internal server error"})
