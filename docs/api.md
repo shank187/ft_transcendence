@@ -13,7 +13,7 @@ This file separates implemented endpoints from frozen target contracts. `backend
 
 ## Implemented endpoint inventory — 30 September 2026
 
-Source: `backend/src/app.ts` and module route files on `feature/workout-plans-get` (`main` at `177c75a` plus the workout-plans read route).
+Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 
 | Method | Path | Auth | Purpose |
 |---|---|---:|---|
@@ -29,6 +29,13 @@ Source: `backend/src/app.ts` and module route files on `feature/workout-plans-ge
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
+| POST | `/api/workout-plans` | Yes | Create a custom plan |
+| GET | `/api/workout-plans/:planId` | Yes | Return one owned plan with its days |
+| PATCH | `/api/workout-plans/:planId` | Yes | Update an owned plan's name and description |
+| DELETE | `/api/workout-plans/:planId` | Yes | Delete an owned plan with its days |
+| POST | `/api/workout-plans/:planId/days` | Yes | Add a day at the end of an owned plan |
+| PATCH | `/api/workout-plans/:planId/days/:dayId` | Yes | Rename a day of an owned plan |
+| DELETE | `/api/workout-plans/:planId/days/:dayId` | Yes | Delete a day and renumber the remaining days |
 
 "Auth: Yes" means `Authorization: Bearer <access token>` checked by `backend/src/middleware/authenticate.ts`, which sets `req.userId`.
 
@@ -255,9 +262,207 @@ Status codes:
 
 - `200` list returned (possibly `[]`)
 - `401` missing, invalid, or expired access token — e.g. no `Authorization` header returns `{ "message": "Access token is required" }`
-- `500` unexpected server/database error (no feature-specific error body yet)
+- `500` unexpected server/database error — `{ "message": "Internal server error" }`
 
 Frontend type: `WorkoutPlan` in `frontend/src/features/workouts/workout.types.ts` must stay in sync with this DTO.
+
+### `POST /api/workout-plans`
+
+Creates a custom plan for the authenticated user. Used by the create plan dialog (`postWorkoutPlan` in `frontend/src/features/workouts/workout.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Body:** `{ "name": string, "description"?: string | null }`. Both are trimmed. `name` 1–50 characters; `description` at most 200 characters. Unknown fields (including `type`) are dropped; `type` is always `CUSTOM`.
+- **Ownership:** `userId` is taken from the token, never from the body.
+- **Code:** `createWorkoutPlanController` → `createWorkoutPlan`; limits in `workout.schema.ts` (`workoutPlanBody`).
+
+Response `201` — the new plan, same DTO as one item of `GET /api/workout-plans` (`days` is `0`):
+
+```json
+{
+  "id": "3f1c2b8e-7d4a-4c1e-9b2f-5a6d7e8f9a0b",
+  "name": "Push Pull Legs",
+  "description": null,
+  "type": "CUSTOM",
+  "days": 0
+}
+```
+
+Status codes:
+
+- `201` plan created
+- `400` body fails validation — `{ "message": "<first validation error>" }`
+- `401` missing, invalid, or expired access token
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: `{ "name": "   " }` returns `400` `{ "message": "Plan name is required." }`.
+
+### `GET /api/workout-plans/:planId`
+
+Returns one plan with its days. Used by the plan detail page and the day editor (`getPlanDetails` in `frontend/src/features/plan-details/plan-detail.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId` — the plan's id. No query or body.
+- **Ownership:** the service looks the plan up with `id = planId` and `userId = req.userId`. A plan that does not exist and a plan owned by someone else both return `404`, so the client cannot tell them apart.
+- **Ordering:** `days` by `dayOrder` ascending.
+- **Code:** `getWorkoutPlanController` → `getWorkoutPlan`.
+
+Response `200`:
+
+```json
+{
+  "id": "3f1c2b8e-7d4a-4c1e-9b2f-5a6d7e8f9a0b",
+  "name": "Push Pull Legs",
+  "description": null,
+  "type": "CUSTOM",
+  "days": [
+    { "id": "a1b2c3d4-0000-4000-8000-000000000001", "name": "Push", "dayOrder": 1, "exerciseCount": 4, "setCount": 12 }
+  ]
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `id`, `name`, `description`, `type` | | Same as the list DTO |
+| `days` | `PlanDay[]` | The plan's days, possibly `[]` |
+| `days[].id` | string (UUID) | `WorkoutDay.id` |
+| `days[].name` | string | |
+| `days[].dayOrder` | number | 1..n, unique inside the plan |
+| `days[].exerciseCount` | number | Count of `WorkoutExercise` rows of the day |
+| `days[].setCount` | number | Total planned sets across those exercises |
+
+Status codes:
+
+- `200` plan returned
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Plan not found." }`
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: another user's `planId` returns `404` `{ "message": "Plan not found." }`.
+
+Frontend types: `PlanDetail` and `PlanDay` in `frontend/src/features/plan-details/plan-detail.types.ts` must stay in sync with this DTO.
+
+### `PATCH /api/workout-plans/:planId`
+
+Updates a plan's name and description. Used by the rename plan dialog (`renamePlan` in `plan-detail.api.ts`), which sends both fields every time.
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`.
+- **Body:** same as `POST /api/workout-plans`: `name` 1–50 characters (required), `description` at most 200 characters. `description: null` clears it; leaving `description` out keeps the current value.
+- **Ownership:** the update only matches `id = planId` and `userId = req.userId`.
+- **Code:** `updateWorkoutPlanController` → `updateWorkoutPlan`.
+
+Response `200` — the updated plan, same DTO as `GET /api/workout-plans/:planId`.
+
+Status codes:
+
+- `200` plan updated
+- `400` body fails validation — `{ "message": "<first validation error>" }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Plan not found." }` (also when the plan is deleted while the request runs)
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: a 51-character `name` returns `400` `{ "message": "Plan name can't be more than 50 characters." }`.
+
+### `DELETE /api/workout-plans/:planId`
+
+Deletes a plan. Used by the delete plan dialog (`deletePlan` in `plan-detail.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`. No body.
+- **Ownership:** the delete only matches `id = planId` and `userId = req.userId`.
+- **Effects:** the plan's days and their planned exercises are deleted with it (Cascade). Past workout sessions stay in the history with no day (SetNull).
+- **Code:** `deleteWorkoutPlanController` → `deleteWorkoutPlan`.
+
+Response `204` — no body.
+
+Status codes:
+
+- `204` plan deleted
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Plan not found." }` (also when the plan was already deleted)
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: deleting the same plan twice returns `404` `{ "message": "Plan not found." }` the second time.
+
+### `POST /api/workout-plans/:planId/days`
+
+Adds a day at the end of a plan. Used by the add day form (`createWorkoutDay` in `plan-detail.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`.
+- **Body:** `{ "name": string }`, trimmed, 1–30 characters. The server picks `id` and `dayOrder` (last `dayOrder` + 1).
+- **Limit:** at most 7 days per plan (`MAX_DAYS_PER_PLAN` in `workout.schema.ts`).
+- **Ownership:** the plan must have `id = planId` and `userId = req.userId`.
+- **Code:** `createWorkoutDayController` → `createWorkoutDay`; limits in `workout.schema.ts` (`workoutDayBody`).
+
+Response `201` — the new day, one `PlanDay` (counts are `0`):
+
+```json
+{ "id": "a1b2c3d4-0000-4000-8000-000000000004", "name": "Legs", "dayOrder": 4, "exerciseCount": 0, "setCount": 0 }
+```
+
+Status codes:
+
+- `201` day created
+- `400` body fails validation — `{ "message": "<first validation error>" }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Plan not found." }`
+- `409` `{ "message": "The plan changed. Please try again." }` — another request took the same `dayOrder` at the same time
+- `422` `{ "message": "A plan can have at most 7 days." }`
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: adding an 8th day returns `422` `{ "message": "A plan can have at most 7 days." }`.
+
+### `PATCH /api/workout-plans/:planId/days/:dayId`
+
+Renames one day. Used by the rename day dialog (`renameWorkoutDay` in `plan-detail.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`, `dayId`.
+- **Body:** `{ "name": string }`, trimmed, 1–30 characters.
+- **Ownership:** the update only matches a day with `id = dayId` whose plan has `id = planId` and `userId = req.userId`.
+- **Code:** `renameWorkoutDayController` → `renameWorkoutDay`.
+
+Response `200` — the renamed day, one `PlanDay`.
+
+Status codes:
+
+- `200` day renamed
+- `400` body fails validation — `{ "message": "<first validation error>" }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Day not found." }` — the day does not exist, belongs to another plan, or the plan is not the user's
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: `{ "name": "" }` returns `400` `{ "message": "Day name is required." }`.
+
+### `DELETE /api/workout-plans/:planId/days/:dayId`
+
+Deletes one day and renumbers the remaining days 1..n in one transaction. Used by the delete day dialog (`deleteWorkoutDay` in `plan-detail.api.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`, `dayId`. No body.
+- **Ownership:** same rule as renaming a day.
+- **Effects:** the day's planned exercises are deleted with it (Cascade). Past sessions of that day stay in the history with no day (SetNull). If any step fails, nothing is deleted.
+- **Code:** `deleteWorkoutDayController` → `deleteWorkoutDay`.
+
+Response `200` — the remaining days, `PlanDay[]` sorted by `dayOrder` (possibly `[]`):
+
+```json
+[
+  { "id": "a1b2c3d4-0000-4000-8000-000000000001", "name": "Push", "dayOrder": 1, "exerciseCount": 4, "setCount": 12 },
+  { "id": "a1b2c3d4-0000-4000-8000-000000000003", "name": "Legs", "dayOrder": 2, "exerciseCount": 5, "setCount": 15 }
+]
+```
+
+Status codes:
+
+- `200` day deleted, remaining days returned
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Day not found." }` (also when the day was already deleted)
+- `409` `{ "message": "The plan changed. Please try again." }` — another request changed the day numbers at the same time
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: deleting a day of another user's plan returns `404` `{ "message": "Day not found." }`.
 
 ## Frozen S3 target resources
 
