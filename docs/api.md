@@ -34,8 +34,15 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | PATCH | `/api/workout-plans/:planId` | Yes | Update an owned plan's name and description |
 | DELETE | `/api/workout-plans/:planId` | Yes | Delete an owned plan with its days |
 | POST | `/api/workout-plans/:planId/days` | Yes | Add a day at the end of an owned plan |
+| GET | `/api/workout-plans/:planId/days/:dayId` | Yes | Return one day of an owned plan with its exercises and sets |
 | PATCH | `/api/workout-plans/:planId/days/:dayId` | Yes | Rename a day of an owned plan |
 | DELETE | `/api/workout-plans/:planId/days/:dayId` | Yes | Delete a day and renumber the remaining days |
+| GET | `/api/workout-sessions/:sessionId` | Yes | Return one owned workout with its exercises and sets |
+| PATCH | `/api/workout-sessions/:sessionId` | Yes | Discard a workout in progress |
+| POST | `/api/workout-sessions/:sessionId/exercises` | Yes | Add exercises to a workout in progress |
+| POST | `/api/workout-sessions/:sessionId/exercises/:exerciseId/sets` | Yes | Add a set to an exercise of a workout in progress |
+| PATCH | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Update or tick a set of a workout in progress |
+| DELETE | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Delete a set and renumber the remaining sets |
 
 "Auth: Yes" means `Authorization: Bearer <access token>` checked by `backend/src/middleware/authenticate.ts`, which sets `req.userId`.
 
@@ -413,6 +420,60 @@ Status codes:
 
 Failure example: adding an 8th day returns `422` `{ "message": "A plan can have at most 7 days." }`.
 
+### `GET /api/workout-plans/:planId/days/:dayId`
+
+Returns one day with its planned exercises and sets. Meant for the day editor; `frontend/src/features/day-editor/day-editor.api.ts` still uses its fake data.
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`, `dayId`. No query or body.
+- **Ownership:** the day is looked up with `id = dayId` inside a plan with `id = planId` and `userId = req.userId`. A missing day, a day of another plan, and a plan owned by someone else all return `404`.
+- **Ordering:** `exercises` by `order` ascending; each exercise's `sets` by `setNumber` ascending.
+- **Code:** `getWorkoutDayController` → `getWorkoutDay`; exercise fields from `exercise-summary.ts`.
+
+Response `200`:
+
+```json
+{
+  "id": "a1b2c3d4-0000-4000-8000-000000000001",
+  "name": "Push",
+  "dayOrder": 1,
+  "planId": "3f1c2b8e-7d4a-4c1e-9b2f-5a6d7e8f9a0b",
+  "planName": "Push Pull Legs",
+  "exercises": [
+    {
+      "id": "b2c3d4e5-0000-4000-8000-000000000001",
+      "order": 1,
+      "restSeconds": 90,
+      "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
+      "sets": [
+        { "id": "d4e5f6a7-0000-4000-8000-000000000001", "setNumber": 1, "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `id`, `name`, `dayOrder` | | `WorkoutDay` |
+| `planId`, `planName` | string | The parent `WorkoutPlan` |
+| `exercises[].id` | string (UUID) | `WorkoutExercise.id` |
+| `exercises[].order` | number | 1..n inside the day |
+| `exercises[].restSeconds` | number \| null | `null` = no rest timer |
+| `exercises[].exerciseSummary` | object | `id`, `name`, `type` (`ExerciseType`), `primaryMuscle` (muscle group name), `imageUrl` |
+| `exercises[].sets[]` | `PlannedSet` | `id`, `setNumber`, `setType`, `targetWeight`, `targetReps`, `targetDuration`, `targetDistance` (targets nullable) |
+
+Status codes:
+
+- `200` day returned
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Day not found." }`
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: a `dayId` from another user's plan returns `404` `{ "message": "Day not found." }`.
+
+Frontend types: `DayDetail`, `DayExercise`, `PlannedSet` and `ExerciseSummary` in `frontend/src/features/day-editor/day-editor.types.ts`.
+
 ### `PATCH /api/workout-plans/:planId/days/:dayId`
 
 Renames one day. Used by the rename day dialog (`renameWorkoutDay` in `plan-detail.api.ts`).
@@ -463,6 +524,188 @@ Status codes:
 - `500` unexpected error — `{ "message": "Internal server error" }`
 
 Failure example: deleting a day of another user's plan returns `404` `{ "message": "Day not found." }`.
+
+## Workout sessions
+
+Routes under `/api/workout-sessions`, code in `backend/src/modules/workout-sessions/`. Starting and finishing a workout are not implemented yet, and `frontend/src/features/workout-session/workout-session.api.ts` still uses its fake data.
+
+Rules shared by every route below:
+
+- **Auth:** required (Bearer access token).
+- **Ownership:** the session is looked up with `id = sessionId` and `userId = req.userId`. A missing session and another user's session both return `404 { "message": "Workout not found." }`.
+- **Closed workouts:** every write first checks the session's status. A `COMPLETED` or `CANCELLED` session returns `409 { "message": "This workout is finished or cancelled." }`. The write itself also requires `status = IN_PROGRESS` in its `where`, so a workout finished between the check and the write is never changed (that case answers `404 "Workout not found."`).
+- **Errors:** `400` returns the first validation message; unexpected errors return `500 { "message": "Internal server error" }`.
+
+### `GET /api/workout-sessions/:sessionId`
+
+Returns one workout with its exercises and sets.
+
+- **Path:** `sessionId`. No query or body.
+- **Ordering:** `exercises` by `order` ascending; each exercise's `sets` by `setNumber` ascending.
+- **Code:** `getWorkoutSessionController` → `getWorkoutSession`.
+
+Response `200`:
+
+```json
+{
+  "id": "e5f6a7b8-0000-4000-8000-000000000001",
+  "name": "Push",
+  "workoutDayId": "a1b2c3d4-0000-4000-8000-000000000001",
+  "status": "IN_PROGRESS",
+  "startedAt": "2026-11-08T17:02:11.000Z",
+  "completedAt": null,
+  "bodyWeightKg": null,
+  "exercises": [
+    {
+      "id": "f6a7b8c9-0000-4000-8000-000000000001",
+      "order": 1,
+      "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
+      "restSeconds": null,
+      "sets": [
+        { "id": "a7b8c9d0-0000-4000-8000-000000000001", "setType": "NORMAL", "setNumber": 1, "plannedWeight": null, "plannedReps": null, "plannedDuration": null, "plannedDistance": null, "weight": 60, "reps": 8, "duration": null, "distance": null, "completedAt": "2026-11-08T17:05:40.000Z" }
+      ]
+    }
+  ],
+  "summary": null
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | The day's name, or `"Workout"` for a session with no day |
+| `workoutDayId` | string \| null | `null` for an empty workout or when the day was deleted |
+| `status` | `"IN_PROGRESS"` \| `"COMPLETED"` \| `"CANCELLED"` | `WorkoutSessionStatus` |
+| `startedAt`, `completedAt` | ISO string, `completedAt` nullable | |
+| `exercises[].sets[].planned*` | number \| null | Targets copied from the plan when the workout starts |
+| `exercises[].sets[].weight` / `reps` / `duration` / `distance` | number \| null | What the user did |
+| `exercises[].sets[].completedAt` | ISO string \| null | `null` = set not ticked |
+| `summary` | `WorkoutSummary` \| null | Always `null` here; the summary comes with finishing a workout (not implemented yet) |
+
+Status codes:
+
+- `200` workout returned
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }`
+- `500` unexpected error
+
+Failure example: another user's `sessionId` returns `404` `{ "message": "Workout not found." }`.
+
+Frontend types: `WorkoutSession`, `WorkoutSessionExercise`, `WorkoutSessionSet` and `WorkoutSummary` in `frontend/src/features/workout-session/workout-session.types.ts`.
+
+### `PATCH /api/workout-sessions/:sessionId`
+
+Discards a workout in progress.
+
+- **Path:** `sessionId`.
+- **Body:** `{ "status": "CANCELLED" }` — the only accepted value.
+- **Code:** `discardWorkoutSessionController` → `discardWorkoutSession`.
+
+Response `204` — no body. The session stays in the database with `status = CANCELLED`.
+
+Status codes:
+
+- `204` workout discarded
+- `400` body is not `{ "status": "CANCELLED" }` — e.g. `{ "message": "Invalid input: expected \"CANCELLED\"" }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }`
+- `409` `{ "message": "This workout is finished or cancelled." }`
+- `500` unexpected error
+
+Failure example: discarding the same workout twice returns `409` `{ "message": "This workout is finished or cancelled." }` the second time.
+
+### `POST /api/workout-sessions/:sessionId/exercises`
+
+Adds exercises at the end of a workout in progress, each with one empty set.
+
+- **Path:** `sessionId`.
+- **Body:** `{ "exerciseIds": string[] }` — 1 to 20 ids, no duplicates. Messages: `"Pick at least one exercise."`, `"A workout can have at most 20 exercises."`, `"Pick each exercise only once."`.
+- **Limit:** at most 20 exercises per workout, counting the ones already there (`MAX_EXERCISES_PER_SESSION` in `workout-session.schema.ts`).
+- **Effects:** in one transaction, the exercises get `order` = current highest + 1, + 2, … in the order sent; each gets set 1 (`NORMAL`, all values `null`).
+- **Code:** `addSessionExercisesController` → `addSessionExercises`.
+
+Response `201` — the new exercises, `WorkoutSessionExercise[]` by `order` ascending.
+
+Status codes:
+
+- `201` exercises added
+- `400` body fails validation
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Exercise not found." }` (an id is not in the catalog)
+- `409` `{ "message": "This workout is finished or cancelled." }`, or `{ "message": "The workout changed. Please try again." }` when another request added exercises at the same time
+- `422` `{ "message": "A workout can have at most 20 exercises." }`
+- `500` unexpected error
+
+Failure example: a workout with 19 exercises plus 2 more returns `422` `{ "message": "A workout can have at most 20 exercises." }`.
+
+### `POST /api/workout-sessions/:sessionId/exercises/:exerciseId/sets`
+
+Adds an empty set at the end of one exercise of a workout in progress.
+
+- **Path:** `sessionId`, `exerciseId` — `exerciseId` is the `WorkoutSessionExercise.id` (the `exercises[].id` of the session), not the catalog exercise id. No body.
+- **Effects:** `setNumber` = the exercise's highest + 1; `setType` `NORMAL`; every value `null`.
+- **Code:** `addSessionSetController` → `addSessionSet`.
+
+Response `201` — the new set, one `WorkoutSessionSet`.
+
+Status codes:
+
+- `201` set added
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Exercise not found." }` (the exercise is not in this workout)
+- `409` `{ "message": "This workout is finished or cancelled." }`, or `{ "message": "The workout changed. Please try again." }` when another request added a set at the same time
+- `500` unexpected error
+
+Failure example: an `exerciseId` from another workout returns `404` `{ "message": "Exercise not found." }`.
+
+### `PATCH /api/workout-sessions/:sessionId/sets/:setId`
+
+Changes what the user did in one set, or ticks/unticks it.
+
+- **Path:** `sessionId`, `setId`.
+- **Body:** every field optional, at least one present (else `400 "Nothing to update."`). A missing field keeps its value; `null` clears it.
+
+| Field | Type | Limits |
+|---|---|---|
+| `weight` | number \| null | 0–1000 |
+| `reps` | integer \| null | 0–999 |
+| `duration` | integer \| null | 0–86400 (seconds) |
+| `distance` | number \| null | 0–1000000 |
+| `setType` | `"NORMAL"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
+| `completed` | boolean | `true` sets `completedAt` (keeps the first time if already ticked); `false` clears it |
+
+- **Code:** `updateSessionSetController` → `updateSessionSet` (find and update in one transaction).
+
+Response `200` — the updated set, one `WorkoutSessionSet`.
+
+Status codes:
+
+- `200` set updated
+- `400` body fails validation — e.g. `{ "message": "Reps must be a whole number." }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Set not found." }` (the set is not in this workout)
+- `409` `{ "message": "This workout is finished or cancelled." }`
+- `500` unexpected error
+
+Failure example: `{}` returns `400` `{ "message": "Nothing to update." }`.
+
+### `DELETE /api/workout-sessions/:sessionId/sets/:setId`
+
+Deletes one set and renumbers that exercise's remaining sets 1..n, in one transaction.
+
+- **Path:** `sessionId`, `setId`. No body.
+- **Code:** `deleteSessionSetController` → `deleteSessionSet`.
+
+Response `204` — no body.
+
+Status codes:
+
+- `204` set deleted
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Set not found." }`
+- `409` `{ "message": "This workout is finished or cancelled." }`, or `{ "message": "The workout changed. Please try again." }` when another request changed the set numbers at the same time
+- `500` unexpected error
+
+Failure example: deleting the same set twice returns `404` `{ "message": "Set not found." }` the second time.
 
 ## Frozen S3 target resources
 
