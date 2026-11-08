@@ -2,22 +2,7 @@ import { isAxiosError } from "axios";
 import api from "../auth/axiosInstance";
 import type {PlanDay, PlanDetail } from "./plan-detail.types";
 import { toApiError } from "../workouts/api-error";
-
-// getPlanDetails and createWorkoutDay call the real API. The functions marked
-// FAKE-DATA are mocks until their endpoints exist: they work on an in-memory
-// seed per planId, not on the real plan, and reset on every browser reload.
-//
-// FAKE-DATA: scenarios, chosen by the planId in /workouts/plans/:planId
-//   any other id -> Push / Pull / Legs seed, every mutation succeeds
-//   "empty"   -> seed with no days
-//   "missing" -> every mutation rejects "Plan not found"
-//   "flaky"   -> each rename/delete rejects on its first attempt and
-//                succeeds when retried with the same input
-// FAKE-DATA: name triggers, on any plan
-//   rename "fail" / "fail2" -> always rejects
-//   plan rename "fail"      -> always rejects
-// FAKE-DATA: deletePlan only hides the plan from the other mocks; the real
-// GET still returns it.
+import type { PostWorkoutPlan } from "../workouts/workout.types";
 
 const FAKE_DELAY_MS = 500
 const MAX_NAME_LENGTH = 30
@@ -112,22 +97,13 @@ export async function createWorkoutDay(planId: string, name: string): Promise<Pl
     }
 }
 
-// FAKE-DATA: real version will be PATCH /api/workout-plans/:planId/days/:dayId
 export async function renameWorkoutDay(planId: string, dayId: string, name: string): Promise<PlanDay> {
-    await wait()
-
-    const plan = findPlanOrThrow(planId)
-    const dayName = validName(name)
-    const day = plan.days.find(d => d.id === dayId)
-    if (!day) throw new Error("Day not found")
-    if (dayName === "fail") throw new Error("Failed to rename your day, try again.")
-    if (dayName === "fail2") throw new Error("another failure.")
-    failFirstAttempt(planId, `rename:${dayId}:${dayName}`, "Failed to rename your day, try again.")
-
-    // Only the name changes; id, dayOrder and counts are kept.
-    const renamedDay: PlanDay = { ...day, name: dayName }
-    plans.set(planId, { ...plan, days: plan.days.map(d => d.id === dayId ? renamedDay : d) })
-    return copyDay(renamedDay)
+    try{
+        const result = await api.patch<PlanDay>(`/api/workout-plans/${planId}/days/${dayId}`,{name})
+        return result.data
+    }catch(error){
+        throw toApiError(error, "Could not rename the day. Please try again.")
+    }
 }
 
 // FAKE-DATA: proposed real version: DELETE /api/workout-plans/:planId/days/:dayId
@@ -148,18 +124,13 @@ export async function deleteWorkoutDay(planId: string, dayId: string): Promise<P
 }
 
 // FAKE-DATA: real version will be PATCH /api/workout-plans/:planId
-export async function renamePlan(planId: string, name: string, description: string | null): Promise<PlanDetail> {
-    await wait()
-
-    const plan = findPlanOrThrow(planId)
-    const planName = name.trim()
-    if (planName.length === 0) throw new Error("Plan name is required.")
-    if (planName === "fail") throw new Error("Failed to rename your plan, try again.")
-    failFirstAttempt(planId, `rename-plan:${planName}`, "Failed to rename your plan, try again.")
-
-    const renamedPlan: PlanDetail = { ...plan, name: planName, description: description?.trim() || null }
-    plans.set(planId, renamedPlan)
-    return { ...renamedPlan, days: sortedDays(renamedPlan.days).map(copyDay) }
+export async function renamePlan(planId: string, body: PostWorkoutPlan): Promise<PlanDetail> {
+    try{
+        const resp = await api.patch<PlanDetail>(`/api/workout-plans/${planId}`, body)
+        return resp.data
+    }catch(error){
+        throw toApiError(error, "Could not update workout's Plan.")
+    }
 }
 
 // FAKE-DATA: real version will be DELETE /api/workout-plans/:planId

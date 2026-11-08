@@ -45,6 +45,17 @@ function isUniqueViolation(error: unknown): boolean
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+function planDayDto (dayDb: DayRowDb): PlanDay
+{
+    return{
+        id: dayDb.id,
+        name: dayDb.name,
+        dayOrder: dayDb.dayOrder,
+        exerciseCount: dayDb.exercises.length,
+        setCount: dayDb.exercises.reduce((sum, next) => sum + next._count.sets , 0) 
+    }
+}
+
 function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
 {
     return{
@@ -52,21 +63,15 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
         name: planDetail.name,
         description: planDetail.description,
         type: planDetail.type,
-        days: planDetail.days.map((day)=>({
-            id: day.id,
-            name: day.name,
-            dayOrder: day.dayOrder,
-            exerciseCount: day.exercises.length,
-            setCount: day.exercises.reduce((accumulator, next)=>(accumulator + next._count.sets), 0)
-        }))
+        days: planDetail.days.map(day => planDayDto(day))
     }
 }
 
-type CreateDayResult =
+type DayResult =
     | { ok: true; day: PlanDay}
     | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS" | "CONFLICT"};
 
-export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
+export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<DayResult>
 {
     const plan = await prisma.workoutPlan.findUnique({
         where: { id: planId, userId },
@@ -90,6 +95,58 @@ export async function postWorkoutDay(userId: string, planId: string, name: strin
         throw error
     }
 }
+
+
+export async function renameWorkoutDay(userId: string, planId: string, dayId: string, name: string): Promise<DayResult> {
+    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
+    const day = await prisma.workoutDay.findUnique({
+        where:{id: dayId, workoutPlanId: planId}
+    })
+    if(!day || !plan)
+        return {ok: false, reason: "NOT_FOUND"}
+    const renamedDay = await prisma.workoutDay.update({
+        where:{id: dayId, workoutPlanId: planId},
+        data:{name: name},
+        select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
+    })
+    return{ok:true, day: planDayDto(renamedDay)}
+}
+
+
+export async function RenameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
+{
+    const plan =  await prisma.workoutPlan.findUnique({
+        where:{userId: userId, id: planId}
+    })
+    if(!plan)
+        return null
+    const updatedPlan = await prisma.workoutPlan.update({
+        where: {id: planId, userId: userId},
+        data: {
+            name: workoutPlan.name,
+            description: workoutPlan.description
+        },
+        select:{
+                id: true,
+                name: true,
+                description: true,
+                type: true,
+                days: {
+                    orderBy: {dayOrder: "asc"},
+                    select:{
+                        id: true,
+                        name: true,
+                        dayOrder: true,
+                        exercises: {
+                            select:{_count:{select:{sets: true}}}
+                        }
+                    }
+                }
+            }
+    })
+    return planDetailDto(updatedPlan)
+}
+
 
 export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
 {
@@ -117,7 +174,7 @@ export async function getWorkoutDetail(userId: string, planId: string):Promise<P
     if(PlanDeatilDbShape)
         return planDetailDto(PlanDeatilDbShape)
     return null
-} 
+}
 
 export async function getWorkoutPlans(userId: string)
 {

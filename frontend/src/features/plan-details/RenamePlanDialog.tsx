@@ -30,8 +30,10 @@ export default function RenamePlanDialog(props: {
         try {
             const renamedPlan = await renamePlan(
                 props.planId,
-                name.trim(),
-                description.trim().length ? description.trim() : null
+                {
+                    name: name.trim(),
+                    description: description.trim().length ? description.trim() : null
+                }
             )
             props.onRenamed(renamedPlan)
             props.onClose()
