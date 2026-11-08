@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
-import { createWorkoutDayBody, createWorkoutPlanBody } from "./workout.schema";
+import { MAX_DAYS_PER_PLAN, createWorkoutDayBody, createWorkoutPlanBody } from "./workout.schema";
 
 export async function getWorkoutPlansController(req: AuthenticatedRequest, res: Response)
 {
@@ -58,7 +58,7 @@ export async function postWorkoutDayController(req: AuthenticatedRequest, res: R
     try{
         const data = await postWorkoutDay(req.userId, req.params.planId, parsed.data.name)
         if(!data.ok && data.reason === "TOO_MANY_DAYS")
-            return res.status(422).json({message: "A plan can have at most 7 days."})
+            return res.status(422).json({message: `A plan can have at most ${MAX_DAYS_PER_PLAN} days.`})
         else if(!data.ok && data.reason === "NOT_FOUND")
             return res.status(404).json({message: "Plan not found."})
         else if (!data.ok && data.reason === "CONFLICT")

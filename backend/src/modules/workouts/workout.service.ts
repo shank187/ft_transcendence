@@ -1,30 +1,36 @@
 import { prisma } from "../../lib/prisma";
-import { Prisma, type WorkoutPlanType } from "@prisma/client";
-import type { CreateWorkoutPlanBody } from "./workout.schema";
-import {PlanDay, PlanDetail} from "./workouts.types";
+import { Prisma } from "@prisma/client";
+import { MAX_DAYS_PER_PLAN, type CreateWorkoutPlanBody } from "./workout.schema";
+import type { PlanDay, PlanDetail } from "./workouts.types";
 
-type PlanRowDb = {
-    id: string;
-    name: string;
-    description: string | null;
-    type: WorkoutPlanType;
-    _count: { days: number };
-};
+const planListSelect = {
+    id: true,
+    name: true,
+    description: true,
+    type: true,
+    _count: { select: { days: true } },
+} satisfies Prisma.WorkoutPlanSelect;
 
-type DayRowDb = {
-    id: string,
-    name: string,
-    dayOrder: number,
-    exercises: {_count: { sets: number}}[],
-}
+const daySelect = {
+    id: true,
+    name: true,
+    dayOrder: true,
+    exercises: { select: { _count: { select: { sets: true } } } },
+} satisfies Prisma.WorkoutDaySelect;
 
-type PlanDetailRowDb = {
-    id: string;
-    name: string;
-    description: string | null;
-    type: WorkoutPlanType;
-    days: DayRowDb[];
-};
+const planDetailSelect = {
+    id: true,
+    name: true,
+    description: true,
+    type: true,
+    days: { orderBy: { dayOrder: "asc" }, select: daySelect },
+} satisfies Prisma.WorkoutPlanSelect;
+
+type PlanRowDb = Prisma.WorkoutPlanGetPayload<{ select: typeof planListSelect }>;
+
+type DayRowDb = Prisma.WorkoutDayGetPayload<{ select: typeof daySelect }>;
+
+type PlanDetailRowDb = Prisma.WorkoutPlanGetPayload<{ select: typeof planDetailSelect }>;
 
 
 
@@ -57,7 +63,7 @@ function planDayDto (dayDb: DayRowDb): PlanDay
         name: dayDb.name,
         dayOrder: dayDb.dayOrder,
         exerciseCount: dayDb.exercises.length,
-        setCount: dayDb.exercises.reduce((sum, next) => sum + next._count.sets , 0) 
+        setCount: dayDb.exercises.reduce((sum, next) => sum + next._count.sets , 0)
     }
 }
 
@@ -69,6 +75,77 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
         description: planDetail.description,
         type: planDetail.type,
         days: planDetail.days.map(day => planDayDto(day))
+    }
+}
+
+export async function getWorkoutPlans(userId: string)
+{
+    const fetchedWorkoutPlans = await prisma.workoutPlan.findMany({
+        where: {
+            userId: userId,
+        },
+        orderBy: {
+            name: 'asc',
+        },
+        select: planListSelect
+    });
+
+    return fetchedWorkoutPlans.map(toWorkoutPlanDto);
+}
+
+export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
+{
+    const plan = await prisma.workoutPlan.findUnique({
+        where: {
+            userId: userId, id: planId
+        },select: planDetailSelect
+    })
+    if(plan)
+        return planDetailDto(plan)
+    return null
+}
+
+export async function postWorkoutPlan(userId: string, workoutPlan: CreateWorkoutPlanBody)
+{
+    const plan = await prisma.workoutPlan.create({
+        data: { userId, ...workoutPlan },
+        select: planListSelect,
+    });
+
+    return toWorkoutPlanDto(plan);
+}
+
+export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
+{
+    try{
+        const updatedPlan = await prisma.workoutPlan.update({
+            where: {id: planId, userId: userId},
+            data: {
+                name: workoutPlan.name,
+                description: workoutPlan.description
+            },
+            select: planDetailSelect
+        })
+        return planDetailDto(updatedPlan)
+    }catch(error){
+        if(isNotFoundError(error))
+            return null
+        throw error
+    }
+}
+
+
+// Deletes the plan with its days and their exercises (Cascade).
+// Past sessions stay in the history, with no day (SetNull).
+export async function deleteWorkoutPlan(userId: string, planId: string): Promise<boolean>
+{
+    try{
+        await prisma.workoutPlan.delete({where:{id: planId, userId: userId}})
+        return true
+    }catch(error){
+        if(isNotFoundError(error))
+            return false
+        throw error
     }
 }
 
@@ -86,14 +163,14 @@ export async function postWorkoutDay(userId: string, planId: string, name: strin
         },
     })
     if (!plan) return { ok: false, reason: "NOT_FOUND" }
-    if (plan._count.days >= 7) return { ok: false, reason: "TOO_MANY_DAYS" }
+    if (plan._count.days >= MAX_DAYS_PER_PLAN) return { ok: false, reason: "TOO_MANY_DAYS" }
     try
     {
         const day = await prisma.workoutDay.create({
             data: { workoutPlanId: planId, name, dayOrder: (plan.days[0]?.dayOrder ?? 0) + 1 },
-            select: { id: true, name: true, dayOrder: true },
+            select: daySelect,
         })
-        return { ok: true, day: { ...day, exerciseCount: 0, setCount: 0 } }
+        return { ok: true, day: planDayDto(day) }
     }catch(error){
         if(isUniqueViolation(error))
             return({ok: false, reason:"CONFLICT"})
@@ -111,7 +188,7 @@ export async function renameWorkoutDay(userId: string, planId: string, dayId: st
         const renamedDay = await prisma.workoutDay.update({
             where:{id: dayId, workoutPlan: {id: planId, userId}},
             data:{name: name},
-            select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
+            select: daySelect
         })
         return{ok:true, day: planDayDto(renamedDay)}
     }catch(error){
@@ -145,7 +222,7 @@ export async function deleteWorkoutDay(userId: string, planId: string, dayId: st
             return tx.workoutDay.findMany({
                 where:{workoutPlanId: planId},
                 orderBy:{dayOrder: "asc"},
-                select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
+                select: daySelect
             })
         })
         return {ok: true, days: remainingDays.map(planDayDto)}
@@ -157,124 +234,4 @@ export async function deleteWorkoutDay(userId: string, planId: string, dayId: st
             return({ok: false, reason:"CONFLICT"})
         throw error
     }
-}
-
-
-export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
-{
-    try{
-        const updatedPlan = await prisma.workoutPlan.update({
-            where: {id: planId, userId: userId},
-            data: {
-                name: workoutPlan.name,
-                description: workoutPlan.description
-            },
-            select:{
-                    id: true,
-                    name: true,
-                    description: true,
-                    type: true,
-                    days: {
-                        orderBy: {dayOrder: "asc"},
-                        select:{
-                            id: true,
-                            name: true,
-                            dayOrder: true,
-                            exercises: {
-                                select:{_count:{select:{sets: true}}}
-                            }
-                        }
-                    }
-                }
-        })
-        return planDetailDto(updatedPlan)
-    }catch(error){
-        if(isNotFoundError(error))
-            return null
-        throw error
-    }
-}
-
-
-// Deletes the plan with its days and their exercises (Cascade).
-// Past sessions stay in the history, with no day (SetNull).
-export async function deleteWorkoutPlan(userId: string, planId: string): Promise<boolean>
-{
-    try{
-        await prisma.workoutPlan.delete({where:{id: planId, userId: userId}})
-        return true
-    }catch(error){
-        if(isNotFoundError(error))
-            return false
-        throw error
-    }
-}
-
-export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
-{
-    const PlanDeatilDbShape = await prisma.workoutPlan.findUnique({
-        where: { 
-            userId: userId, id: planId
-        },select:{
-            id: true,
-            name: true,
-            description: true,
-            type: true,
-            days: {
-                orderBy: {dayOrder: "asc"},
-                select:{
-                    id: true,
-                    name: true,
-                    dayOrder: true,
-                    exercises: {
-                        select:{_count:{select:{sets: true}}}
-                    }
-                }
-            }
-        }
-    })
-    if(PlanDeatilDbShape)
-        return planDetailDto(PlanDeatilDbShape)
-    return null
-}
-
-export async function getWorkoutPlans(userId: string)
-{
-    const fetchedWorkoutPlans = await prisma.workoutPlan.findMany({
-        where: {
-            userId: userId,
-        },
-        orderBy: {
-            name: 'asc',
-        },
-        select: {
-            id: true,
-            name: true,
-            description: true,
-            type: true,
-            _count: {
-                select: {
-                    days: true,
-                }
-            }
-        }
-    });
-
-    return fetchedWorkoutPlans.map(toWorkoutPlanDto);
-}
-
-export async function postWorkoutPlan(userId: string, workoutPlan: CreateWorkoutPlanBody)
-{
-    const plan = await prisma.workoutPlan.create({
-        data: { userId, ...workoutPlan },
-        select: {
-            id: true,
-            name: true,
-            description: true,
-            type: true,
-            _count: {select: { days: true }},
-        },
-    });
-
-    return toWorkoutPlanDto(plan);
 }
