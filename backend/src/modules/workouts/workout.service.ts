@@ -113,7 +113,7 @@ export async function renameWorkoutDay(userId: string, planId: string, dayId: st
 }
 
 
-export async function RenameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
+export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
 {
     const plan =  await prisma.workoutPlan.findUnique({
         where:{userId: userId, id: planId}

@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, RenameWorkoutPlan } from "./workout.service";
+import { getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
 import { createWorkoutDayBody, createWorkoutPlanBody } from "./workout.schema";
 
 export async function getWorkoutPlansController(req: AuthenticatedRequest, res: Response)
@@ -82,7 +82,7 @@ export async function patchDayNameController(req: AuthenticatedRequest, res: Res
     try{
         const result = await renameWorkoutDay(req.userId, req.params.planId, req.params.dayId, parsed.data.name)
         if(!result.ok)
-            return res.status(404).json("Day not found.")
+            return res.status(404).json({message: "Day not found."})
         else if(result.ok)
             return res.status(200).json(result.day)
         }
@@ -95,12 +95,12 @@ export async function patchDayNameController(req: AuthenticatedRequest, res: Res
 
 export async function patchWorkoutPlanController(req: AuthenticatedRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
-    if(typeof req.params.PlanId !== "string") return res.status(400).json({message: "Invalid Parameters"})
+    if(typeof req.params.planId !== "string") return res.status(400).json({message: "Invalid Parameters"})
     const parsed =  createWorkoutPlanBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
     try{
-        const resp = await RenameWorkoutPlan(req.userId, req.params.PlanId, parsed.data)
+        const resp = await renameWorkoutPlan(req.userId, req.params.planId, parsed.data)
         if(!resp)
             return res.status(404).json({message: "Plan not found."})
         return res.status(200).json(resp)

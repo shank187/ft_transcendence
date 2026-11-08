@@ -5,7 +5,6 @@ import { toApiError } from "../workouts/api-error";
 import type { PostWorkoutPlan } from "../workouts/workout.types";
 
 const FAKE_DELAY_MS = 500
-const MAX_NAME_LENGTH = 30
 
 // FAKE-DATA: the "database". One entry per planId, created on first use.
 const plans = new Map<string, PlanDetail>()
@@ -49,14 +48,6 @@ function findPlanOrThrow(planId: string): PlanDetail {
     const plan = findPlan(planId)
     if (!plan) throw new Error("Plan not found or unavailable")
     return plan
-}
-
-// FAKE-DATA: same rule as the form: trimmed, 1–30 characters.
-function validName(name: string): string {
-    const trimmed = name.trim()
-    if (trimmed.length === 0 || trimmed.length > MAX_NAME_LENGTH)
-        throw new Error(`Day name must be 1–${MAX_NAME_LENGTH} characters.`)
-    return trimmed
 }
 
 // FAKE-DATA: on the "flaky" plan, the first attempt of each request fails.
@@ -123,7 +114,7 @@ export async function deleteWorkoutDay(planId: string, dayId: string): Promise<P
     return remainingDays.map(copyDay)
 }
 
-// FAKE-DATA: real version will be PATCH /api/workout-plans/:planId
+// Sends name + description every time, like create.
 export async function renamePlan(planId: string, body: PostWorkoutPlan): Promise<PlanDetail> {
     try{
         const resp = await api.patch<PlanDetail>(`/api/workout-plans/${planId}`, body)
