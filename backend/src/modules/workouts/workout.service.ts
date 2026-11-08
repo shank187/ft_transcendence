@@ -1,8 +1,9 @@
 import { prisma } from "../../lib/prisma";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, type WorkoutPlanBody } from "./workout.schema";
 import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet } from "./workout.types";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "./exercise-summary";
+import { isNotFoundError, isUniqueViolation } from "./prisma-errors";
 
 const planListSelect = {
     id: true,
@@ -80,16 +81,6 @@ function toWorkoutPlanDto(plan: PlanRowDb)
     };
 }
 
-
-function isUniqueViolation(error: unknown): boolean
-{
-    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-}
-
-function isNotFoundError(error: unknown): boolean
-{
-    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
-}
 
 function planDayDto (dayDb: DayRowDb): PlanDay
 {
