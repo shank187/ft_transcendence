@@ -11,7 +11,6 @@ const refresh_cookie_name = 'refreshToken';
 
 const refresh_cookie_options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict' as const,
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
@@ -83,11 +82,6 @@ export const logout = async (req: Request, res: Response) => {
             httpOnly: true,// JavaScript in the browser cannot read this cookie.
             // Helps protect the refresh token from being stolen by frontend JS.
             //httpOnly = protect cookie from JavaScript
-
-
-            secure: process.env.NODE_ENV === 'production',
-            // In production, send this cookie only through HTTPS.
-            // In development, allow HTTP such as localhost.
 
 
             sameSite: 'strict',
