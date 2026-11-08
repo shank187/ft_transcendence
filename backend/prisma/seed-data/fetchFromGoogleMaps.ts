@@ -49,6 +49,7 @@ async function fetchGyms(city : string) : Promise<any[]>{
             console.log(`Timeout fetching gyms in ${city}`);
         else 
 		    console.log("google api error");
+        throw error;
 	}
 	return [];
 }
@@ -57,33 +58,36 @@ export async function fetchAndSave(){
     const allGyms : GymJsonData[] = [];
     const availableCites = ["khouribga", "kenitra", "beni mellal", "Rabat"];
 
-    for(let city  of availableCites){
-        const places = await fetchGyms(city);
-        for(let gym of places){
-            allGyms.push({
-                googleId: gym.id,
-                name: gym.displayName?.text || "Unknown Gym",
-                description: gym.editorialSummary?.text || null,
-                address: gym.formattedAddress || null,
-                city: city.toLowerCase(),
-                latitude: gym.location?.latitude || null,
-                longitude: gym.location?.longitude || null,
-                phone: gym.nationalPhoneNumber || null,
-                website: gym.websiteUri || null,
-            });
-        }
-    }
-    const jsonString = JSON.stringify(allGyms, null,3);
-    const filePath = "./prisma/seed-data/unverifiedGyms.json";
+    try{
 
+        for(let city  of availableCites){
+            const places = await fetchGyms(city);
+            for(let gym of places){
+                allGyms.push({
+                    googleId: gym.id,
+                    name: gym.displayName?.text || "Unknown Gym",
+                    description: gym.editorialSummary?.text || null,
+                    address: gym.formattedAddress || null,
+                    city: city.toLowerCase(),
+                    latitude: gym.location?.latitude || null,
+                    longitude: gym.location?.longitude || null,
+                    phone: gym.nationalPhoneNumber || null,
+                    website: gym.websiteUri || null,
+                });
+            }
+        }
+    }catch(e){
+        console.log("no gyms fetched. Kept existing seed data.");
+        return ;
+    }
+    
     if (allGyms.length === 0){
         console.log("no gyms fetched (API error or key missing). Kept existing seed data.");
         return ;
     }
+    const jsonString = JSON.stringify(allGyms, null,3);
+    const filePath = "./prisma/seed-data/unverifiedGyms.json";
     fs.writeFileSync(filePath, jsonString, "utf-8");
-
-
-
 
 }
 

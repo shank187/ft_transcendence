@@ -19,6 +19,10 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
 
     const gyms = await prisma.gym.findMany({
         where : searchCondiions,
+        orderBy : [
+            {name : "asc"},
+            {id : "asc"}
+        ],
         skip : gymskiped,
         take : limit + 1
     });
