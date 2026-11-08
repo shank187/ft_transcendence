@@ -45,6 +45,11 @@ function isUniqueViolation(error: unknown): boolean
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+function isNotFoundError(error: unknown): boolean
+{
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
+}
+
 function planDayDto (dayDb: DayRowDb): PlanDay
 {
     return{
@@ -67,11 +72,11 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
     }
 }
 
-type DayResult =
+type CreateDayResult =
     | { ok: true; day: PlanDay}
     | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS" | "CONFLICT"};
 
-export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<DayResult>
+export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
 {
     const plan = await prisma.workoutPlan.findUnique({
         where: { id: planId, userId },
@@ -97,19 +102,23 @@ export async function postWorkoutDay(userId: string, planId: string, name: strin
 }
 
 
-export async function renameWorkoutDay(userId: string, planId: string, dayId: string, name: string): Promise<DayResult> {
-    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
-    const day = await prisma.workoutDay.findUnique({
-        where:{id: dayId, workoutPlanId: planId}
-    })
-    if(!day || !plan)
-        return {ok: false, reason: "NOT_FOUND"}
-    const renamedDay = await prisma.workoutDay.update({
-        where:{id: dayId, workoutPlanId: planId},
-        data:{name: name},
-        select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
-    })
-    return{ok:true, day: planDayDto(renamedDay)}
+type RenameDayResult =
+    | { ok: true; day: PlanDay }
+    | { ok: false; reason: "NOT_FOUND" };
+
+export async function renameWorkoutDay(userId: string, planId: string, dayId: string, name: string): Promise<RenameDayResult> {
+    try{
+        const renamedDay = await prisma.workoutDay.update({
+            where:{id: dayId, workoutPlan: {id: planId, userId}},
+            data:{name: name},
+            select:{id: true, name: true, dayOrder: true, exercises: {select:{_count: {select:{sets: true}}}}}
+        })
+        return{ok:true, day: planDayDto(renamedDay)}
+    }catch(error){
+        if(isNotFoundError(error))
+            return {ok: false, reason: "NOT_FOUND"}
+        throw error
+    }
 }
 
 type DeleteDayResult =
@@ -120,16 +129,10 @@ type DeleteDayResult =
 // Its exercises are deleted with it (Cascade); its past sessions stay, with no day (SetNull).
 export async function deleteWorkoutDay(userId: string, planId: string, dayId: string): Promise<DeleteDayResult>
 {
-    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
-    const day = await prisma.workoutDay.findUnique({
-        where:{id: dayId, workoutPlanId: planId}
-    })
-    if(!day || !plan)
-        return {ok: false, reason: "NOT_FOUND"}
     try{
         // All or nothing: if one step fails, the day is not deleted.
         const remainingDays = await prisma.$transaction(async (tx) => {
-            await tx.workoutDay.delete({where:{id: dayId}})
+            await tx.workoutDay.delete({where:{id: dayId, workoutPlan: {id: planId, userId}}})
             const days = await tx.workoutDay.findMany({
                 where:{workoutPlanId: planId},
                 orderBy:{dayOrder: "asc"},
@@ -147,6 +150,8 @@ export async function deleteWorkoutDay(userId: string, planId: string, dayId: st
         })
         return {ok: true, days: remainingDays.map(planDayDto)}
     }catch(error){
+        if(isNotFoundError(error))
+            return {ok: false, reason: "NOT_FOUND"}
         // Another request (e.g. add day) changed this plan's day numbers at the same time.
         if(isUniqueViolation(error))
             return({ok: false, reason:"CONFLICT"})
@@ -157,36 +162,37 @@ export async function deleteWorkoutDay(userId: string, planId: string, dayId: st
 
 export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
 {
-    const plan =  await prisma.workoutPlan.findUnique({
-        where:{userId: userId, id: planId}
-    })
-    if(!plan)
-        return null
-    const updatedPlan = await prisma.workoutPlan.update({
-        where: {id: planId, userId: userId},
-        data: {
-            name: workoutPlan.name,
-            description: workoutPlan.description
-        },
-        select:{
-                id: true,
-                name: true,
-                description: true,
-                type: true,
-                days: {
-                    orderBy: {dayOrder: "asc"},
-                    select:{
-                        id: true,
-                        name: true,
-                        dayOrder: true,
-                        exercises: {
-                            select:{_count:{select:{sets: true}}}
+    try{
+        const updatedPlan = await prisma.workoutPlan.update({
+            where: {id: planId, userId: userId},
+            data: {
+                name: workoutPlan.name,
+                description: workoutPlan.description
+            },
+            select:{
+                    id: true,
+                    name: true,
+                    description: true,
+                    type: true,
+                    days: {
+                        orderBy: {dayOrder: "asc"},
+                        select:{
+                            id: true,
+                            name: true,
+                            dayOrder: true,
+                            exercises: {
+                                select:{_count:{select:{sets: true}}}
+                            }
                         }
                     }
                 }
-            }
-    })
-    return planDetailDto(updatedPlan)
+        })
+        return planDetailDto(updatedPlan)
+    }catch(error){
+        if(isNotFoundError(error))
+            return null
+        throw error
+    }
 }
 
 
@@ -194,11 +200,14 @@ export async function renameWorkoutPlan(userId: string, planId: string, workoutP
 // Past sessions stay in the history, with no day (SetNull).
 export async function deleteWorkoutPlan(userId: string, planId: string): Promise<boolean>
 {
-    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
-    if(!plan)
-        return false
-    await prisma.workoutPlan.delete({where:{id: planId, userId: userId}})
-    return true
+    try{
+        await prisma.workoutPlan.delete({where:{id: planId, userId: userId}})
+        return true
+    }catch(error){
+        if(isNotFoundError(error))
+            return false
+        throw error
+    }
 }
 
 export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
