@@ -1,5 +1,5 @@
 import type { DayDetail, DayExercise, ExerciseSummary, SaveDayBody, SetTargets, SetType } from "./day-editor.types";
-import getPlanDetails from "../plan-details/plan-detail.api";
+import { getPlanDetails } from "../plan-details/plan-detail.api";
 
 // The day's name, order and plan name come from the real
 // GET /api/workout-plans/:planId. Only its exercises are still fake.

@@ -2,14 +2,14 @@ import { isAxiosError } from "axios";
 import api from "../auth/axiosInstance";
 import type {PlanDay, PlanDetail } from "./plan-detail.types";
 import { toApiError } from "../workouts/api-error";
-import type { PostWorkoutPlan } from "../workouts/workout.types";
+import type { WorkoutPlanInput } from "../workouts/workout.types";
 
-export default async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
+export async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
     try{
         const resp = await api.get<PlanDetail>(`/api/workout-plans/${planId}`)
         return resp.data
     }catch(err){
-        if(isAxiosError(err) && err.response?.status == 404) return null
+        if(isAxiosError(err) && err.response?.status === 404) return null
         throw toApiError(err, "Could not load the plan. Please try again.")
     }
 }
@@ -44,12 +44,12 @@ export async function deleteWorkoutDay(planId: string, dayId: string): Promise<P
 }
 
 // Sends name + description every time, like create.
-export async function renamePlan(planId: string, body: PostWorkoutPlan): Promise<PlanDetail> {
+export async function renamePlan(planId: string, body: WorkoutPlanInput): Promise<PlanDetail> {
     try{
         const resp = await api.patch<PlanDetail>(`/api/workout-plans/${planId}`, body)
         return resp.data
     }catch(error){
-        throw toApiError(error, "Could not update workout's Plan.")
+        throw toApiError(error, "Could not update the plan. Please try again.")
     }
 }
 

@@ -1,5 +1,5 @@
 import api from "../auth/axiosInstance";
-import type { PostWorkoutPlan as ReqWorkoutPlan, WorkoutPlan } from "./workout.types";
+import type { WorkoutPlan, WorkoutPlanInput } from "./workout.types";
 import { toApiError } from "./api-error";
 
 
@@ -13,7 +13,7 @@ export async function getWorkouts(): Promise<WorkoutPlan[]>
     }
 }
 
-export async function postWorkoutPlan(body: ReqWorkoutPlan): Promise<WorkoutPlan>
+export async function postWorkoutPlan(body: WorkoutPlanInput): Promise<WorkoutPlan>
 {
     try {
         const resp = await api.post<WorkoutPlan>("/api/workout-plans", body);

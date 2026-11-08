@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type {PlanDay, PlanDetail} from "./plan-detail.types"
-import getPlanDetails from "./plan-detail.api"
+import { getPlanDetails } from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
 import ErrorState from "../../components/states/ErrorState"
 import EmptyState from "../../components/states/EmptyState"
