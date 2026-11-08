@@ -190,6 +190,17 @@ export async function renameWorkoutPlan(userId: string, planId: string, workoutP
 }
 
 
+// Deletes the plan with its days and their exercises (Cascade).
+// Past sessions stay in the history, with no day (SetNull).
+export async function deleteWorkoutPlan(userId: string, planId: string): Promise<boolean>
+{
+    const plan = await prisma.workoutPlan.findUnique({where:{id: planId, userId: userId}})
+    if(!plan)
+        return false
+    await prisma.workoutPlan.delete({where:{id: planId, userId: userId}})
+    return true
+}
+
 export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
 {
     const PlanDeatilDbShape = await prisma.workoutPlan.findUnique({

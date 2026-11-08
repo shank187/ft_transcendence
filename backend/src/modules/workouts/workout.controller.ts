@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { deleteWorkoutDay, getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
+import { deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDetail, getWorkoutPlans, postWorkoutDay, postWorkoutPlan, renameWorkoutDay, renameWorkoutPlan } from "./workout.service";
 import { createWorkoutDayBody, createWorkoutPlanBody } from "./workout.schema";
 
 export async function getWorkoutPlansController(req: AuthenticatedRequest, res: Response)
@@ -121,6 +121,20 @@ export async function deleteWorkoutDayController(req: AuthenticatedRequest, res:
             return res.status(409).json({message: "The plan changed. Please try again."})
         else if(result.ok)
             return res.status(200).json(result.days)
+    }catch(error){
+        console.error(error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function deleteWorkoutPlanController(req: AuthenticatedRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(typeof req.params.planId !== "string") return res.status(400).json({message: "Invalid Parameters"})
+    try{
+        const deleted = await deleteWorkoutPlan(req.userId, req.params.planId)
+        if(!deleted)
+            return res.status(404).json({message: "Plan not found."})
+        return res.status(204).send()
     }catch(error){
         console.error(error)
         return res.status(500).json({message: "Internal server error"})
