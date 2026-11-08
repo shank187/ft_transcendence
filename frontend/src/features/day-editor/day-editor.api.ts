@@ -1,112 +1,31 @@
 import type { DayDetail, DayExercise, ExerciseSummary, SaveDayBody, SetTargets, SetType } from "./day-editor.types";
+import getPlanDetails from "../plan-details/plan-detail.api";
 
-// FAKE-DATA: in-memory mock of /api/workout-plans/:planId/days/:dayId.
-// State resets on every page reload.
+// The day's name, order and plan name come from the real
+// GET /api/workout-plans/:planId. Only its exercises are still fake.
 //
-// FAKE-DATA: scenarios by dayId
-//   "push-day-1"  -> Push (day 1): bench press, push-up, plank
-//   "pull-day-2"  -> Pull (day 2) with mixed targets: all filled, weight
-//                    only, none, a 0 kg target, distance without duration
-//   any other id  -> Push (day 1), same exercises
-//   "legs-day-3"  -> Legs (day 3) with no exercises, like the plan page
-//   "empty"       -> Push (day 1) with no exercises
-//   "missing"     -> GET returns null, save rejects "Day not found"
-//   "fail"        -> GET always rejects
-//   "flaky"       -> the first save of a given body rejects, the same body
-//                    succeeds when retried
-// FAKE-DATA: on any day, a save with a target equal to 999 always rejects
+// FAKE-DATA: the exercises live in memory, one list per dayId, empty at first,
+// and reset on every page reload.
+// FAKE-DATA: a save with a target equal to 999 always rejects.
 
 const FAKE_DELAY_MS = 500
 const MAX_EXERCISES = 20
 const MAX_SETS = 1000
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
-type CatalogExercise = ExerciseSummary
+// FAKE-DATA: the exercises the picker added, so the fake save can rebuild
+// their summary from an id. Remove with the real day API (Phase 2).
+const catalog = new Map<string, ExerciseSummary>()
 
-// FAKE-DATA: stands in for the Exercise table.
-const catalog = new Map<string, CatalogExercise>([
-    ["bench-press", { id: "bench-press", name: "Barbell bench press", type: "WEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
-    ["push-up", { id: "push-up", name: "Push-up", type: "BODYWEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
-    ["plank", { id: "plank", name: "Plank", type: "DURATION", primaryMuscle: "Core", imageUrl: null }],
-    ["incline-dumbbell-press", { id: "incline-dumbbell-press", name: "Incline dumbbell press", type: "WEIGHT_REPS", primaryMuscle: "Chest", imageUrl: null }],
-    ["running", { id: "running", name: "Running", type: "DISTANCE_DURATION", primaryMuscle: "Cardio", imageUrl: null }],
-])
-
-// FAKE-DATA: the picker adds real catalog exercises; remember them so the fake save can rebuild their summary. Remove with the real day API (Phase 2).
 export function rememberFakeExercises(summaries: ExerciseSummary[]) {
     for (const summary of summaries) catalog.set(summary.id, summary)
 }
 
-// FAKE-DATA: one entry per dayId, seeded on first access.
-const days = new Map<string, DayDetail>()
-
-// FAKE-DATA: "flaky" saves that have already failed once.
-const flakyAttempts = new Set<string>()
+// FAKE-DATA: the saved exercises, one entry per dayId.
+const savedExercises = new Map<string, DayExercise[]>()
 
 function wait() {
     return new Promise(resolve => setTimeout(resolve, FAKE_DELAY_MS))
-}
-
-function normalSets(count: number, targets: Partial<SetTargets>): SetTargets[] {
-    return Array.from({ length: count }, () => ({
-        setType: "NORMAL",
-        targetWeight: null,
-        targetReps: null,
-        targetDuration: null,
-        targetDistance: null,
-        ...targets,
-    }))
-}
-
-function seedBody(): SaveDayBody {
-    return {
-        exercises: [
-            { exerciseId: "bench-press", restSeconds: 90, sets: normalSets(3, { targetWeight: 60, targetReps: 8 }) },
-            { exerciseId: "push-up", restSeconds: null, sets: normalSets(2, { targetReps: 15 }) },
-            { exerciseId: "plank", restSeconds: 60, sets: normalSets(2, { targetDuration: 45 }) },
-        ],
-    }
-}
-
-// FAKE-DATA: one set per placeholder case, so the session page shows each one.
-function mixedTargetsBody(): SaveDayBody {
-    return {
-        exercises: [
-            { exerciseId: "incline-dumbbell-press", restSeconds: 90, sets: [
-                ...normalSets(1, { targetWeight: 22.5, targetReps: 10 }),
-                ...normalSets(1, { targetWeight: 22.5 }),
-                ...normalSets(1, {}),
-                ...normalSets(1, { targetWeight: 0, targetReps: 12 }),
-            ] },
-            { exerciseId: "running", restSeconds: null, sets: normalSets(1, { targetDistance: 5000 }) },
-            { exerciseId: "plank", restSeconds: 60, sets: normalSets(2, {}) },
-        ],
-    }
-}
-
-const seededDays = new Map([
-    ["pull-day-2", { name: "Pull", dayOrder: 2 }],
-    ["legs-day-3", { name: "Legs", dayOrder: 3 }],
-])
-
-function findDay(planId: string, dayId: string): DayDetail | null {
-    if (dayId === "missing") return null
-
-    const stored = days.get(dayId)
-    if (stored) return stored
-
-    const { name, dayOrder } = seededDays.get(dayId) ?? { name: "Push", dayOrder: 1 }
-    const hasNoExercises = dayId === "legs-day-3" || dayId === "empty"
-    const day: DayDetail = {
-        id: dayId,
-        name,
-        dayOrder,
-        planId,
-        planName: "Push Pull Legs",
-        exercises: hasNoExercises ? [] : buildExercises(dayId === "pull-day-2" ? mixedTargetsBody() : seedBody()),
-    }
-    days.set(dayId, day)
-    return day
 }
 
 // Callers always receive copies, never the stored objects.
@@ -162,15 +81,10 @@ function validateBody(body: SaveDayBody) {
     }
 }
 
+// FAKE-DATA:
 function hasFailTrigger(body: SaveDayBody): boolean {
     return body.exercises.some(item => item.sets.some(set =>
         [set.targetWeight, set.targetReps, set.targetDuration, set.targetDistance].includes(999)))
-}
-
-function failFirstAttempt(dayId: string, requestKey: string) {
-    if (dayId !== "flaky" || flakyAttempts.has(requestKey)) return
-    flakyAttempts.add(requestKey)
-    throw new Error("Failed to save, try again.")
 }
 
 // Mirrors the backend's delete-and-recreate: every row gets a new id, and
@@ -194,29 +108,38 @@ function buildExercises(body: SaveDayBody): DayExercise[] {
     }))
 }
 
+// null when the plan is not the user's or the day is not in it.
+// Errors come from getPlanDetails, already readable.
+async function findDay(planId: string, dayId: string): Promise<DayDetail | null> {
+    const plan = await getPlanDetails(planId)
+    const day = plan?.days.find(d => d.id === dayId)
+    if (!plan || !day) return null
+    return {
+        id: day.id,
+        name: day.name,
+        dayOrder: day.dayOrder,
+        planId: plan.id,
+        planName: plan.name,
+        exercises: savedExercises.get(dayId) ?? [],
+    }
+}
+
 // FAKE-DATA: real version will be GET /api/workout-plans/:planId/days/:dayId
 export default async function getWorkoutDay(planId: string, dayId: string): Promise<DayDetail | null> {
-    await wait()
-    if (dayId === "fail")
-        throw new Error("Failed to load day, try again.")
-
-    const day = findDay(planId, dayId)
-    if (!day) return null
-    return copyDay(day)
+    const day = await findDay(planId, dayId)
+    return day ? copyDay(day) : null
 }
 
 // FAKE-DATA: real version will be PUT /api/workout-plans/:planId/days/:dayId/exercises
 export async function saveWorkoutDay(planId: string, dayId: string, body: SaveDayBody): Promise<DayDetail> {
-    await wait()
-
-    const day = findDay(planId, dayId)
+    const day = await findDay(planId, dayId)
     if (!day) throw new Error("Day not found")
+    await wait()
     validateBody(body)
     if (hasFailTrigger(body))
         throw new Error("Failed to save, try again.")
-    failFirstAttempt(dayId, JSON.stringify(body))
 
-    const savedDay: DayDetail = { ...day, exercises: buildExercises(body) }
-    days.set(dayId, savedDay)
-    return copyDay(savedDay)
+    const exercises = buildExercises(body)
+    savedExercises.set(dayId, exercises)
+    return copyDay({ ...day, exercises })
 }

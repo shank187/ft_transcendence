@@ -8,8 +8,8 @@ import { buildSummary } from "./workout-session.helpers";
 // database. Remove the "fake-workout-sessions" key to start clean.
 //
 // FAKE-DATA: scenarios
-//   startWorkoutFromDay, dayId "fail"    -> rejects (from getWorkoutDay)
-//   startWorkoutFromDay, dayId "missing" -> rejects "Day not found"
+//   startWorkoutFromDay, a day not in the user's plan -> rejects "Day not found"
+//   (the day itself comes from getWorkoutDay, which reads the real plan)
 //   getWorkoutSession, id "missing"      -> returns null
 //   getWorkoutSession, id "fail"         -> rejects
 //   startEmptyWorkout, page URL ?fake=fail  -> always rejects
@@ -148,7 +148,7 @@ export async function startEmptyWorkout(): Promise<WorkoutSession> {
 }
 
 // FAKE-DATA: real version will be POST /api/workout-sessions with the dayId.
-// getWorkoutDay already waits FAKE_DELAY_MS, so there is no extra wait here.
+// getWorkoutDay makes a real request, so there is no fake wait here.
 export async function startWorkoutFromDay(planId: string, dayId: string): Promise<WorkoutSession> {
     const day = await getWorkoutDay(planId, dayId)
     if (!day) throw new Error("Day not found")
