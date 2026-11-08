@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { Prisma } from "@prisma/client";
-import { MAX_DAYS_PER_PLAN, type CreateWorkoutPlanBody } from "./workout.schema";
-import type { PlanDay, PlanDetail } from "./workouts.types";
+import { MAX_DAYS_PER_PLAN, type WorkoutPlanBody } from "./workout.schema";
+import type { PlanDay, PlanDetail } from "./workout.types";
 
 const planListSelect = {
     id: true,
@@ -93,7 +93,7 @@ export async function getWorkoutPlans(userId: string)
     return fetchedWorkoutPlans.map(toWorkoutPlanDto);
 }
 
-export async function getWorkoutDetail(userId: string, planId: string):Promise<PlanDetail|null>
+export async function getWorkoutPlan(userId: string, planId: string):Promise<PlanDetail|null>
 {
     const plan = await prisma.workoutPlan.findUnique({
         where: {
@@ -105,7 +105,7 @@ export async function getWorkoutDetail(userId: string, planId: string):Promise<P
     return null
 }
 
-export async function postWorkoutPlan(userId: string, workoutPlan: CreateWorkoutPlanBody)
+export async function createWorkoutPlan(userId: string, workoutPlan: WorkoutPlanBody)
 {
     const plan = await prisma.workoutPlan.create({
         data: { userId, ...workoutPlan },
@@ -115,7 +115,7 @@ export async function postWorkoutPlan(userId: string, workoutPlan: CreateWorkout
     return toWorkoutPlanDto(plan);
 }
 
-export async function renameWorkoutPlan(userId: string, planId: string, workoutPlan: CreateWorkoutPlanBody):Promise<PlanDetail|null>
+export async function updateWorkoutPlan(userId: string, planId: string, workoutPlan: WorkoutPlanBody):Promise<PlanDetail|null>
 {
     try{
         const updatedPlan = await prisma.workoutPlan.update({
@@ -153,7 +153,7 @@ type CreateDayResult =
     | { ok: true; day: PlanDay}
     | { ok: false; reason: "NOT_FOUND" | "TOO_MANY_DAYS" | "CONFLICT"};
 
-export async function postWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
+export async function createWorkoutDay(userId: string, planId: string, name: string): Promise<CreateDayResult>
 {
     const plan = await prisma.workoutPlan.findUnique({
         where: { id: planId, userId },

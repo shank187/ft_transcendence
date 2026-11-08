@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
-import { deleteWorkoutDayController, deleteWorkoutPlanController, getWorkoutDetailsController, getWorkoutPlansController, patchDayNameController, patchWorkoutPlanController, postWorkoutDayController, postWorkoutPlansController } from "./workout.controller";
+import { createWorkoutDayController, createWorkoutPlanController, deleteWorkoutDayController, deleteWorkoutPlanController, getWorkoutPlanController, getWorkoutPlansController, renameWorkoutDayController, updateWorkoutPlanController } from "./workout.controller";
 
 const router = Router();
 
 router.get('/', authenticate, getWorkoutPlansController);
-router.post('/', authenticate, postWorkoutPlansController);
+router.post('/', authenticate, createWorkoutPlanController);
 
-router.get('/:planId', authenticate, getWorkoutDetailsController);
-router.post('/:planId/days', authenticate, postWorkoutDayController);
-router.patch('/:planId/days/:dayId', authenticate, patchDayNameController)
+router.get('/:planId', authenticate, getWorkoutPlanController);
+router.post('/:planId/days', authenticate, createWorkoutDayController);
+router.patch('/:planId/days/:dayId', authenticate, renameWorkoutDayController)
 router.delete('/:planId/days/:dayId', authenticate, deleteWorkoutDayController)
-router.patch('/:planId', authenticate, patchWorkoutPlanController)
+router.patch('/:planId', authenticate, updateWorkoutPlanController)
 router.delete('/:planId', authenticate, deleteWorkoutPlanController)
 export default router;
