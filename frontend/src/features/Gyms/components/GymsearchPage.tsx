@@ -19,6 +19,7 @@ function GymsearchPage(){
     const [city, setCity] = useState("");
     const [verified, setVerified]= useState<boolean | null>(null);
     const [page , setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(false);
 
     useEffect (function(){
         setPage(1);
@@ -44,7 +45,8 @@ function GymsearchPage(){
                 if (ignore === false){
                     setLoading(false);
                     // setGymList(fakeData);
-                    setGymList(res.data);
+                    setGymList(res.data.data);
+                    setHasNextPage(res.data.hasNextPage);
                 }
 
             }
@@ -87,7 +89,10 @@ function GymsearchPage(){
             </div>)
         }
         <div>
-            <PaginationButtons currentPage={page} onPageChange={setPage} hasNextPage={GymList.length === 3}/>
+            <PaginationButtons 
+                currentPage={page} 
+                onPageChange={setPage}
+                hasNextPage={hasNextPage}/>
         </div>
         </div>
     )

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
+
 export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
     let limit : number = 3;
     if (!page)
@@ -19,10 +20,18 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
     const gyms = await prisma.gym.findMany({
         where : searchCondiions,
         skip : gymskiped,
-        take : limit
+        take : limit + 1
     });
-    return gyms;
+    const hasNextPage = gyms.length > limit;
+    let data;
+    if (hasNextPage){
+        data = gyms.slice(0, limit);
+    }else{
+        data = gyms;
+    }
+    return {data ,hasNextPage};
 }
+
 
 // {
 //   "name": {
