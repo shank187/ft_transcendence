@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, updateWorkoutPlan } from "./workout.service";
+import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, updateWorkoutPlan } from "./workout.service";
 import { MAX_DAYS_PER_PLAN, workoutDayBody, workoutPlanBody } from "./workout.schema";
 
 // Express types every param as string | string[]; a named :param is always one string.
@@ -81,6 +81,19 @@ export async function deleteWorkoutPlanController(req: PlanRequest, res: Respons
         return res.status(204).send()
     }catch(error){
         console.error("DELETE /api/workout-plans/:planId failed:", error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function getWorkoutDayController(req: DayRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    try{
+        const day = await getWorkoutDay(req.userId, req.params.planId, req.params.dayId)
+        if(!day)
+            return res.status(404).json({message: "Day not found."})
+        return res.status(200).json(day)
+    }catch(error){
+        console.error("GET /api/workout-plans/:planId/days/:dayId failed:", error)
         return res.status(500).json({message: "Internal server error"})
     }
 }

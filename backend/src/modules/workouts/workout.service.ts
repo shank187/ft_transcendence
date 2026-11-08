@@ -1,7 +1,8 @@
 import { prisma } from "../../lib/prisma";
 import { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, type WorkoutPlanBody } from "./workout.schema";
-import type { PlanDay, PlanDetail } from "./workout.types";
+import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet } from "./workout.types";
+import { exerciseSummarySelect, toExerciseSummaryDto } from "./exercise-summary";
 
 const planListSelect = {
     id: true,
@@ -26,11 +27,45 @@ const planDetailSelect = {
     days: { orderBy: { dayOrder: "asc" }, select: daySelect },
 } satisfies Prisma.WorkoutPlanSelect;
 
+const dayDetailSelect = {
+    id: true,
+    name: true,
+    dayOrder: true,
+    workoutPlan: { select: { id: true, name: true } },
+    exercises: {
+        orderBy: { order: "asc" },
+        select: {
+            id: true,
+            order: true,
+            restSeconds: true,
+            exercise: { select: exerciseSummarySelect },
+            sets: {
+                orderBy: { setNumber: "asc" },
+                select: {
+                    id: true,
+                    setNumber: true,
+                    setType: true,
+                    targetWeight: true,
+                    targetReps: true,
+                    targetDuration: true,
+                    targetDistance: true,
+                },
+            },
+        },
+    },
+} satisfies Prisma.WorkoutDaySelect;
+
 type PlanRowDb = Prisma.WorkoutPlanGetPayload<{ select: typeof planListSelect }>;
 
 type DayRowDb = Prisma.WorkoutDayGetPayload<{ select: typeof daySelect }>;
 
 type PlanDetailRowDb = Prisma.WorkoutPlanGetPayload<{ select: typeof planDetailSelect }>;
+
+type DayDetailRowDb = Prisma.WorkoutDayGetPayload<{ select: typeof dayDetailSelect }>;
+
+type DayExerciseRowDb = DayDetailRowDb["exercises"][number];
+
+type PlannedSetRowDb = DayExerciseRowDb["sets"][number];
 
 
 
@@ -75,6 +110,42 @@ function planDetailDto(planDetail: PlanDetailRowDb): PlanDetail
         description: planDetail.description,
         type: planDetail.type,
         days: planDetail.days.map(day => planDayDto(day))
+    }
+}
+
+function toPlannedSetDto(set: PlannedSetRowDb): PlannedSet
+{
+    return {
+        id: set.id,
+        setNumber: set.setNumber,
+        setType: set.setType,
+        targetWeight: set.targetWeight,
+        targetReps: set.targetReps,
+        targetDuration: set.targetDuration,
+        targetDistance: set.targetDistance,
+    }
+}
+
+function toDayExerciseDto(exercise: DayExerciseRowDb): DayExercise
+{
+    return {
+        id: exercise.id,
+        order: exercise.order,
+        restSeconds: exercise.restSeconds,
+        exerciseSummary: toExerciseSummaryDto(exercise.exercise),
+        sets: exercise.sets.map(toPlannedSetDto),
+    }
+}
+
+function toDayDetailDto(day: DayDetailRowDb): DayDetail
+{
+    return {
+        id: day.id,
+        name: day.name,
+        dayOrder: day.dayOrder,
+        planId: day.workoutPlan.id,
+        planName: day.workoutPlan.name,
+        exercises: day.exercises.map(toDayExerciseDto),
     }
 }
 
@@ -147,6 +218,17 @@ export async function deleteWorkoutPlan(userId: string, planId: string): Promise
             return false
         throw error
     }
+}
+
+export async function getWorkoutDay(userId: string, planId: string, dayId: string): Promise<DayDetail | null>
+{
+    const day = await prisma.workoutDay.findFirst({
+        where: { id: dayId, workoutPlan: { id: planId, userId } },
+        select: dayDetailSelect,
+    })
+    if(!day)
+        return null
+    return toDayDetailDto(day)
 }
 
 type CreateDayResult =
