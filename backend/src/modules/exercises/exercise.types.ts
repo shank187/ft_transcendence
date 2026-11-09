@@ -14,7 +14,7 @@ export type ParseListQueryReturn =
     | { ok: false; message: string }
 
 // response
-export type ExerciseItem = {
+type ExerciseItem = {
     id: string;
     name: string;
     type: ExerciseType;
@@ -25,7 +25,7 @@ export type ExerciseItem = {
     imageUrl: string | null;
 }
 
-export type ExerciseList = {
+type ExerciseList = {
     items: ExerciseItem[];
     page: number;
     limit: number;
@@ -37,7 +37,7 @@ export type GetExercisesReturn =
     | { ok: true; value: ExerciseList }
     | { ok: false; message: string }
 
-export type FilterOption = {
+type FilterOption = {
     id: string;
     name: string;
 }
