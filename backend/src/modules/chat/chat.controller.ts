@@ -82,8 +82,6 @@ export const getMessageHistory = async (req: AuthenticatedRequest, res: Response
     if (typeof target !== "string" || target === userId)
         return res.status(400).json({ message: "Invalid user ID" });
     try {
-        if (! (await areUsersFriends(userId, target)))
-            return res.status(404).json({ message: "You are not friends" })
         const conversation = await findConversation(userId, target)
         if (!conversation)
             return res.status(200).json([]);

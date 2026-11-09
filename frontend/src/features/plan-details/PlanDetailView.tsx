@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 import type {PlanDay, PlanDetail} from "./plan-detail.types"
 import getPlanDetails from "./plan-detail.api"
 import LoadingState from "../../components/states/LoadingState"
@@ -21,6 +21,7 @@ export default function PlanDetailView(props: {planId: string})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string|null>(null)
     const [plan, setPlan] = useState<PlanDetail|null>(null)
+    const [reloadCount, setReloadCount] = useState(0)
 
     //form for creating a day
     const [addDayForm, setAddDayVisibility] = useState(false)
@@ -64,21 +65,31 @@ export default function PlanDetailView(props: {planId: string})
             : previous)
     }
 
-    const loadPlan = useCallback( async ()=>{
+    const reloadPlan = () => {
         setError(null)
         setLoading(true)
-        try{
-            setPlan(await getPlanDetails(props.planId))
-        }catch(err){
-            setError(err instanceof(Error) ? err.message : "Failed to load page, try again.")
-        }finally{
-            setLoading(false)
-        }
-    }, [props.planId])
+        setReloadCount(count => count + 1)
+    }
 
+    // The load lives inside the effect so its cleanup can ignore an answer for an
+    // older planId or an older reload.
     useEffect(()=>{
-        loadPlan();
-    },[loadPlan])
+        let ignore = false
+        const loadPlan = async () => {
+            try{
+                const result = await getPlanDetails(props.planId)
+                if (ignore) return
+                setPlan(result)
+            }catch(err){
+                if (ignore) return
+                setError(err instanceof(Error) ? err.message : "Failed to load page, try again.")
+            }finally{
+                if (!ignore) setLoading(false)
+            }
+        }
+        void loadPlan()
+        return () => { ignore = true }
+    },[props.planId, reloadCount])
 
     if(loading) return <LoadingState message="Loading plan detail..."/>
     if(error)
@@ -86,7 +97,7 @@ export default function PlanDetailView(props: {planId: string})
             <ErrorState
             message={error}
             action={<Button
-                    onClick={() => void loadPlan()}
+                    onClick={reloadPlan}
                     >
                 Retry
                 </Button>}

@@ -8,11 +8,25 @@ import api from "../features/auth/axiosInstance"
 import { ConversationsList } from "../features/chat/ConversationsList"
 
 function Social() {
-    const { wsRef, lastMessage, onlineUserIds } = useWebSocket()
+    const { wsRef, lastMessage: wsMessage, onlineUserIds } = useWebSocket()
 
     const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(null)
     const [friends, setFriends] = useState<FriendData[]>([])
+useEffect(() => {
+    if (wsMessage?.type !== "friendship_updated")
+        return
 
+    async function refreshFriends() {
+        try {
+            const response = await api.get<FriendData[]>("/api/friends")
+            setFriends(response.data)
+        } catch (error) {
+            console.error("Failed to refresh friends:", error)
+        }
+    }
+
+    refreshFriends()
+}, [wsMessage])
     function sendMessage(RecipientId: string, content: string): boolean {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
             return false
@@ -34,6 +48,8 @@ function Social() {
     function handleBack() {
         setSelectedFriend(null)
     }
+
+
 
     useEffect(() => {
         async function getFriends() {
@@ -126,7 +142,7 @@ function Social() {
                     key={selectedFriend?.id ?? "no-friend"}
                     friend={selectedFriend}
                     onSendMessage={sendMessage}
-                    lastMessage={lastMessage}
+                    lastMessage={wsMessage}
                     onBack={handleBack}
                 />
             </section>

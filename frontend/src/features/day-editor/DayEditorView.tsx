@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import type { DayDetail, DraftExercise, SetType } from "./day-editor.types"
 import getWorkoutDay, { rememberFakeExercises, saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../components/states/ErrorState"
@@ -22,6 +22,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const [day, setDay] = useState<DayDetail| null>(null)
     const [dayError, setDayError] = useState<string|null>(null)
     const [dayLoading, setDayLoading] = useState(true)
+    const [reloadCount, setReloadCount] = useState(0)
 
     // draft states
     const [draft, setDraft] = useState<DraftExercise[]>([])
@@ -103,24 +104,32 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setDraft(toDraft(day.exercises))
     }
 
-    const loadDayPlan = useCallback (async ()=>{
+    const reloadDay = () => {
         setDayError(null)
         setDayLoading(true)
-        try{
-            const result = await getWorkoutDay(props.planId, props.dayId)
-            setDay(result)
-            setDraft(result ? toDraft(result.exercises) : [])
-        }catch(err){
-            setDayError(err instanceof Error ? err.message: "Failed to Load the workout's day.")
-        }finally{
-            setDayLoading(false)
-        }
-    },[props.planId, props.dayId,])
+        setReloadCount(count => count + 1)
+    }
 
-
+    // The load lives inside the effect so its cleanup can ignore an answer for an
+    // older day or an older reload.
     useEffect(() =>{
-        loadDayPlan()
-    },[loadDayPlan])
+        let ignore = false
+        const loadDayPlan = async () => {
+            try{
+                const result = await getWorkoutDay(props.planId, props.dayId)
+                if (ignore) return
+                setDay(result)
+                setDraft(result ? toDraft(result.exercises) : [])
+            }catch(err){
+                if (ignore) return
+                setDayError(err instanceof Error ? err.message: "Failed to Load the workout's day.")
+            }finally{
+                if (!ignore) setDayLoading(false)
+            }
+        }
+        void loadDayPlan()
+        return () => { ignore = true }
+    },[props.planId, props.dayId, reloadCount])
 
     // Compare save bodies, not drafts, so typing a value back by hand counts as clean.
     const isDirty = day ? JSON.stringify(toSaveBody(draft)) !== JSON.stringify(toSaveBody(toDraft(day.exercises))) : false
@@ -152,7 +161,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     if(dayLoading) return <LoadingState message="Loading Workout day..."/>
     if(dayError)
-        return (<ErrorState action={<Button onClick={()=> void loadDayPlan() } variant="secondary" className="min-h-11">Retry</Button>} message={dayError}/>)
+        return (<ErrorState action={<Button onClick={reloadDay} variant="secondary" className="min-h-11">Retry</Button>} message={dayError}/>)
     if(!day)
         return(
             <NotFoundState
@@ -234,7 +243,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 </div>
             }
             {isDialogOpen &&
-                <Dialog isWorking={saving} title={`Save changes to ${day.name}?`} open={true} onClose={closeLeaveDialog}>
+                <Dialog isWorking={saving} title={`Save changes to ${day.name}?`} onClose={closeLeaveDialog}>
                     <p className="text-sm text-app-text-secondary">You have unsaved changes.</p>
                     <div className="flex gap-2 justify-end">
                         <Button className="min-h-11"   disabled={saving || !isValid} onClick={() => void saveAndLeave()} >{saving ?"Saving":"Save"}</Button>
@@ -248,7 +257,6 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                     isWorking={saving}
                     variant="drawer"
                     title="Add exercise"
-                    open={true}
                     onClose={closeExercisePickerDialog}
                     showClose={true}
                 >

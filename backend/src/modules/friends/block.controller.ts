@@ -1,7 +1,7 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { prisma } from "../../lib/prisma";
 import { Response } from "express";
-
+import { notifyFriendshipUpdate } from "./friends.service"
 export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
     const blockerId = req.userId
     const { userId } = req.params;
@@ -67,6 +67,8 @@ export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
                 return res.status(409).json({ message: "you already blocked the user" })
             return res.status(404).json({ message: "not found" })
         }
+        await notifyFriendshipUpdate(blockerId, addresseeId)
+        await notifyFriendshipUpdate(addresseeId, blockerId)
         return res.status(201).json({ message: "User was blocked successfully" })
     } catch (error) {
         console.error(error)

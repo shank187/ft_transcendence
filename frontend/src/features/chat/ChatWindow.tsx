@@ -1,23 +1,54 @@
-
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import type { MessageData, ChatWindowProps, ClientMessage } from "./chat.types"
+import type { MessageData, ChatWindowProps } from "./chat.types"
 import Message from "./Message"
 import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
-import { useWebSocket  } from "../../pages/WebSocketContext"
-
+import { useWebSocket } from "../../pages/WebSocketContext"
 export default function ChatWindow({
     friend,
     onSendMessage,
     lastMessage,
     onBack
 }: ChatWindowProps) {
-    const { wsRef, connectionStatus } = useWebSocket()
+    const { connectionStatus, lastMessage: wsMessage } = useWebSocket()
     const { user } = useAuth()
+    const [canMessage, setCanMessage] = useState(false)
 
     const [msgs, setMsgs] = useState<MessageData[]>([])
     const [msg, setMsg] = useState("")
     const chatBodyRef = useRef<HTMLDivElement>(null)
+    const friendshipUpdate =
+        wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
+    useEffect(() => {
+        if (!friend) {
+            setCanMessage(false)
+            return
+        }
+
+        let cancelled = false
+        setCanMessage(false)
+async function checkPermission() {
+    try {
+        const response = await api.get<{ canMessage: boolean }>(
+            `/api/friends/${friend!.id}/can-message`
+        )
+
+        if (!cancelled)
+            setCanMessage(response.data.canMessage)
+    } catch (error) {
+        console.error("Permission check failed:", error)
+
+        if (!cancelled)
+            setCanMessage(false)
+    }
+}
+
+        checkPermission()
+
+        return () => {
+            cancelled = true
+        }
+    }, [friend?.id, connectionStatus, friendshipUpdate])
 
     useEffect(() => {
         if (!friend) {
@@ -37,42 +68,23 @@ export default function ChatWindow({
                 )
 
                 if (cancelled) return
-    setMsgs(current => {
-        const messages = new Map<string, MessageData>()
 
-        response.data.forEach(message => {
-            messages.set(message.id, message)
-        })
+                setMsgs(current => {
+                    const messages = new Map<string, MessageData>()
 
-    current.forEach(message => {
-            const existing = messages.get(message.id)
+                    response.data.forEach(message => {
+                        messages.set(message.id, message)
+                    })
 
-        messages.set(message.id, {
-            ...existing,
-            ...message,
-            readAt: message.readAt ?? existing?.readAt ?? null
-        })
-    })
+                    current.forEach(message => {
+                        messages.set(message.id, message)
+                    })
 
-    return Array.from(messages.values()).sort(
-        (a, b) =>
-            new Date(a.createdAt).getTime() -
-            new Date(b.createdAt).getTime()
-    )
-})
-                // setMsgs(response.data)
-
-                response.data.forEach(message => {
-                    if (message.senderId === friend!.id && !message.readAt) {
-                        const readMessage: ClientMessage = {
-                            type: "readMessage",
-                            target: friend!.id,
-                            messageId: message.id
-                        }
-
-                        if (wsRef.current?.readyState === WebSocket.OPEN)
-                            wsRef.current.send(JSON.stringify(readMessage))
-                    }
+                    return Array.from(messages.values()).sort(
+                        (a, b) =>
+                            new Date(a.createdAt).getTime() -
+                            new Date(b.createdAt).getTime()
+                    )
                 })
             } catch (error) {
                 if (!cancelled)
@@ -80,13 +92,12 @@ export default function ChatWindow({
             }
         }
 
-        setMsgs([])
         getMessageHistory()
 
         return () => {
             cancelled = true
         }
-    }, [friend?.id, wsRef, connectionStatus])
+    }, [friend?.id, connectionStatus])
 
     useLayoutEffect(() => {
         if (chatBodyRef.current)
@@ -101,7 +112,8 @@ export default function ChatWindow({
             (lastMessage.from === user.id && lastMessage.to === friend.id) ||
             (lastMessage.from === friend.id && lastMessage.to === user.id)
 
-        if (!isCurrentConversation) return
+        if (!isCurrentConversation)
+            return
 
         const incomingMessage: MessageData = {
             id: lastMessage.messageId,
@@ -109,46 +121,28 @@ export default function ChatWindow({
             content: lastMessage.content,
             conversationId: lastMessage.conversationId,
             createdAt: lastMessage.createdAt,
-            readAt: null
         }
 
-        if (lastMessage.from === friend.id) {
-            const readMessage: ClientMessage = {
-                type: "readMessage",
-                target: friend.id,
-                messageId: incomingMessage.id
-            }
+        setMsgs(current => {
+            if (current.some(message => message.id === incomingMessage.id))
+                return current
 
-            if (wsRef.current?.readyState === WebSocket.OPEN)
-                wsRef.current.send(JSON.stringify(readMessage))
-        }
-
-        setMsgs(current =>
-            current.some(message => message.id === incomingMessage.id)
-                ? current
-                : [...current, incomingMessage]
-        )
-    }, [lastMessage, friend?.id, user?.id, wsRef])
-
-    useEffect(() => {
-        if (!lastMessage || lastMessage.type !== "readMessage")
-            return
-
-setMsgs(current =>
-    current.map(message =>
-        message.id === lastMessage.messageId
-            ? { ...message, readAt: lastMessage.readAt }
-            : message
-    )
-)
-    }, [lastMessage])
+            return [...current, incomingMessage].sort(
+                (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+            )
+        })
+    }, [lastMessage, friend?.id, user?.id])
 
     function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (!friend || !msg.trim()) return
+        if (!friend || !canMessage  || !msg.trim() || connectionStatus !== "connected" || !msg.trim())
+            return
 
         const sent = onSendMessage(friend.id, msg.trim())
+
         if (sent)
             setMsg("")
     }
@@ -217,17 +211,21 @@ setMsgs(current =>
                 className="flex shrink-0 items-center gap-2 border-t border-app-border p-3 sm:gap-3 sm:p-4"
             >
                 <input
+                    disabled={!canMessage || connectionStatus !== "connected"}
                     type="text"
                     placeholder={
-                        connectionStatus === "connected"
-                        ? "Type a message..."
-                        : "Waiting for connection..."
+                    connectionStatus !== "connected"
+                        ? "Waiting for connection..."
+                        : !canMessage
+                        ? "Messaging unavailable"
+                        : "Type a message..."
                     }
                     aria-label="Message"
                     value={msg}
                     maxLength={500}
+                    
                     onChange={event => setMsg(event.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-app-border bg-app-surface-raised px-3 py-3 text-base text-app-text outline-none focus:border-app-primary sm:px-4 sm:text-sm"
+                    className="disabled:opacity-50 min-w-0 flex-1 rounded-lg border border-app-border bg-app-surface-raised px-3 py-3 text-base text-app-text outline-none focus:border-app-primary sm:px-4 sm:text-sm"
                 />
 
                 <span className="hidden shrink-0 text-xs text-app-text-secondary sm:block">
@@ -236,7 +234,7 @@ setMsgs(current =>
 
                 <button
                     type="submit"
-                    disabled={!msg.trim() || connectionStatus !== "connected"}
+                    disabled={!canMessage || !msg.trim() || connectionStatus !== "connected"}
                     className="shrink-0 rounded-lg bg-app-primary px-3 py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 sm:px-5"
                 >
                     Send

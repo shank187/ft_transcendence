@@ -1,0 +1,122 @@
+[
+  {
+    "name": "R1",
+    "city": "khouribga",
+    "address": "dorm 1337",
+    "latitude": 32.8856,
+    "longitude": -6.9093,
+    "phone": "+212 537 123456",
+    "website": "https://example.com",
+    "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
+    "source": "TEAM",
+    "verified": true,
+    "imageUrl": "/gym-images/R1.png",
+    "equipment": [
+      "Dumbbells",
+      "Barbell",
+      "Plates",
+      "Bench",
+      "Cable Machine",
+      "Smith Machine",
+      "Chest Press Machine",
+      "Lat Pulldown Machine",
+      "Leg Press Machine"
+    ]
+  },
+  {
+    "name": "R2",
+    "city": "khouribga",
+    "address": "dorm 1337",
+    "latitude": 32.8856,
+    "longitude": -6.9093,
+    "phone": "+212 537 123456",
+    "website": "https://example.com",
+    "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
+    "source": "TEAM",
+    "verified": true,
+    "imageUrl": "/gym-images/R2.png",
+    "equipment": [
+      "Dumbbells",
+      "Barbell",
+      "Plates",
+      "Bench",
+      "Cable Machine",
+      "Smith Machine",
+      "Chest Press Machine",
+      "Lat Pulldown Machine",
+      "Leg Press Machine"
+    ]
+  },
+  {
+    "name": "R3",
+    "city": "khouribga",
+    "address": "dorm 1337",
+    "latitude": 32.8856,
+    "longitude": -6.9093,
+    "phone": "+212 537 123456",
+    "website": "https://example.com",
+    "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
+    "source": "TEAM",
+    "verified": true,
+    "imageUrl": "/gym-images/R3.png",
+    "equipment": [
+      "Dumbbells",
+      "Barbell",
+      "Plates",
+      "Bench",
+      "Cable Machine",
+      "Smith Machine",
+      "Chest Press Machine",
+      "Lat Pulldown Machine",
+      "Leg Press Machine"
+    ]
+  },
+  {
+    "name": "R4",
+    "city": "khouribga",
+    "address": "dorm 1337",
+    "latitude": 32.8856,
+    "longitude": -6.9093,
+    "phone": "+212 537 123456",
+    "website": "https://example.com",
+    "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
+    "source": "TEAM",
+    "verified": true,
+    "imageUrl": "/gym-images/R4.png",
+    "equipment": [
+      "Dumbbells",
+      "Barbell",
+      "Plates",
+      "Bench",
+      "Cable Machine",
+      "Smith Machine",
+      "Chest Press Machine",
+      "Lat Pulldown Machine",
+      "Leg Press Machine"
+    ]
+  },
+  {
+    "name": "R5",
+    "city": "khouribga",
+    "address": "dorm 1337",
+    "latitude": 32.8856,
+    "longitude": -6.9093,
+    "phone": "+212 537 123456",
+    "website": "https://example.com",
+    "description": "Fully equipped fitness center with state-of-the-art machines and free weights.",
+    "source": "TEAM",
+    "verified": true,
+    "imageUrl": "/gym-images/R5.png",
+    "equipment": [
+      "Dumbbells",
+      "Barbell",
+      "Plates",
+      "Bench",
+      "Cable Machine",
+      "Smith Machine",
+      "Chest Press Machine",
+      "Lat Pulldown Machine",
+      "Leg Press Machine"
+    ]
+  }
+]
