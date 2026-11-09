@@ -144,3 +144,25 @@ export async function createGym(data : CreateGymData){
         
     }
 }
+
+
+export async function getSubmissions(){
+    return await prisma.gymSubmission.findMany({
+        where : {status : "PENDING"},
+        orderBy : {createdAt : "desc"},
+        include : {
+            submitter : {
+                select : {
+                    id : true,
+                    email :true,
+                },
+            },
+            equipment : {
+                select : {
+                    equipment : true,
+                }
+            },
+            
+        }
+    });
+}

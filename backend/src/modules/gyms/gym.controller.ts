@@ -4,6 +4,7 @@ import {searchForGyms} from "./gym.service"
 import {getGymById} from "./gym.service";
 import {getALLEquip} from "./gym.service"
 import {createGym} from "./gym.service";
+import {getSubmissions} from "./gym.service"
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -104,6 +105,20 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
         :"Gym submitted for admin approval";
         res.status(201).json({msg, result});
     }catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});
+    }
+}
+
+export async function getSubmissionsController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
+
+    try{
+        const submissions = await getSubmissions();
+        res.status(200).json(submissions);
+    }
+    catch(e){
         console.log(e);
         res.status(500).json({e: "server error"});
     }
