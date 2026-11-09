@@ -65,24 +65,50 @@ export async function getUnlockedAchievements(userId: string) {
 
 
 //////////// leadeboard
-export async function getLeaderboardEntries() {
-    // Get public identities.
+export async function getLeaderboardEntries(userId: string) {
     const users = await prisma.user.findMany({
+        where: {
+            id: { not: userId },
+            OR: [
+                {
+                    receivedFriendships: {
+                        some: {
+                            requesterId: userId,
+                            status: "ACCEPTED",
+                            blockedById: null,
+                        },
+                    },
+                },
+                {
+                    sentFriendships: {
+                        some: {
+                            addresseeId: userId,
+                            status: "ACCEPTED",
+                            blockedById: null,
+                        },
+                    },
+                },
+            ],
+        },
         select: {
             id: true,
             username: true,
         },
     });
 
-    // Calculate each user's stored XP.
+    // Calculate stored XP for these friends only.
     const xpTotals = await prisma.xpEvent.groupBy({
         by: ["userId"],
+        where: {
+            userId: {
+                in: users.map((user) => user.id),
+            },
+        },
         _sum: {
             amount: true,
         },
     });
 
-    // Associate each user ID with their total XP.
     const xpByUser = new Map(
         xpTotals.map((entry) => [
             entry.userId,
@@ -90,7 +116,6 @@ export async function getLeaderboardEntries() {
         ])
     );
 
-    // Combine identities with XP and rank them.
     return users
         .map((user) => ({
             id: user.id,
