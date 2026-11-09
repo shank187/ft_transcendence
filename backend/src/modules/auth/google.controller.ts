@@ -30,7 +30,7 @@ export const googleLogin = async (_req: Request, res: Response) => {
     });
 
     const url = googleClient.generateAuthUrl({
-        scope: ['openid', 'email', 'profile'],
+        scope: ['openid', 'email'],
         state
     });
 
@@ -86,7 +86,6 @@ export const googleCallback = async (req: Request, res: Response) => {
 
                     username: email.split('@')[0] + '_' + crypto.randomBytes(2).toString('hex'),
 
-                    displayName: google_user.name
                 }
             });
         }
