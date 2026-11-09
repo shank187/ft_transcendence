@@ -23,7 +23,7 @@ import { buildSummary } from "./workout-session.helpers";
 //   page URL ?fake=levelup -> the first finishWorkout returns levelUp: true
 //                             and unlocked: ["WORKOUTS_1"]
 //   addExercises only knows exercises from a started day or passed to
-//   rememberFakeExercises; any other id rejects "Exercise not found"
+//   rememberSessionExercises; any other id rejects "Exercise not found"
 
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 

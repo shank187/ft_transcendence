@@ -81,7 +81,7 @@ function validateBody(body: SaveDayBody) {
     }
 }
 
-// FAKE-DATA:
+// FAKE-DATA: a target equal to 999 makes the fake save reject.
 function hasFailTrigger(body: SaveDayBody): boolean {
     return body.exercises.some(item => item.sets.some(set =>
         [set.targetWeight, set.targetReps, set.targetDuration, set.targetDistance].includes(999)))

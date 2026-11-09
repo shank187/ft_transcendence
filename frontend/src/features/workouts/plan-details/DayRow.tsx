@@ -91,7 +91,6 @@ export default function DayRow(
                 >
                     Edit
                 </Link>
-                {/* TODO(UI 5/7): start a workout from this day */}
                 <Button
                 variant="primary"
                 className="flex-1 min-h-11"

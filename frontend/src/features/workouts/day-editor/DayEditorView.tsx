@@ -20,20 +20,16 @@ import type { Exercise } from "../shared/exercise-picker/exercise.types"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
-    // day plan details states
     const [day, setDay] = useState<DayDetail| null>(null)
     const [dayError, setDayError] = useState<string|null>(null)
     const [dayLoading, setDayLoading] = useState(true)
     const [reloadCount, setReloadCount] = useState(0)
 
-    // draft states
     const [draft, setDraft] = useState<DraftExercise[]>([])
 
-    // save states
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState<string|null>(null)
     
-    //leaving dialog
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     // key of the set whose menu is open, so only one menu opens at a time

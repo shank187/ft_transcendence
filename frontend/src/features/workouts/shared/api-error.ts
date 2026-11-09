@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 
 // Turns any failed request into an Error the UI can show as is.
-// A 4xx message is written for the user ("Plan not found.", "name is required.");
+// A 4xx message is written for the user ("Plan not found.", "Plan name is required.");
 // a 5xx one is only "Internal server error", so the fallback text reads better.
 export function toApiError(error: unknown, fallback: string): Error
 {

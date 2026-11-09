@@ -29,7 +29,7 @@ export function storeSession(session: WorkoutSession) {
 }
 
 // FAKE-DATA: stands in for the Exercise table, so addExercises can build a
-// summary from an id. Filled by started days and rememberFakeExercises.
+// summary from an id. Filled by started days and rememberSessionExercises.
 export const catalog = new Map<string, ExerciseSummary>()
 
 // FAKE-DATA: the picker adds real catalog exercises; remember them so addExercises can find their summary. Remove with the real session API (Phase 2).

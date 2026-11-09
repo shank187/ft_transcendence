@@ -18,22 +18,17 @@ import { buttonClasses } from "../../../components/ui/button-classes"
 
 export default function PlanDetailView(props: {planId: string})
 {
-    // plan details page
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string|null>(null)
     const [plan, setPlan] = useState<PlanDetail|null>(null)
     const [reloadCount, setReloadCount] = useState(0)
 
-    //form for creating a day
     const [addDayForm, setAddDayVisibility] = useState(false)
 
-    // menu for renaming/deleting a day
     const [dayMenu, setDayMenu] = useState<string | null>(null)
     
-    //rename day
     const [renamingDayId, setRenamingDayId] = useState<string | null>(null)
 
-    //delete day 
     const[deletingDayId, setdeletingDayId] = useState<string|null>(null)
 
     const closeRename = () => {

@@ -18,8 +18,6 @@ export interface FinishResult {
 // What the user did in one set, sent when the set is ticked.
 export type PerformedValues = Pick<WorkoutSessionSet, FieldKey>
 
-// request bodies
-
 // PATCH /api/workout-sessions/:sessionId/sets/:setId. Every field is optional:
 // only the ones present change, and null clears a value.
 export interface SetPatch {
