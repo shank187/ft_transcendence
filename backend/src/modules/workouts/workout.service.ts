@@ -2,8 +2,8 @@ import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, type WorkoutPlanBody } from "./workout.schema";
 import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet } from "./workout.types";
-import { exerciseSummarySelect, toExerciseSummaryDto } from "./exercise-summary";
-import { isNotFoundError, isUniqueViolation } from "./prisma-errors";
+import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
+import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
 
 const planListSelect = {
     id: true,

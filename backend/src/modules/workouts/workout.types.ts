@@ -1,4 +1,5 @@
-import type { ExerciseType, WorkoutSetType } from "@prisma/client";
+import type { WorkoutSetType } from "@prisma/client";
+import type { ExerciseSummary } from "../exercises/exercise-summary";
 
 export interface PlanDay
 {
@@ -16,15 +17,6 @@ export interface PlanDetail{
     type: string
     days: PlanDay[],
 }
-export interface ExerciseSummary
-{
-    id: string,
-    name: string,
-    type: ExerciseType,
-    primaryMuscle: string,
-    imageUrl: string | null,
-}
-
 export interface PlannedSet
 {
     id: string,

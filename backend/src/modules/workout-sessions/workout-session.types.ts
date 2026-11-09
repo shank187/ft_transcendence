@@ -1,5 +1,5 @@
 import type { WorkoutSessionStatus, WorkoutSetType } from "@prisma/client";
-import type { ExerciseSummary } from "../workouts/workout.types";
+import type { ExerciseSummary } from "../exercises/exercise-summary";
 
 export interface WorkoutSessionSet
 {

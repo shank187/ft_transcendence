@@ -1,5 +1,13 @@
-import type { Prisma } from "@prisma/client";
-import type { ExerciseSummary } from "./workout.types";
+import type { ExerciseType, Prisma } from "@prisma/client";
+
+export interface ExerciseSummary
+{
+    id: string,
+    name: string,
+    type: ExerciseType,
+    primaryMuscle: string,
+    imageUrl: string | null,
+}
 
 // The exercise as the day editor and the workout page show it.
 export const exerciseSummarySelect = {

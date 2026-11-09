@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { exerciseSummarySelect, toExerciseSummaryDto } from "../workouts/exercise-summary";
-import { isNotFoundError, isUniqueViolation } from "../workouts/prisma-errors";
+import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
+import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
 import { MAX_EXERCISES_PER_SESSION, type UpdateSetBody } from "./workout-session.schema";
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
 
