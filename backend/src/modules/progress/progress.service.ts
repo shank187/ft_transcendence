@@ -66,7 +66,7 @@ export async function getUnlockedAchievements(userId: string) {
 
 //////////// leadeboard
 export async function getLeaderboardEntries(userId: string) {
-    const users = await prisma.user.findMany({
+    let users = await prisma.user.findMany({
         where: {
             id: { not: userId },
             OR: [
@@ -95,6 +95,19 @@ export async function getLeaderboardEntries(userId: string) {
             username: true,
         },
     });
+
+// Handle zero friends.
+    if (users.length === 0) {
+        users = await prisma.user.findMany({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                username: true,
+            },
+        });
+    }
 
     // Calculate stored XP for these friends only.
     const xpTotals = await prisma.xpEvent.groupBy({
