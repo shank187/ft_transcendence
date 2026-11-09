@@ -186,6 +186,7 @@ Status codes:
 |---|---|
 | Repeated `muscle` key, e.g. `?muscle=a&muscle=b` (Express turns it into an array) | `Invalid Muscle` |
 | Repeated `search` key | `Invalid Search` |
+| `search` longer than 100 characters after trimming | `Invalid Search` |
 | Repeated `equipment` key | `Invalid Equipment` |
 | Repeated `page` key | `Invalid Page` |
 | Repeated `limit` key | `Invalid Limit` |
@@ -233,9 +234,31 @@ Required validation hardening before final QA:
 
 ## Workout plans
 
+### Limits
+
+Every limit is checked on both sides with the same message: the frontend for fast feedback, the backend because anyone can call the API directly. Change both places together.
+
+| Limit | Value | Backend | Frontend (`frontend/src/features/workouts/shared/limits.ts`) | Error |
+|---|---|---|---|---|
+| Plan name | 1–50 characters, trimmed | `workoutPlanBody` | `PLAN_NAME_MAX` | `400` |
+| Plan description | at most 200 characters, trimmed | `workoutPlanBody` | `PLAN_DESCRIPTION_MAX` | `400` |
+| Plans per user | 3 | `MAX_PLANS_PER_USER` | `MAX_PLANS_PER_USER` | `422` "You can have at most 3 plans." |
+| Day name | 1–30 characters, trimmed | `workoutDayBody` | `DAY_NAME_MAX` | `400` |
+| Days per plan | 7 | `MAX_DAYS_PER_PLAN` | `MAX_DAYS_PER_PLAN` | `422` "A plan can have at most 7 days." |
+| Exercises per workout | 20 | `MAX_EXERCISES_PER_SESSION` | `MAX_EXERCISES` | `422` "A workout can have at most 20 exercises." |
+| Exercises per day (day editor) | 20 | not built yet (day save route pending) | `MAX_EXERCISES` | fake save: "A day can have at most 20 exercises." |
+| Sets per exercise | 20 | `MAX_SETS_PER_EXERCISE` | `MAX_SETS_PER_EXERCISE` | `422` "An exercise can have at most 20 sets." |
+| Set weight | 0–1000, at most 2 decimals | `updateSetBody` | `set-values.ts` | `400` "Weight must be between 0 and 1000 kg." |
+| Set reps | whole number 1–999 | `updateSetBody` | `set-values.ts` | `400` "Reps must be a whole number between 1 and 999." |
+| Set time | whole seconds 1–86400 | `updateSetBody` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
+| Set distance | more than 0, at most 1000000, 1 decimal | `updateSetBody` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
+| Exercise search | at most 100 characters, trimmed | `exercise.query.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
+
+Backend files: plans and days in `backend/src/modules/workouts/workout.schema.ts`; workout exercises and sets in `backend/src/modules/workout-sessions/workout-session.schema.ts`; search in `backend/src/modules/exercises/exercise.query.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
+
 ### `GET /api/workout-plans`
 
-Lists the plans owned by the authenticated user. Used by the `/workouts` page (`frontend/src/features/workouts/workout.api.ts`).
+Lists the plans owned by the authenticated user. Used by the `/workouts` page (`frontend/src/features/workouts/plans/plans.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Request:** no path, query, or body parameters. Pagination is not implemented.
@@ -271,14 +294,15 @@ Status codes:
 - `401` missing, invalid, or expired access token — e.g. no `Authorization` header returns `{ "message": "Access token is required" }`
 - `500` unexpected server/database error — `{ "message": "Internal server error" }`
 
-Frontend type: `WorkoutPlan` in `frontend/src/features/workouts/workout.types.ts` must stay in sync with this DTO.
+Frontend type: `WorkoutPlan` in `frontend/src/features/workouts/plans/plans.types.ts` must stay in sync with this DTO.
 
 ### `POST /api/workout-plans`
 
-Creates a custom plan for the authenticated user. Used by the create plan dialog (`postWorkoutPlan` in `frontend/src/features/workouts/workout.api.ts`).
+Creates a custom plan for the authenticated user. Used by the create plan dialog (`postWorkoutPlan` in `frontend/src/features/workouts/plans/plans.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Body:** `{ "name": string, "description"?: string | null }`. Both are trimmed. `name` 1–50 characters; `description` at most 200 characters. Unknown fields (including `type`) are dropped; `type` is always `CUSTOM`.
+- **Limit:** at most 3 plans per user (`MAX_PLANS_PER_USER` in `workout.schema.ts`).
 - **Ownership:** `userId` is taken from the token, never from the body.
 - **Code:** `createWorkoutPlanController` → `createWorkoutPlan`; limits in `workout.schema.ts` (`workoutPlanBody`).
 
@@ -298,6 +322,7 @@ Status codes:
 
 - `201` plan created
 - `400` body fails validation — `{ "message": "<first validation error>" }`
+- `422` `{ "message": "You can have at most 3 plans." }`
 - `401` missing, invalid, or expired access token
 - `500` unexpected error — `{ "message": "Internal server error" }`
 
@@ -305,7 +330,7 @@ Failure example: `{ "name": "   " }` returns `400` `{ "message": "Plan name is r
 
 ### `GET /api/workout-plans/:planId`
 
-Returns one plan with its days. Used by the plan detail page and the day editor (`getPlanDetails` in `frontend/src/features/plan-details/plan-detail.api.ts`).
+Returns one plan with its days. Used by the plan detail page and the day editor (`getPlanDetails` in `frontend/src/features/workouts/shared/get-plan-details.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId` — the plan's id. No query or body.
@@ -346,11 +371,11 @@ Status codes:
 
 Failure example: another user's `planId` returns `404` `{ "message": "Plan not found." }`.
 
-Frontend types: `PlanDetail` and `PlanDay` in `frontend/src/features/plan-details/plan-detail.types.ts` must stay in sync with this DTO.
+Frontend types: `PlanDetail` and `PlanDay` in `frontend/src/features/workouts/shared/workouts.types.ts` must stay in sync with this DTO.
 
 ### `PATCH /api/workout-plans/:planId`
 
-Updates a plan's name and description. Used by the rename plan dialog (`renamePlan` in `plan-detail.api.ts`), which sends both fields every time.
+Updates a plan's name and description. Used by the rename plan dialog (`renamePlan` in `plan-details/plan-details.api.ts`), which sends both fields every time.
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`.
@@ -372,7 +397,7 @@ Failure example: a 51-character `name` returns `400` `{ "message": "Plan name ca
 
 ### `DELETE /api/workout-plans/:planId`
 
-Deletes a plan. Used by the delete plan dialog (`deletePlan` in `plan-detail.api.ts`).
+Deletes a plan. Used by the delete plan dialog (`deletePlan` in `plan-details/plan-details.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`. No body.
@@ -393,7 +418,7 @@ Failure example: deleting the same plan twice returns `404` `{ "message": "Plan 
 
 ### `POST /api/workout-plans/:planId/days`
 
-Adds a day at the end of a plan. Used by the add day form (`createWorkoutDay` in `plan-detail.api.ts`).
+Adds a day at the end of a plan. Used by the add day form (`createWorkoutDay` in `plan-details/plan-details.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`.
@@ -422,7 +447,7 @@ Failure example: adding an 8th day returns `422` `{ "message": "A plan can have 
 
 ### `GET /api/workout-plans/:planId/days/:dayId`
 
-Returns one day with its planned exercises and sets. Meant for the day editor; `frontend/src/features/day-editor/day-editor.api.ts` still uses its fake data.
+Returns one day with its planned exercises and sets. Meant for the day editor; `frontend/src/features/workouts/day-editor/day-editor.api.ts` still uses its fake data.
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`, `dayId`. No query or body.
@@ -472,11 +497,11 @@ Status codes:
 
 Failure example: a `dayId` from another user's plan returns `404` `{ "message": "Day not found." }`.
 
-Frontend types: `DayDetail`, `DayExercise`, `PlannedSet` and `ExerciseSummary` in `frontend/src/features/day-editor/day-editor.types.ts`.
+Frontend types: `DayDetail` and `DayExercise` in `frontend/src/features/workouts/day-editor/day-editor.types.ts`; `PlannedSet` and `ExerciseSummary` in `frontend/src/features/workouts/shared/workouts.types.ts`.
 
 ### `PATCH /api/workout-plans/:planId/days/:dayId`
 
-Renames one day. Used by the rename day dialog (`renameWorkoutDay` in `plan-detail.api.ts`).
+Renames one day. Used by the rename day dialog (`renameWorkoutDay` in `plan-details/plan-details.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`, `dayId`.
@@ -498,7 +523,7 @@ Failure example: `{ "name": "" }` returns `400` `{ "message": "Day name is requi
 
 ### `DELETE /api/workout-plans/:planId/days/:dayId`
 
-Deletes one day and renumbers the remaining days 1..n in one transaction. Used by the delete day dialog (`deleteWorkoutDay` in `plan-detail.api.ts`).
+Deletes one day and renumbers the remaining days 1..n in one transaction. Used by the delete day dialog (`deleteWorkoutDay` in `plan-details/plan-details.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`, `dayId`. No body.
@@ -527,7 +552,7 @@ Failure example: deleting a day of another user's plan returns `404` `{ "message
 
 ## Workout sessions
 
-Routes under `/api/workout-sessions`, code in `backend/src/modules/workout-sessions/`. Starting and finishing a workout are not implemented yet, and `frontend/src/features/workout-session/workout-session.api.ts` still uses its fake data.
+Routes under `/api/workout-sessions`, code in `backend/src/modules/workout-sessions/`. Starting and finishing a workout are not implemented yet, and `frontend/src/features/workouts/workout-session/workout-session.api.ts` still uses its fake data.
 
 Rules shared by every route below:
 
@@ -590,7 +615,7 @@ Status codes:
 
 Failure example: another user's `sessionId` returns `404` `{ "message": "Workout not found." }`.
 
-Frontend types: `WorkoutSession`, `WorkoutSessionExercise`, `WorkoutSessionSet` and `WorkoutSummary` in `frontend/src/features/workout-session/workout-session.types.ts`.
+Frontend types: `WorkoutSession`, `WorkoutSessionExercise`, `WorkoutSessionSet` and `WorkoutSummary` in `frontend/src/features/workouts/shared/workouts.types.ts`.
 
 ### `PATCH /api/workout-sessions/:sessionId`
 
@@ -643,6 +668,7 @@ Adds an empty set at the end of one exercise of a workout in progress.
 
 - **Path:** `sessionId`, `exerciseId` — `exerciseId` is the `WorkoutSessionExercise.id` (the `exercises[].id` of the session), not the catalog exercise id. No body.
 - **Effects:** `setNumber` = the exercise's highest + 1; `setType` `NORMAL`; every value `null`.
+- **Limit:** at most 20 sets per exercise (`MAX_SETS_PER_EXERCISE` in `workout-session.schema.ts`).
 - **Code:** `addSessionSetController` → `addSessionSet`.
 
 Response `201` — the new set, one `WorkoutSessionSet`.
@@ -653,6 +679,7 @@ Status codes:
 - `401` missing, invalid, or expired access token
 - `404` `{ "message": "Workout not found." }` or `{ "message": "Exercise not found." }` (the exercise is not in this workout)
 - `409` `{ "message": "This workout is finished or cancelled." }`, or `{ "message": "The workout changed. Please try again." }` when another request added a set at the same time
+- `422` `{ "message": "An exercise can have at most 20 sets." }`
 - `500` unexpected error
 
 Failure example: an `exerciseId` from another workout returns `404` `{ "message": "Exercise not found." }`.
@@ -666,10 +693,10 @@ Changes what the user did in one set, or ticks/unticks it.
 
 | Field | Type | Limits |
 |---|---|---|
-| `weight` | number \| null | 0–1000 |
-| `reps` | integer \| null | 0–999 |
-| `duration` | integer \| null | 0–86400 (seconds) |
-| `distance` | number \| null | 0–1000000 |
+| `weight` | number \| null | 0–1000, at most 2 decimals |
+| `reps` | integer \| null | 1–999 |
+| `duration` | integer \| null | 1–86400 (seconds) |
+| `distance` | number \| null | more than 0, at most 1000000, 1 decimal |
 | `setType` | `"NORMAL"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `completed` | boolean | `true` sets `completedAt` (keeps the first time if already ticked); `false` clears it |
 
@@ -680,7 +707,7 @@ Response `200` — the updated set, one `WorkoutSessionSet`.
 Status codes:
 
 - `200` set updated
-- `400` body fails validation — e.g. `{ "message": "Reps must be a whole number." }`
+- `400` body fails validation — e.g. `{ "reps": 0 }` returns `{ "message": "Reps must be a whole number between 1 and 999." }`
 - `401` missing, invalid, or expired access token
 - `404` `{ "message": "Workout not found." }` or `{ "message": "Set not found." }` (the set is not in this workout)
 - `409` `{ "message": "This workout is finished or cancelled." }`
