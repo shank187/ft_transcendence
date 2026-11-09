@@ -1,5 +1,7 @@
 import type { ListQuery, ParseListQueryReturn } from "./exercise.types";
 
+const SEARCH_MAX_LENGTH = 100
+
 export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn {
     // reject repeated keys (Express turns them into arrays)
     if (q.muscle !== undefined && typeof q.muscle !== "string") {
@@ -37,6 +39,10 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
         return { ok: false, message: "Invalid Pagination" }
     }
     const value: ListQuery = { page, limit }
+
+    // The frontend search box has the same maxLength (frontend/src/features/workouts/shared/limits.ts).
+    if (rawSearch.trim().length > SEARCH_MAX_LENGTH)
+        return { ok: false, message: "Invalid Search" }
 
     if (rawSearch.trim().length > 0)
         value.search = rawSearch.trim()

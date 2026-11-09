@@ -1,6 +1,7 @@
 import type { DayDetail, DayExercise, SaveDayBody, SetTargets } from "./day-editor.types";
 import type { ExerciseSummary, SetType } from "../shared/workouts.types";
 import { getPlanDetails } from "../shared/get-plan-details";
+import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../shared/limits";
 
 // The day's name, order and plan name come from the real
 // GET /api/workout-plans/:planId. Only its exercises are still fake.
@@ -10,8 +11,6 @@ import { getPlanDetails } from "../shared/get-plan-details";
 // FAKE-DATA: a save with a target equal to 999 always rejects.
 
 const FAKE_DELAY_MS = 500
-const MAX_EXERCISES = 20
-const MAX_SETS = 1000
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
 // FAKE-DATA: the exercises the picker added, so the fake save can rebuild
@@ -69,15 +68,15 @@ function validateSet(set: SetTargets) {
 
 function validateBody(body: SaveDayBody) {
     if (body.exercises.length > MAX_EXERCISES)
-        throw new Error(`A day can have ${MAX_EXERCISES} exercises max.`)
+        throw new Error(`A day can have at most ${MAX_EXERCISES} exercises.`)
 
     for (const item of body.exercises) {
         if (!catalog.has(item.exerciseId))
             throw new Error("Unknown exercise.")
         if (item.restSeconds !== null && !isWholeBetween(item.restSeconds, 0, 3600))
             throw new Error("Rest must be between 0 and 3600 seconds.")
-        if (item.sets.length > MAX_SETS)
-            throw new Error(`An exercise can have ${MAX_SETS} sets max.`)
+        if (item.sets.length > MAX_SETS_PER_EXERCISE)
+            throw new Error(`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`)
         item.sets.forEach(validateSet)
     }
 }

@@ -3,6 +3,7 @@ import type { PerformedValues } from "./workout-session.types";
 import type { SetType, WorkoutSessionExercise } from "../shared/workouts.types";
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel } from "../shared/exercise-fields";
 import SetRowSession from "./SetRowSession";
+import { MAX_SETS_PER_EXERCISE } from "../shared/limits";
 import Button from "../../../components/ui/Button";
 
 export default function ExerciseSessionCard(props:{
@@ -80,7 +81,8 @@ export default function ExerciseSessionCard(props:{
                 )}
             </ol>
             {(!props.isReadOnly && props.addSetError) && <p className="text-app-danger">{props.addSetError}</p>}
-            {!props.isReadOnly && <Button disabled={props.isAddingSet} onClick={()=> props.onAddSet(props.exercise.id)}>Add set</Button>}
+            {!props.isReadOnly && props.exercise.sets.length < MAX_SETS_PER_EXERCISE && <Button disabled={props.isAddingSet} onClick={()=> props.onAddSet(props.exercise.id)}>Add set</Button>}
+            {!props.isReadOnly && props.exercise.sets.length >= MAX_SETS_PER_EXERCISE && <p className="text-sm text-app-text-secondary">{`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`}</p>}
         </Card>
     )
 }

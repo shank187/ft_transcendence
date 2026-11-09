@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
-import { MAX_EXERCISES_PER_SESSION, type UpdateSetBody } from "./workout-session.schema";
+import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, type UpdateSetBody } from "./workout-session.schema";
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
 
 const setSelect = {
@@ -193,7 +193,7 @@ export async function addSessionExercises(userId: string, sessionId: string, exe
 
 type AddSetResult =
     | { ok: true; set: WorkoutSessionSet }
-    | { ok: false; reason: "NOT_FOUND" | "CLOSED" | "EXERCISE_NOT_FOUND" | "CONFLICT" };
+    | { ok: false; reason: "NOT_FOUND" | "CLOSED" | "EXERCISE_NOT_FOUND" | "TOO_MANY_SETS" | "CONFLICT" };
 
 export async function addSessionSet(userId: string, sessionId: string, exerciseId: string): Promise<AddSetResult>
 {
@@ -203,10 +203,15 @@ export async function addSessionSet(userId: string, sessionId: string, exerciseI
     const openExercise = { id: exerciseId, workoutSession: { id: sessionId, userId, status: "IN_PROGRESS" } } satisfies Prisma.WorkoutSessionExerciseWhereInput
     const exercise = await prisma.workoutSessionExercise.findFirst({
         where: openExercise,
-        select: { sets: { orderBy: { setNumber: "desc" }, take: 1, select: { setNumber: true } } },
+        select: {
+            _count: { select: { sets: true } },
+            sets: { orderBy: { setNumber: "desc" }, take: 1, select: { setNumber: true } },
+        },
     })
     if(!exercise)
         return { ok: false, reason: "EXERCISE_NOT_FOUND" }
+    if(exercise._count.sets >= MAX_SETS_PER_EXERCISE)
+        return { ok: false, reason: "TOO_MANY_SETS" }
     try{
         const set = await prisma.workoutSet.create({
             data: {

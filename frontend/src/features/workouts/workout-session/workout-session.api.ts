@@ -1,6 +1,7 @@
 import type { SetType, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "../shared/workouts.types";
 import type { AwardResult, FinishResult, SetPatch } from "./workout-session.types";
 import { catalog, copyExercise, copySession, sessions, storeSession, wait } from "../shared/fake-sessions";
+import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../shared/limits";
 import { buildSummary } from "./workout-session.helpers";
 
 // FAKE-DATA: mock of /api/workout-sessions.
@@ -24,7 +25,6 @@ import { buildSummary } from "./workout-session.helpers";
 //   addExercises only knows exercises from a started day or passed to
 //   rememberFakeExercises; any other id rejects "Exercise not found"
 
-const MAX_EXERCISES = 20
 const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
 // FAKE-DATA: real version will be GET /api/workout-sessions/:id
@@ -128,6 +128,8 @@ export async function addSet(sessionId: string, exerciseId: string): Promise<Wor
     const session = getOpenSession(sessionId)
     const exercise = session.exercises.find(e => e.id === exerciseId)
     if (!exercise) throw new Error("Exercise not found")
+    if (exercise.sets.length >= MAX_SETS_PER_EXERCISE)
+        throw new Error(`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`)
 
     const set = emptySet(Math.max(0, ...exercise.sets.map(s => s.setNumber)) + 1)
     saveExercises(session, session.exercises.map(e => e.id === exerciseId ? { ...e, sets: [...e.sets, set] } : e))

@@ -16,6 +16,7 @@ import type { Exercise } from "../shared/exercise-picker/exercise.types";
 import { ExercisePicker } from "../shared/exercise-picker/ExercisePicker";
 import Dialog from "../../../components/ui/Dialog";
 import SessionSummaryCard from "./SessionSummaryCard";
+import { MAX_EXERCISES } from "../shared/limits";
 import EmptyState from "../../../components/states/EmptyState";
 
 type LoadStateType =
@@ -284,7 +285,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
                     )}
                 </ol>
             }
-            {!isReadOnly && session.exercises.length > 0 && addExercisesButton}
+            {!isReadOnly && session.exercises.length > 0 && session.exercises.length < MAX_EXERCISES && addExercisesButton}
+            {!isReadOnly && session.exercises.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A workout can have at most ${MAX_EXERCISES} exercises.`}</p>}
             {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
             {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
             {showPicker &&

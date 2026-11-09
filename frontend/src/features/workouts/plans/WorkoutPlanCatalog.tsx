@@ -8,6 +8,7 @@ import emptyStateIcon from "../../../assets/empty-icon.png"
 import LoadingState from "../../../components/states/LoadingState";
 import ErrorState from "../../../components/states/ErrorState";
 import CreatePlanDialog from "./CreatePlanDialog";
+import { MAX_PLANS_PER_USER } from "../shared/limits";
 
 export default function WorkoutPlanCatalog()
 {
@@ -91,10 +92,13 @@ export default function WorkoutPlanCatalog()
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold">My Plans</h1>
 
-                <Button onClick={() => setIsCreateOpen(true)}>
-                    Create Plan
-                </Button>
+                {workouts.length < MAX_PLANS_PER_USER &&
+                    <Button onClick={() => setIsCreateOpen(true)}>
+                        Create Plan
+                    </Button>
+                }
             </div>
+            {workouts.length >= MAX_PLANS_PER_USER && (<p>{`You can have at most ${MAX_PLANS_PER_USER} plans.`}</p>)}
 
             <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 {workouts.map((workout) => (

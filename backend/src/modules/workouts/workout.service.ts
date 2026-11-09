@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { MAX_DAYS_PER_PLAN, type WorkoutPlanBody } from "./workout.schema";
-import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet } from "./workout.types";
+import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, type WorkoutPlanBody } from "./workout.schema";
+import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet, WorkoutPlan } from "./workout.types";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
 
@@ -70,7 +70,7 @@ type PlannedSetRowDb = DayExerciseRowDb["sets"][number];
 
 
 
-function toWorkoutPlanDto(plan: PlanRowDb)
+function toWorkoutPlanDto(plan: PlanRowDb): WorkoutPlan
 {
     return {
         id: plan.id,
@@ -167,14 +167,20 @@ export async function getWorkoutPlan(userId: string, planId: string):Promise<Pla
     return null
 }
 
-export async function createWorkoutPlan(userId: string, workoutPlan: WorkoutPlanBody)
+type CreatePlanResult =
+    | { ok: true; plan: WorkoutPlan }
+    | { ok: false; reason: "TOO_MANY_PLANS" };
+
+export async function createWorkoutPlan(userId: string, workoutPlan: WorkoutPlanBody): Promise<CreatePlanResult>
 {
+    const planCount = await prisma.workoutPlan.count({ where: { userId } })
+    if (planCount >= MAX_PLANS_PER_USER) return { ok: false, reason: "TOO_MANY_PLANS" }
     const plan = await prisma.workoutPlan.create({
         data: { userId, ...workoutPlan },
         select: planListSelect,
     });
 
-    return toWorkoutPlanDto(plan);
+    return { ok: true, plan: toWorkoutPlanDto(plan) };
 }
 
 export async function updateWorkoutPlan(userId: string, planId: string, workoutPlan: WorkoutPlanBody):Promise<PlanDetail|null>

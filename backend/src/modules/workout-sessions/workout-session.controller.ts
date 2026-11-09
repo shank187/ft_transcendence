@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, getWorkoutSession, updateSessionSet } from "./workout-session.service";
-import { MAX_EXERCISES_PER_SESSION, addExercisesBody, discardSessionBody, updateSetBody } from "./workout-session.schema";
+import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, addExercisesBody, discardSessionBody, updateSetBody } from "./workout-session.schema";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type SessionRequest = AuthenticatedRequest & { params: { sessionId: string } };
@@ -79,6 +79,8 @@ export async function addSessionSetController(req: SessionExerciseRequest, res: 
                 return res.status(409).json({message: "This workout is finished or cancelled."})
             if(result.reason === "EXERCISE_NOT_FOUND")
                 return res.status(404).json({message: "Exercise not found."})
+            if(result.reason === "TOO_MANY_SETS")
+                return res.status(422).json({message: `An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`})
             return res.status(409).json({message: "The workout changed. Please try again."})
         }
         return res.status(201).json(result.set)

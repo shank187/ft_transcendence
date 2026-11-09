@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, updateWorkoutPlan } from "./workout.service";
-import { MAX_DAYS_PER_PLAN, workoutDayBody, workoutPlanBody } from "./workout.schema";
+import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, workoutDayBody, workoutPlanBody } from "./workout.schema";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type PlanRequest = AuthenticatedRequest & { params: { planId: string } };
@@ -35,8 +35,12 @@ export async function createWorkoutPlanController(req: AuthenticatedRequest, res
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
     try{
-        const data = await createWorkoutPlan(req.userId, parsed.data)
-        return res.status(201).json(data)
+        const result = await createWorkoutPlan(req.userId, parsed.data)
+        if(!result.ok)
+        {
+            return res.status(422).json({message: `You can have at most ${MAX_PLANS_PER_USER} plans.`})
+        }
+        return res.status(201).json(result.plan)
     }
     catch(error){
         console.error("POST /api/workout-plans failed:", error)

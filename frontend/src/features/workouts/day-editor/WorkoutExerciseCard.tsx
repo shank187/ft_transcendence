@@ -6,6 +6,7 @@ import type { SetType } from "../shared/workouts.types"
 import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel, type FieldKey } from "../shared/exercise-fields"
 import SetRow from "./SetRow"
 import { validateRest } from "./day-editor.draft"
+import { MAX_SETS_PER_EXERCISE } from "../shared/limits"
 import exercisePlaceholder from "../../../assets/exercise-placeholder.svg"
 
 export default function WorkoutExerciseCard(props: {
@@ -98,7 +99,10 @@ export default function WorkoutExerciseCard(props: {
                     ))}
                 </ol>
                 <div>
-                    <Button variant="ghost" onClick={()=> props.onAddSet(exercise.key)} className="min-h-11">+ Add set</Button>
+                    {exercise.sets.length < MAX_SETS_PER_EXERCISE
+                        ? <Button variant="ghost" onClick={()=> props.onAddSet(exercise.key)} className="min-h-11">+ Add set</Button>
+                        : <p className="text-sm text-app-text-secondary">{`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`}</p>
+                    }
                 </div>
             </div>
 

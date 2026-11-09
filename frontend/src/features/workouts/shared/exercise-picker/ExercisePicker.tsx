@@ -7,6 +7,7 @@ import EmptyState from "../../../../components/states/EmptyState"
 import Button from "../../../../components/ui/Button"
 import FilterSelect from "../../../../components/ui/FilterSelect"
 import ExerciseRow from "./ExerciseRow"
+import { EXERCISE_SEARCH_MAX } from "../limits"
 import searchIcon from "../../../../assets/search-icon.svg"
 
 type LoadStateType =
@@ -138,6 +139,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void 
                         enterKeyHint="search"
                         placeholder="Search exercises"
                         aria-label="Search Exercises"
+                        maxLength={EXERCISE_SEARCH_MAX}
                         className="w-full"
                         value={searchText}
                         onChange={(e)=>{

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type {PlanDay, PlanDetail} from "../shared/workouts.types"
 import { getPlanDetails } from "../shared/get-plan-details"
+import { MAX_DAYS_PER_PLAN } from "../shared/limits"
 import LoadingState from "../../../components/states/LoadingState"
 import ErrorState from "../../../components/states/ErrorState"
 import EmptyState from "../../../components/states/EmptyState"
@@ -180,7 +181,7 @@ export default function PlanDetailView(props: {planId: string})
                     onClose={() => setAddDayVisibility(false)}
                 />
             }
-            {plan.days.length > 0 && plan.days.length < 7 && !addDayForm &&
+            {plan.days.length > 0 && plan.days.length < MAX_DAYS_PER_PLAN && !addDayForm &&
                 <Button 
                     onClick={()=>setAddDayVisibility(true)}
                     variant="primary"
@@ -188,7 +189,7 @@ export default function PlanDetailView(props: {planId: string})
                     Add day
                 </Button>
             }
-            {plan.days.length >= 7 && (<p>Maximum 7 days per plan reached.</p>)}
+            {plan.days.length >= MAX_DAYS_PER_PLAN && (<p>{`A plan can have at most ${MAX_DAYS_PER_PLAN} days.`}</p>)}
             {renamingDay && (
                 <RenameDayDialog
                     planId={props.planId}

@@ -9,6 +9,7 @@ import LoadingState from "../../../components/states/LoadingState"
 import EmptyState from "../../../components/states/EmptyState"
 import emptyStateIcon from "../../../assets/empty-icon.png"
 import { addDraftSet, appendExercises, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
+import { MAX_EXERCISES } from "../shared/limits"
 import type { FieldKey } from "../shared/exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
@@ -186,7 +187,8 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 <Link  onClick={handleBackClick} to={planPath} className="inline-flex min-h-11 items-center self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
                 <div className="flex justify-between">
                     <h1 className="text-[28px] font-semibold">{day.name}</h1>
-                    {draft.length !== 0 && <Button variant="secondary" disabled={saving} onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
+                    {draft.length !== 0 && draft.length < MAX_EXERCISES && <Button variant="secondary" disabled={saving} onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
+                    {draft.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A day can have at most ${MAX_EXERCISES} exercises.`}</p>}
                 </div>
             </header>
             {draft.length === 0 &&
