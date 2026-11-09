@@ -1,14 +1,52 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
-import type { ExerciseFilters, GetExercisesReturn, ListQuery } from "./exercise.types";
+import type { ExerciseListQuery } from "./exercise.schema";
+import type { ExerciseFilters, ExerciseItem, ExerciseList } from "./exercise.types";
 
-export async function getExercises(list: ListQuery): Promise<GetExercisesReturn> {
-    const { page, limit, search, muscle, equipment } = list;
+const exerciseListSelect = {
+    id: true,
+    name: true,
+    type: true,
+    primaryMuscleGroup: { select: { name: true } },
+    secondaryMuscles: { select: { muscleGroup: { select: { name: true } } } },
+    equipment: { select: { equipment: { select: { name: true } } } },
+    description: true,
+    imageUrl: true,
+} satisfies Prisma.ExerciseSelect;
+
+// Muscle groups and equipment are both shown as { id, name } options.
+const filterOptionSelect = {
+    id: true,
+    name: true,
+} satisfies Prisma.MuscleGroupSelect & Prisma.EquipmentSelect;
+
+type ExerciseRowDb = Prisma.ExerciseGetPayload<{ select: typeof exerciseListSelect }>;
+
+function toExerciseItemDto(exercise: ExerciseRowDb): ExerciseItem
+{
+    return {
+        id: exercise.id,
+        name: exercise.name,
+        type: exercise.type,
+        primaryMuscle: exercise.primaryMuscleGroup.name,
+        secondaryMuscles: exercise.secondaryMuscles.map((item) => item.muscleGroup.name),
+        equipment: exercise.equipment.map((item) => item.equipment.name),
+        description: exercise.description,
+        imageUrl: exercise.imageUrl,
+    }
+}
+
+type ExerciseListResult =
+    | { ok: true; list: ExerciseList }
+    | { ok: false; reason: "MUSCLE_NOT_FOUND" | "EQUIPMENT_NOT_FOUND" };
+
+export async function getExercises(query: ExerciseListQuery): Promise<ExerciseListResult> {
+    const { page, limit, search, muscle, equipment } = query;
 
     if (muscle && !(await prisma.muscleGroup.findUnique({ where: { id: muscle }, select: { id: true } })))
-        return { ok: false, message: "Invalid Muscle" }
+        return { ok: false, reason: "MUSCLE_NOT_FOUND" }
     if (equipment && !await prisma.equipment.findUnique({ where: { id: equipment }, select: { id: true } }))
-        return { ok: false, message: "Invalid Equipment" }
+        return { ok: false, reason: "EQUIPMENT_NOT_FOUND" }
 
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
@@ -30,57 +68,15 @@ export async function getExercises(list: ListQuery): Promise<GetExercisesReturn>
         orderBy: {
             name: "asc",
         },
-        select: {
-            id: true,
-            name: true,
-            type: true,
-            primaryMuscleGroup: {
-                select: {
-                    name: true,
-                },
-            },
-            secondaryMuscles: {
-                select: {
-                    muscleGroup: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                },
-            },
-            equipment: {
-                select: {
-                    equipment: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                },
-            },
-            description: true,
-            imageUrl: true,
-        },
+        select: exerciseListSelect,
     });
     const total = await prisma.exercise.count({ where })
     const totalPages = Math.ceil(total / limit);
-    // DTO
-    const cleanExercises = results.map((exercise) => {
-        return {
-            id: exercise.id,
-            name: exercise.name,
-            type: exercise.type,
-            primaryMuscle: exercise.primaryMuscleGroup.name,
-            secondaryMuscles: exercise.secondaryMuscles.map((item) => item.muscleGroup.name),
-            equipment: exercise.equipment.map((item) => item.equipment.name),
-            description: exercise.description,
-            imageUrl: exercise.imageUrl,
-        };
-    });
 
     return {
         ok: true,
-        value: {
-            items: cleanExercises,
+        list: {
+            items: results.map(toExerciseItemDto),
             page,
             limit,
             total,
@@ -98,20 +94,14 @@ export async function getExercisesFilters(): Promise<ExerciseFilters> {
         orderBy: {
             name: "asc"
         },
-        select: {
-            id: true,
-            name: true,
-        }
+        select: filterOptionSelect,
     })
     const equipmentDb = await prisma.equipment.findMany({
         where: whereEquipment,
         orderBy: {
             name: "asc"
         },
-        select: {
-            id: true,
-            name: true,
-        }
+        select: filterOptionSelect,
     })
     return {
         muscles: muscleDb,

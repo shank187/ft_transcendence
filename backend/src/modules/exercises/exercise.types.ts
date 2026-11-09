@@ -1,20 +1,6 @@
 import type { ExerciseType } from "@prisma/client";
 
-// query
-export type ListQuery = {
-    page: number;
-    limit: number;
-    search?: string;
-    muscle?: string;
-    equipment?: string;
-}
-
-export type ParseListQueryReturn =
-    | { ok: true; value: ListQuery }
-    | { ok: false; message: string }
-
-// response
-type ExerciseItem = {
+export type ExerciseItem = {
     id: string;
     name: string;
     type: ExerciseType;
@@ -25,17 +11,13 @@ type ExerciseItem = {
     imageUrl: string | null;
 }
 
-type ExerciseList = {
+export type ExerciseList = {
     items: ExerciseItem[];
     page: number;
     limit: number;
     total: number;
     totalPages: number;
 }
-
-export type GetExercisesReturn =
-    | { ok: true; value: ExerciseList }
-    | { ok: false; message: string }
 
 type FilterOption = {
     id: string;

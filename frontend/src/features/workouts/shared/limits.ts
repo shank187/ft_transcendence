@@ -1,7 +1,7 @@
 // Same limits as the backend; change both together:
 //   backend/src/modules/workouts/workout.schema.ts (plans, days)
 //   backend/src/modules/workout-sessions/workout-session.schema.ts (workout exercises and sets)
-//   backend/src/modules/exercises/exercise.query.ts (search)
+//   backend/src/modules/exercises/exercise.schema.ts (search)
 export const PLAN_NAME_MAX = 50
 export const PLAN_DESCRIPTION_MAX = 200
 export const DAY_NAME_MAX = 30

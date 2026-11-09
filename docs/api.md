@@ -111,7 +111,7 @@ Use intentional status codes:
 
 ## Exercise catalog
 
-- **Code:** `backend/src/modules/exercises/exercise.route.ts` → `exercise.controller.ts` → `exercise.query.ts` (query parsing) → `exercise.service.ts`.
+- **Code:** `backend/src/modules/exercises/exercise.route.ts` → `exercise.controller.ts` (zod `exerciseListQuery` from `exercise.schema.ts`) → `exercise.service.ts`.
 - `Equipment` is S2's table; these endpoints only read it.
 
 ### `GET /api/exercises`
@@ -253,13 +253,13 @@ Every limit is checked on both sides with the same message: the frontend for fas
 | Set reps | whole number 1–999 | `updateSetBody` | `set-values.ts` | `400` "Reps must be a whole number between 1 and 999." |
 | Set time | whole seconds 1–86400 | `updateSetBody` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
 | Set distance | more than 0, at most 1000000, 1 decimal | `updateSetBody` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
-| Exercise search | at most 100 characters, trimmed, no control characters | `exercise.query.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
+| Exercise search | at most 100 characters, trimmed, no control characters | `exercise.schema.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
 | Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine in `workout.schema.ts` | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
 | Names (plan, day) | at least one visible character (letter, number, punctuation or symbol; emoji are fine) | `VISIBLE_CHARACTER` refine | `VISIBLE_CHARACTER` | `400` "Plan name is required." / "Day name is required." |
 | Ids in the URL (`:planId`, `:dayId`, `:sessionId`, `:exerciseId`, `:setId`) | UUID | `idParam` (`z.uuid()`) in the controllers | — | `404` with the route's normal message, e.g. "Plan not found." |
-| `exerciseIds` items, `muscle`, `equipment` | UUID | `addExercisesBody`, `exercise.query.ts` | — | `400` "Exercise not found." / "Invalid Muscle" / "Invalid Equipment" |
+| `exerciseIds` items, `muscle`, `equipment` | UUID | `addExercisesBody`, `exercise.schema.ts` | — | `400` "Exercise not found." / "Invalid Muscle" / "Invalid Equipment" |
 
-Backend files: plans and days in `backend/src/modules/workouts/workout.schema.ts`; workout exercises and sets in `backend/src/modules/workout-sessions/workout-session.schema.ts`; search in `backend/src/modules/exercises/exercise.query.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
+Backend files: plans and days in `backend/src/modules/workouts/workout.schema.ts`; workout exercises and sets in `backend/src/modules/workout-sessions/workout-session.schema.ts`; search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
 
 Lengths count characters, not UTF-16 units: an emoji counts as one on both sides (`[...text].length` on the frontend, zod on the backend). Text is stored as typed, not HTML-escaped: React escapes it when it renders and Prisma sends every value as a query parameter, so `<script>` in a name is plain text. Control characters are rejected because PostgreSQL refuses NUL in text (it used to give a 500) and none belong in a one-line name.
 
