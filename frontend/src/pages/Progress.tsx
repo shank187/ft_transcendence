@@ -12,7 +12,7 @@ import Achievements from "../features/progress/Achievements";
 import { ChartLine } from "lucide-react"
 import { BrainCircuit } from "lucide-react"
 
-const XP_PER_LEVEL = 1000;
+const XP_PER_LEVEL = 500;
 
 export default function Progress() {
     const { user } = useAuth();
@@ -63,7 +63,7 @@ export default function Progress() {
 
     const totalXp = summary.totalXp;
     
-    const level = Math.floor(totalXp / XP_PER_LEVEL);
+    const level = Math.floor(totalXp / XP_PER_LEVEL) + 1;
     const levelXp = totalXp % XP_PER_LEVEL;
     const xpPercentage = (levelXp / XP_PER_LEVEL) * 100;
 
