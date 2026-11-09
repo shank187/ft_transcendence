@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma"
+import type { Prisma } from "@prisma/client"
 
 export async function countCompletedWorkouts( userId : string ) : Promise<number> {
     return prisma.workoutSession.count({
@@ -31,23 +32,40 @@ const workoutMilestones = [
     { code: "WORKOUTS_100", requiredWorkouts: 100 },
 ];
 
-export async function unlockWorkoutAchievements(userId: string) {
-    const completedWorkouts = await countCompletedWorkouts(userId);
-
-    const earnedAchievements = workoutMilestones.filter(
-        (achievement) =>
-            completedWorkouts >= achievement.requiredWorkouts
-    );
-
-    if (earnedAchievements.length === 0) return;
-
-    await prisma.userAchievement.createMany({
-        data: earnedAchievements.map((achievement) => ({
+export async function unlockWorkoutAchievements(
+    userId: string,
+    tx: Prisma.TransactionClient = prisma
+): Promise<string[]> {
+    // Read completed workouts using the supplied client.
+    const completedWorkouts = await tx.workoutSession.count({
+        where: {
             userId,
-            code: achievement.code,
-        })),
-        skipDuplicates: true,
+            status: "COMPLETED",
+        },
     });
+
+    const unlocked: string[] = [];
+
+    for (const achievement of workoutMilestones) {
+        if (completedWorkouts < achievement.requiredWorkouts) {
+            continue;
+        }
+
+        // Try saving the earned achievement.
+        const result = await tx.userAchievement.createMany({
+            data: [{
+                userId,
+                code: achievement.code,
+            }],
+            skipDuplicates: true,
+        });
+
+        // Report it only if this call created the unlock.
+        if (result.count > 0) {
+            unlocked.push(achievement.code);
+        }
+    }
+    return unlocked;
 }
 
 export async function getUnlockedAchievements(userId: string) {
