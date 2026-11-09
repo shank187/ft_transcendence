@@ -28,7 +28,7 @@ export interface PaginatedExercises {
 }
 
 // GET /api/exercises/filters
-export interface FilterOption {
+interface FilterOption {
     id: string
     name: string
 }

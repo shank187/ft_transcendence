@@ -5,8 +5,8 @@ import { toApiError } from '../api-error'
 // FAKE-DATA: switch the gym id in getExerciseFilter to test the states:
 //   FAKE_GYM_ID        -> gym with exercises
 //   FAKE_EMPTY_GYM_ID  -> gym with no exercises (empty list)
-export const FAKE_GYM_ID = "fake-gym-1337"
-export const FAKE_EMPTY_GYM_ID = "fake-gym-empty"
+const FAKE_GYM_ID = "fake-gym-1337"
+const FAKE_EMPTY_GYM_ID = "fake-gym-empty"
 
 const FAKE_LIST_DELAY_MS = 400
 

@@ -1,6 +1,5 @@
 import Button from "../../../components/ui/Button";
 import Dialog from "../../../components/ui/Dialog";
-// import { saveWorkoutDay } from "../day-editor/day-editor.api";
 
 export default function FinishingDialog(props: {
     onClose: () => void,

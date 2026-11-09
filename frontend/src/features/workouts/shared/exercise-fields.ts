@@ -25,7 +25,7 @@ export const SET_TYPE_LABEL: Record<SetType, string> = {
 }
 
 // no NORMAL here, normal sets show their number counted among normal sets only
-export const SET_TYPE_LETTER: Record<Exclude<SetType, "NORMAL">, string> = {
+const SET_TYPE_LETTER: Record<Exclude<SetType, "NORMAL">, string> = {
     WARMUP: "W", DROP: "D", FAILURE: "F",
 }
 
