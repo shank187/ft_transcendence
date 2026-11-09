@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import DayEditorView from "../features/day-editor/DayEditorView";
+import DayEditorView from "../features/workouts/day-editor/DayEditorView";
 import NotFoundState from "../components/states/NotFoundState";
 
 export default function DayEditor()

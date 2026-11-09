@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom"
-import PlanDetailView from "../features/plan-details/PlanDetailView"
+import PlanDetailView from "../features/workouts/plan-details/PlanDetailView"
 import NotFoundState from "../components/states/NotFoundState"
 
 export default function PlanDetailPage()

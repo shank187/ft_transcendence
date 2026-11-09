@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import NotFoundState from "../components/states/NotFoundState"
-import WorkoutSessionView from "../features/workout-session/WorkoutSessionView"
+import WorkoutSessionView from "../features/workouts/workout-session/WorkoutSessionView"
 
 export default function WorkoutSession ()
 {
