@@ -1,6 +1,9 @@
+import { z } from "zod";
 import type { ListQuery, ParseListQueryReturn } from "./exercise.types";
 
 const SEARCH_MAX_LENGTH = 100
+// NUL, line breaks, tabs: the database rejects NUL, and none belong in a search.
+const CONTROL_CHARACTER = /\p{Cc}/u
 
 export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn {
     // reject repeated keys (Express turns them into arrays)
@@ -41,8 +44,13 @@ export function parseListQuery(q: Record<string, unknown>): ParseListQueryReturn
     const value: ListQuery = { page, limit }
 
     // The frontend search box has the same maxLength (frontend/src/features/workouts/shared/limits.ts).
-    if (rawSearch.trim().length > SEARCH_MAX_LENGTH)
+    if (rawSearch.trim().length > SEARCH_MAX_LENGTH || CONTROL_CHARACTER.test(rawSearch))
         return { ok: false, message: "Invalid Search" }
+    // Muscle and equipment ids are UUIDs; anything else can't match a row.
+    if (rawMuscle.trim().length > 0 && !z.uuid().safeParse(rawMuscle.trim()).success)
+        return { ok: false, message: "Invalid Muscle" }
+    if (rawEquipment.trim().length > 0 && !z.uuid().safeParse(rawEquipment.trim()).success)
+        return { ok: false, message: "Invalid Equipment" }
 
     if (rawSearch.trim().length > 0)
         value.search = rawSearch.trim()

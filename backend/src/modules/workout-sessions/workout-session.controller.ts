@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, getWorkoutSession, updateSessionSet } from "./workout-session.service";
-import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, addExercisesBody, discardSessionBody, updateSetBody } from "./workout-session.schema";
+import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, addExercisesBody, discardSessionBody, idParam, updateSetBody } from "./workout-session.schema";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type SessionRequest = AuthenticatedRequest & { params: { sessionId: string } };
@@ -10,6 +10,7 @@ type SessionSetRequest = AuthenticatedRequest & { params: { sessionId: string; s
 
 export async function getWorkoutSessionController(req: SessionRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
     try{
         const session = await getWorkoutSession(req.userId, req.params.sessionId)
         if(!session)
@@ -23,6 +24,7 @@ export async function getWorkoutSessionController(req: SessionRequest, res: Resp
 
 export async function discardWorkoutSessionController(req: SessionRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
     const parsed = discardSessionBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -43,6 +45,7 @@ export async function discardWorkoutSessionController(req: SessionRequest, res: 
 
 export async function addSessionExercisesController(req: SessionRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
     const parsed = addExercisesBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -69,6 +72,8 @@ export async function addSessionExercisesController(req: SessionRequest, res: Re
 
 export async function addSessionSetController(req: SessionExerciseRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
+    if(!idParam.safeParse(req.params.exerciseId).success) return res.status(404).json({message: "Exercise not found."})
     try{
         const result = await addSessionSet(req.userId, req.params.sessionId, req.params.exerciseId)
         if(!result.ok)
@@ -92,6 +97,8 @@ export async function addSessionSetController(req: SessionExerciseRequest, res: 
 
 export async function updateSessionSetController(req: SessionSetRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
+    if(!idParam.safeParse(req.params.setId).success) return res.status(404).json({message: "Set not found."})
     const parsed = updateSetBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -114,6 +121,8 @@ export async function updateSessionSetController(req: SessionSetRequest, res: Re
 
 export async function deleteSessionSetController(req: SessionSetRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
+    if(!idParam.safeParse(req.params.setId).success) return res.status(404).json({message: "Set not found."})
     try{
         const result = await deleteSessionSet(req.userId, req.params.sessionId, req.params.setId)
         if(!result.ok)

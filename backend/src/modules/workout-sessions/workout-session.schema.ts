@@ -10,8 +10,11 @@ export const discardSessionBody = z.object({
 
 export const MAX_EXERCISES_PER_SESSION = 20;
 
+// Every id in the database is a UUID; anything else in the URL can't match a row.
+export const idParam = z.uuid();
+
 export const addExercisesBody = z.object({
-    exerciseIds: z.array(z.string().min(1, "Exercise not found."))
+    exerciseIds: z.array(z.uuid("Exercise not found."))
         .min(1, "Pick at least one exercise.")
         .max(MAX_EXERCISES_PER_SESSION, `A workout can have at most ${MAX_EXERCISES_PER_SESSION} exercises.`)
         .refine(ids => new Set(ids).size === ids.length, "Pick each exercise only once."),

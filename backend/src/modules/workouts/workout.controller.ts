@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, updateWorkoutPlan } from "./workout.service";
-import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, workoutDayBody, workoutPlanBody } from "./workout.schema";
+import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, idParam, workoutDayBody, workoutPlanBody } from "./workout.schema";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type PlanRequest = AuthenticatedRequest & { params: { planId: string } };
@@ -50,6 +50,7 @@ export async function createWorkoutPlanController(req: AuthenticatedRequest, res
 
 export async function getWorkoutPlanController(req: PlanRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success) return res.status(404).json({message: "Plan not found."})
     try{
         const data = await getWorkoutPlan(req.userId, req.params.planId);
         if(!data) return res.status(404).json({message: "Plan not found."})
@@ -62,6 +63,7 @@ export async function getWorkoutPlanController(req: PlanRequest, res: Response) 
 
 export async function updateWorkoutPlanController(req: PlanRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success) return res.status(404).json({message: "Plan not found."})
     const parsed =  workoutPlanBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -78,6 +80,7 @@ export async function updateWorkoutPlanController(req: PlanRequest, res: Respons
 
 export async function deleteWorkoutPlanController(req: PlanRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success) return res.status(404).json({message: "Plan not found."})
     try{
         const deleted = await deleteWorkoutPlan(req.userId, req.params.planId)
         if(!deleted)
@@ -91,6 +94,7 @@ export async function deleteWorkoutPlanController(req: PlanRequest, res: Respons
 
 export async function getWorkoutDayController(req: DayRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success || !idParam.safeParse(req.params.dayId).success) return res.status(404).json({message: "Day not found."})
     try{
         const day = await getWorkoutDay(req.userId, req.params.planId, req.params.dayId)
         if(!day)
@@ -104,6 +108,7 @@ export async function getWorkoutDayController(req: DayRequest, res: Response) {
 
 export async function createWorkoutDayController(req: PlanRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success) return res.status(404).json({message: "Plan not found."})
     const parsed = workoutDayBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -127,6 +132,7 @@ export async function createWorkoutDayController(req: PlanRequest, res: Response
 
 export async function renameWorkoutDayController(req: DayRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success || !idParam.safeParse(req.params.dayId).success) return res.status(404).json({message: "Day not found."})
     const parsed = workoutDayBody.safeParse(req.body)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
@@ -147,6 +153,7 @@ export async function renameWorkoutDayController(req: DayRequest, res: Response)
 
 export async function deleteWorkoutDayController(req: DayRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success || !idParam.safeParse(req.params.dayId).success) return res.status(404).json({message: "Day not found."})
     try{
         const result = await deleteWorkoutDay(req.userId, req.params.planId, req.params.dayId)
         if(!result.ok)
