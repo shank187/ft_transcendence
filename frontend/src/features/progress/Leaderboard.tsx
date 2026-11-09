@@ -30,6 +30,11 @@ export default function Leaderboard({
                         <span className="text-app-text-secondary">{entry.xp} XP</span>
                     </li>
                 ))}
+                {entries.length === 0 && (
+                    <p className="mt-4 text-app-text-secondary">
+                        No friends to rank yet. Add friends to see them here.
+                    </p>
+                )}
             </ol>
         </section>
     );
