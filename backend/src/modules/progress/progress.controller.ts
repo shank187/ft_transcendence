@@ -19,7 +19,7 @@ export async function getLeaderboard(
     }
 
     try {
-        const entries = await getLeaderboardEntries();
+        const entries = await getLeaderboardEntries(req.userId);
 
         return res.status(200).json(entries);
     } catch (error) {
