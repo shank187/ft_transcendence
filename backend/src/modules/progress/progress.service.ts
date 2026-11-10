@@ -1,6 +1,17 @@
 import { prisma } from "../../lib/prisma"
 import type { Prisma } from "@prisma/client"
 
+import {
+    XP_PER_WORKOUT,
+    XP_PER_PR,
+    getLevel,
+} from "./progress.rules";
+
+export type AwardEvent = {
+    reason: "WORKOUT_COMPLETED" | "PR_SET";
+    sourceId: string;
+};
+
 export async function countCompletedWorkouts( userId : string ) : Promise<number> {
     return prisma.workoutSession.count({
         where: {
@@ -158,4 +169,58 @@ export async function getLeaderboardEntries(userId: string) {
                 b.xp - a.xp ||
                 a.username.localeCompare(b.username)
         );
+}
+
+////////////////////// award funciton 
+export async function award(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    events: AwardEvent[]
+) {
+    // 1. Keep simultaneous award calls for this user in order.
+    await tx.$queryRaw`
+        SELECT "id" FROM "User"
+        WHERE "id" = ${userId}
+        FOR UPDATE
+    `;
+
+    // 2. Read the user's current XP.
+    const previous = await tx.xpEvent.aggregate({
+        where: { userId },
+        _sum: { amount: true },
+    });
+
+    const previousXp = previous._sum.amount ?? 0;
+    let xpGained = 0;
+
+    // 3. Save XP for each new event.
+    for (const event of events) {
+        const amount =
+            event.reason === "WORKOUT_COMPLETED"
+                ? XP_PER_WORKOUT
+                : XP_PER_PR;
+
+        const result = await tx.xpEvent.createMany({
+            data: [{
+                userId,
+                reason: event.reason,
+                sourceId: event.sourceId,
+                amount,
+            }],
+            skipDuplicates: true,
+        });
+
+        xpGained += result.count * amount;
+    }
+
+    // 4. Save newly earned achievement unlocks.
+    const unlocked = await unlockWorkoutAchievements(userId, tx);
+
+    // 5. Return feedback for the finish response.
+    return {
+        xpGained,
+        levelUp:
+            getLevel(previousXp + xpGained) > getLevel(previousXp),
+        unlocked,
+    };
 }
