@@ -45,8 +45,8 @@ function Register() {
         try {
             const response = await api.post('/api/auth/register', {username, email, password});
 
-            if (!response.data.success) {
-                set_err_msg(response.data.error || "Registration failed.");
+            if (!response.data.success){
+                set_err_msg(response.data.message || "Registration failed.");
                 return;
             }
 
@@ -61,7 +61,7 @@ function Register() {
             set_confirm_password('');
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set_err_msg(error.response?.data?.error|| "Registration request failed. Please try again.");
+                set_err_msg(error.response?.data?.message || "Registration request failed. Please try again.");
             } else {
                 set_err_msg("An unexpected error occurred.");
             }

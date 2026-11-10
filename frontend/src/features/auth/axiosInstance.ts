@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://localhost';
 
 let accessToken: string | null = null;
 
@@ -69,7 +69,7 @@ api.interceptors.response.use(
             request?.url?.includes("/api/auth/register") ||
             request?.url?.includes("/api/auth/refresh") ||
             request?.url?.includes("/api/auth/session");
-        if (error.response && error.response.status === 401 && !request._retry && !is_public_auth_request) {
+        if (error.response && error.response.status === 401 && !request._retry && !is_public_auth_request){
             request._retry = true;
 
             try {

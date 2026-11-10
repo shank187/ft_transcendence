@@ -30,7 +30,7 @@ export const register = async (req: Request, res: Response) => {
     const errors = validationResult(req); //Get all validation errors stored on this request.
 
     if (!errors.isEmpty())
-        return res.status(400).json({success: false, error: errors.array()[0].msg});
+        return res.status(400).json({ message: errors.array()[0].msg });
 
     let { username, email, password } = req.body;
 
@@ -38,7 +38,7 @@ export const register = async (req: Request, res: Response) => {
     email = email.trim().toLowerCase();
     
     if (username.length < 3 || username.length > 30)
-        return res.status(400).json({success: false, error: "Username must be between 3 and 30 characters."});
+        return res.status(400).json({ message: "Username must be between 3 and 30 characters." });
 
     try {
         const existing_user = await prisma.user.findFirst({
@@ -51,7 +51,7 @@ export const register = async (req: Request, res: Response) => {
         });
         
         if (existing_user)
-            return res.status(409).json({success: false, error: 'Username or Email already taken'});
+            return res.status(409).json({ message: 'Username or Email already taken' });
         
         const code = generate_verification_code();
         const passwordHash = await hash(password, 10);
@@ -104,10 +104,7 @@ export const register = async (req: Request, res: Response) => {
                 });
             }
 
-            return res.status(503).json({
-                success: false,
-                error: "Unable to send verification email. Please try again."
-            });
+            return res.status(503).json({ message: "Unable to send verification email. Please try again." });
         }
 
         return res.status(202).json({
@@ -117,9 +114,6 @@ export const register = async (req: Request, res: Response) => {
         });
     }
     catch {
-        return res.status(500).json({
-            success: false,
-            error: "Internal server error"
-        });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };

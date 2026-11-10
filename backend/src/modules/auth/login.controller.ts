@@ -26,10 +26,7 @@ export const login = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty())
-        return res.status(400).json({
-            success: false,
-            error: 'Invalid email or password'
-         });
+        return res.status(400).json({ message: 'Invalid email or password' });
     let { email, password } = req.body;
 
     email = email.trim().toLowerCase();
@@ -48,17 +45,11 @@ export const login = async (req: Request, res: Response) => {
             }
         });
         if (!user || !user.passwordHash)
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid email or password'
-            });
+            return res.status(401).json({ message: 'Invalid email or password' });
 
         const is_pass_valid = await compare(password, user.passwordHash);
         if (!is_pass_valid)
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid email or password'
-            });
+            return res.status(401).json({ message: 'Invalid email or password' });
 
         const access_token = sign_access_token(user.id);
         const { raw_token } = await create_session(user.id);
@@ -71,6 +62,6 @@ export const login = async (req: Request, res: Response) => {
             user: { id: user.id, username: user.username, email: user.email , onboardingCompletedAt: user.onboardingCompletedAt, roles: user.roles.map(entry => entry.role.name)}
         });
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

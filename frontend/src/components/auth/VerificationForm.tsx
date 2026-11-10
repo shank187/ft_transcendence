@@ -44,7 +44,7 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
             });
 
             if (!response.data.success) {
-                set_err_msg(response.data.error || 'Verification failed.');
+                set_err_msg(response.data.message || 'Verification failed.');
                 return;
             }
 
@@ -56,7 +56,7 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
             navigate('/onboarding', { replace: true });
         } catch (error) {
             if (axios.isAxiosError(error))
-                set_err_msg(error.response?.data?.error || 'Verification failed. Try again.');
+                set_err_msg(error.response?.data?.message || 'Verification failed. Try again.');
             else
                 set_err_msg('An unexpected error occurred.');
         } finally {
@@ -76,7 +76,7 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
             const response = await api.post('/api/auth/resend-verification', {registrationId});
 
             if (!response.data.success) {
-                set_err_msg(response.data.error || 'Unable to resend verification code.');
+                set_err_msg(response.data.message || 'Unable to resend verification code.');
                 return;
             }
 
@@ -84,7 +84,7 @@ function VerificationForm({ email, initialRegistrationId }: VerificationFormProp
             set_resend_message('A new verification code has been sent. Check your inbox and spam folder.');
         } catch (error) {
             if (axios.isAxiosError(error))
-                set_err_msg(error.response?.data?.error || 'Unable to resend verification code. Please try again.');
+                set_err_msg(error.response?.data?.message || 'Unable to resend verification code. Please try again.');
             else
                 set_err_msg('An unexpected error occurred.');
         } finally {
