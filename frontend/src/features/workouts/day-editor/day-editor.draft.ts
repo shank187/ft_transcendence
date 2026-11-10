@@ -1,4 +1,4 @@
-import type { Exercise } from "../shared/exercise-picker/exercise.types";
+import type { ExerciseItem } from "../shared/exercise-picker/exercise.types";
 import type { DayExercise, DraftExercise, DraftSet, SaveDayBody } from "./day-editor.types";
 import type { SetType } from "../shared/workouts.types";
 import { EXERCISE_FIELDS, type FieldKey } from "../shared/exercise-fields";
@@ -120,7 +120,7 @@ export function toDraft(exercises: DayExercise[]): DraftExercise[]
 }
 
 // Each added row gets a new key: the same exercise can be added twice.
-export function appendExercises(draft: DraftExercise[], selected: Exercise[]): DraftExercise[]
+export function appendExercises(draft: DraftExercise[], selected: ExerciseItem[]): DraftExercise[]
 {
     const added = selected.map<DraftExercise>((e)=>({
         key: crypto.randomUUID(),

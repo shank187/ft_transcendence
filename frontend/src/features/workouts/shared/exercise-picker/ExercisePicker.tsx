@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { Exercise, ExerciseFilters, ExerciseQuery } from "./exercise.types"
+import type { ExerciseItem, ExerciseFilters, ExerciseQuery } from "./exercise.types"
 import { getExerciseFilter, getExercises } from "./exercise.api"
 import LoadingState from "../../../../components/states/LoadingState"
 import ErrorState from "../../../../components/states/ErrorState"
@@ -36,11 +36,11 @@ const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
 type PickerView = "loading" | "error" | "empty" | "list"
 
 interface Results {
-    items: Exercise[]
+    items: ExerciseItem[]
     total: number
 }
 
-export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void | Promise<void>})
+export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => void | Promise<void>})
 {
     const [resultState, setResultState] = useState<LoadStateType>({status:"loading"})
     const [results, setResults] = useState<Results>({items:[], total:0})
@@ -51,10 +51,10 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: Exercise[]) => void 
     const [filters, setFilters] = useState<ExerciseFilters|null>(null)
     const [filterState, setFilterState] = useState<LoadStateType>({status: "loading"})
 
-    const [selected, setSelected] = useState<Exercise[]>([])
+    const [selected, setSelected] = useState<ExerciseItem[]>([])
     const [addGuard, setAddGuard] = useState(false)
 
-    const toggleSelected = (selectedExercise: Exercise, isSelected: boolean)=>{
+    const toggleSelected = (selectedExercise: ExerciseItem, isSelected: boolean)=>{
         if(!isSelected)
             setSelected((prev)=>[...prev, selectedExercise])
         else

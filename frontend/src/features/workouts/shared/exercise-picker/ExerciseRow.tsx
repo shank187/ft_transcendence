@@ -1,10 +1,10 @@
-import type { Exercise } from "./exercise.types"
+import type { ExerciseItem } from "./exercise.types"
 import { EXERCISE_TYPE_LABEL } from "../exercise-fields"
 import exercisePlaceholder from "../../../../assets/exercise-placeholder.svg"
 
 interface ExerciseRowProps {
-    exercise: Exercise
-    onToggle: (exercise: Exercise, isSelected: boolean) => void
+    exercise: ExerciseItem
+    onToggle: (exercise: ExerciseItem, isSelected: boolean) => void
     isSelected: boolean
 }
 

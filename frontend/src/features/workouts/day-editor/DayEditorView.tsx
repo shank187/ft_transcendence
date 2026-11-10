@@ -16,7 +16,7 @@ import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../../components/ui/Dialog"
 import { buttonClasses } from "../../../components/ui/button-classes"
 import { ExercisePicker } from "../shared/exercise-picker/ExercisePicker"
-import type { Exercise } from "../shared/exercise-picker/exercise.types"
+import type { ExerciseItem } from "../shared/exercise-picker/exercise.types"
 
 export default function DayEditorView(props:{planId: string, dayId: string})
 {
@@ -46,7 +46,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         setDraft(prev => removeExercise(prev, key))
     }
 
-    const addSelectedExercises = (selected: Exercise[])=>{
+    const addSelectedExercises = (selected: ExerciseItem[])=>{
         rememberFakeExercises(selected.map((e) => ({
             id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl,
         })))

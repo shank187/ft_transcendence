@@ -1,8 +1,1 @@
-export interface WorkoutPlan
-{
-    id:string,
-    name: string,
-    description: string | null,
-    type: string,
-    days: number,
-}
+export type { WorkoutPlan } from "../../../../../shared/workouts"

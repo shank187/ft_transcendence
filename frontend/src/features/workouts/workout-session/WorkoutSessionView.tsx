@@ -12,7 +12,7 @@ import ExerciseSessionCard from "./ExerciseSessionCard";
 import SessionHeader from "./SessionHeader";
 import DiscardWorkoutDialog from "./DiscardWorkoutDialog";
 import FinishingDialog from "./FinishingDialog";
-import type { Exercise } from "../shared/exercise-picker/exercise.types";
+import type { ExerciseItem } from "../shared/exercise-picker/exercise.types";
 import { ExercisePicker } from "../shared/exercise-picker/ExercisePicker";
 import Dialog from "../../../components/ui/Dialog";
 import SessionSummaryCard from "./SessionSummaryCard";
@@ -51,7 +51,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [moving, setMoving] = useState(false)
     const [moveError, setMoveError] = useState<{ id: string, message: string } | null>(null)
 
-    const addSelectedExercises = async (selected: Exercise[]) => {
+    const addSelectedExercises = async (selected: ExerciseItem[]) => {
         setAdding(true)
         setAddError(null)
         try {

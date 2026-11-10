@@ -1,5 +1,5 @@
 import api from '../../../auth/axiosInstance'
-import type { Exercise, ExerciseFilters, ExerciseQuery, PaginatedExercises } from './exercise.types'
+import type { ExerciseItem, ExerciseFilters, ExerciseQuery, ExerciseList } from './exercise.types'
 import { toApiError } from '../api-error'
 
 // FAKE-DATA: switch the gym id in getExerciseFilter to test the states:
@@ -15,7 +15,7 @@ function wait(ms: number) {
 }
 
 // FAKE-DATA: stands in for the exercises available at the fake gym.
-const gymExercises: Exercise[] = [
+const gymExercises: ExerciseItem[] = [
     { id: "fake-ex-1", name: "Barbell bench press", type: "WEIGHT_REPS", primaryMuscle: "Chest", secondaryMuscles: ["Triceps", "Shoulders"], equipment: ["Barbell", "Bench"], description: null, imageUrl: null },
     { id: "fake-ex-2", name: "Push-up", type: "BODYWEIGHT_REPS", primaryMuscle: "Chest", secondaryMuscles: ["Triceps"], equipment: [], description: null, imageUrl: null },
     { id: "fake-ex-3", name: "Plank", type: "DURATION", primaryMuscle: "Core", secondaryMuscles: [], equipment: [], description: null, imageUrl: null },
@@ -33,7 +33,7 @@ const gymExercises: Exercise[] = [
 
 // FAKE-DATA: replace with the real gymId filter (board g-01, Phase 2).
 // Muscle and equipment are ignored here; only search and paging apply.
-async function getFakeGymExercises(query: ExerciseQuery): Promise<PaginatedExercises> {
+async function getFakeGymExercises(query: ExerciseQuery): Promise<ExerciseList> {
     await wait(FAKE_LIST_DELAY_MS)
     const search = query.search?.trim().toLowerCase() ?? ""
     const matches = query.gymId === FAKE_EMPTY_GYM_ID
@@ -49,13 +49,13 @@ async function getFakeGymExercises(query: ExerciseQuery): Promise<PaginatedExerc
     }
 }
 
-export async function getExercises(query: ExerciseQuery): Promise<PaginatedExercises> {
+export async function getExercises(query: ExerciseQuery): Promise<ExerciseList> {
     // The real endpoint never receives gymId.
     if (query.gymId)
         return getFakeGymExercises(query)
 
     try {
-        const response = await api.get<PaginatedExercises>(
+        const response = await api.get<ExerciseList>(
             '/api/exercises',
             {
                 params: query

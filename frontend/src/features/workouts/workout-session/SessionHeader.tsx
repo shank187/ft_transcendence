@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import { formatElapsed } from "./workout-session.helpers";
-import type { WorkoutStatus } from "../shared/workouts.types";
+import type { WorkoutSessionStatus } from "../shared/workouts.types";
 
-const STATUS_LABEL: Record<WorkoutStatus, string> = {
+const STATUS_LABEL: Record<WorkoutSessionStatus, string> = {
     IN_PROGRESS: "In progress",
     COMPLETED: "Finished",
     CANCELLED: "Discarded",
@@ -14,7 +14,7 @@ export default function SessionHeader(props:{
     name: string
     startedAt: string
     finishedAt: string | null
-    status: WorkoutStatus
+    status: WorkoutSessionStatus
     doneCount: number
     totalCount: number
     isReadOnly: boolean
