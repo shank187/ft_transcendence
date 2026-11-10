@@ -2,7 +2,8 @@ import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
-import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, type UpdateSetBody } from "./workout-session.schema";
+import type { UpdateSetBody } from "./workout-session.schema";
+import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../../lib/validation";
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
 
 const setSelect = {
@@ -151,7 +152,7 @@ export async function addSessionExercises(userId: string, sessionId: string, exe
     if(state !== "OPEN")
         return { ok: false, reason: state }
     const existing = await prisma.workoutSessionExercise.count({ where: { workoutSessionId: sessionId } })
-    if(existing + exerciseIds.length > MAX_EXERCISES_PER_SESSION)
+    if(existing + exerciseIds.length > MAX_EXERCISES)
         return { ok: false, reason: "TOO_MANY_EXERCISES" }
     const found = await prisma.exercise.count({ where: { id: { in: exerciseIds } } })
     if(found !== exerciseIds.length)

@@ -16,7 +16,7 @@ function isDecimalBetween(value: number, min: number, max: number, decimals: num
         && Number(value.toFixed(decimals)) === value
 }
 
-// Same rules and messages as validateSet in day-editor.api.ts.
+// Same rules and messages as backend/src/lib/validation.ts.
 const FIELD_RULES: Record<FieldKey, { isValid: (value: number) => boolean, message: string }> = {
     weight: { isValid: v => isDecimalBetween(v, 0, 1000, 2), message: "Weight must be between 0 and 1000 kg." },
     reps: { isValid: v => isWholeBetween(v, 1, 999), message: "Reps must be a whole number between 1 and 999." },

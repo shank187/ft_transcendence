@@ -1,7 +1,8 @@
-import { WorkoutSetType } from "@prisma/client";
 import { z } from "zod";
+import { MAX_EXERCISES, distanceValue, durationValue, exerciseIdValue, repsValue, setTypeValue, weightValue } from "../../lib/validation";
 
 // The frontend checks the same limits in frontend/src/features/workouts/shared/limits.ts.
+// Rules the other S3 modules also use are in backend/src/lib/validation.ts.
 
 // Discarding is the only status change the client can ask for here;
 // finishing has its own route.
@@ -9,35 +10,20 @@ export const discardSessionBody = z.object({
     status: z.literal("CANCELLED"),
 });
 
-export const MAX_EXERCISES_PER_SESSION = 20;
-
-// Every id in the database is a UUID; anything else in the URL can't match a row.
-export const idParam = z.uuid();
-
 export const addExercisesBody = z.object({
-    exerciseIds: z.array(z.uuid("Exercise not found."))
+    exerciseIds: z.array(exerciseIdValue)
         .min(1, "Pick at least one exercise.")
-        .max(MAX_EXERCISES_PER_SESSION, `A workout can have at most ${MAX_EXERCISES_PER_SESSION} exercises.`)
+        .max(MAX_EXERCISES, `A workout can have at most ${MAX_EXERCISES} exercises.`)
         .refine(ids => new Set(ids).size === ids.length, "Pick each exercise only once."),
 });
 
-export const MAX_SETS_PER_EXERCISE = 20;
-
-const WEIGHT_MESSAGE = "Weight must be between 0 and 1000 kg."
-const REPS_MESSAGE = "Reps must be a whole number between 1 and 999."
-const DURATION_MESSAGE = "Time must be a whole number of seconds, 1 to 86400."
-const DISTANCE_MESSAGE = "Distance must be between 0 and 1000000 m."
-
-// Same rules and messages as frontend/src/features/workouts/shared/set-values.ts.
 // Every field is optional: only the ones present change, and null clears a value.
 export const updateSetBody = z.object({
-    weight: z.number().min(0, WEIGHT_MESSAGE).max(1000, WEIGHT_MESSAGE)
-        .refine(value => Number(value.toFixed(2)) === value, WEIGHT_MESSAGE).nullable().optional(),
-    reps: z.number().int(REPS_MESSAGE).min(1, REPS_MESSAGE).max(999, REPS_MESSAGE).nullable().optional(),
-    duration: z.number().int(DURATION_MESSAGE).min(1, DURATION_MESSAGE).max(86400, DURATION_MESSAGE).nullable().optional(),
-    distance: z.number().gt(0, DISTANCE_MESSAGE).max(1000000, DISTANCE_MESSAGE)
-        .refine(value => Number(value.toFixed(1)) === value, DISTANCE_MESSAGE).nullable().optional(),
-    setType: z.enum(WorkoutSetType).optional(),
+    weight: weightValue.nullable().optional(),
+    reps: repsValue.nullable().optional(),
+    duration: durationValue.nullable().optional(),
+    distance: distanceValue.nullable().optional(),
+    setType: setTypeValue.optional(),
     completed: z.boolean().optional(),
 }).refine(body => Object.values(body).some(value => value !== undefined), "Nothing to update.");
 

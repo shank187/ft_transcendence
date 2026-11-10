@@ -246,20 +246,22 @@ Every limit is checked on both sides with the same message: the frontend for fas
 | Plans per user | 3 | `MAX_PLANS_PER_USER` | `MAX_PLANS_PER_USER` | `422` "You can have at most 3 plans." |
 | Day name | 1–30 characters, trimmed | `workoutDayBody` | `DAY_NAME_MAX` | `400` |
 | Days per plan | 7 | `MAX_DAYS_PER_PLAN` | `MAX_DAYS_PER_PLAN` | `422` "A plan can have at most 7 days." |
-| Exercises per workout | 20 | `MAX_EXERCISES_PER_SESSION` | `MAX_EXERCISES` | `422` "A workout can have at most 20 exercises." |
-| Exercises per day (day editor) | 20 | not built yet (day save route pending) | `MAX_EXERCISES` | fake save: "A day can have at most 20 exercises." |
+| Exercises per workout | 20 | `MAX_EXERCISES` | `MAX_EXERCISES` | `422` "A workout can have at most 20 exercises." |
+| Exercises per day (day editor) | 20 | `MAX_EXERCISES` (day save route pending) | `MAX_EXERCISES` | fake save: "A day can have at most 20 exercises." |
 | Sets per exercise | 20 | `MAX_SETS_PER_EXERCISE` | `MAX_SETS_PER_EXERCISE` | `422` "An exercise can have at most 20 sets." |
-| Set weight | 0–1000, at most 2 decimals | `updateSetBody` | `set-values.ts` | `400` "Weight must be between 0 and 1000 kg." |
-| Set reps | whole number 1–999 | `updateSetBody` | `set-values.ts` | `400` "Reps must be a whole number between 1 and 999." |
-| Set time | whole seconds 1–86400 | `updateSetBody` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
-| Set distance | more than 0, at most 1000000, 1 decimal | `updateSetBody` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
+| Set weight | 0–1000, at most 2 decimals | `weightValue` | `set-values.ts` | `400` "Weight must be between 0 and 1000 kg." |
+| Set reps | whole number 1–999 | `repsValue` | `set-values.ts` | `400` "Reps must be a whole number between 1 and 999." |
+| Set time | whole seconds 1–86400 | `durationValue` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
+| Set distance | more than 0, at most 1000000, 1 decimal | `distanceValue` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
+| Set type | `NORMAL`, `HEAVY`, `WARMUP`, `DROP`, `FAILURE` | `setTypeValue` | `SET_TYPES` | `400` "Invalid set type." |
+| Rest (day editor) | whole seconds 0–3600, `null` = no timer | `restSecondsValue` (day save route pending) | `validateRest` | `400` "Rest must be between 0 and 3600 seconds." |
 | Exercise search | at most 100 characters, trimmed, no control characters | `exercise.schema.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
-| Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine in `workout.schema.ts` | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
+| Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
 | Names (plan, day) | at least one visible character (letter, number, punctuation or symbol; emoji are fine) | `VISIBLE_CHARACTER` refine | `VISIBLE_CHARACTER` | `400` "Plan name is required." / "Day name is required." |
 | Ids in the URL (`:planId`, `:dayId`, `:sessionId`, `:exerciseId`, `:setId`) | UUID | `idParam` (`z.uuid()`) in the controllers | — | `404` with the route's normal message, e.g. "Plan not found." |
 | `exerciseIds` items, `muscle`, `equipment` | UUID | `addExercisesBody`, `exercise.schema.ts` | — | `400` "Exercise not found." / "Invalid Muscle" / "Invalid Equipment" |
 
-Backend files: plans and days in `backend/src/modules/workouts/workout.schema.ts`; workout exercises and sets in `backend/src/modules/workout-sessions/workout-session.schema.ts`; search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
+Backend files: a rule more than one module uses (ids, text rules, exercises per day and workout, sets per exercise, set types, set values, rest) is in `backend/src/lib/validation.ts`; a rule only one module uses stays in its schema: plans and days in `backend/src/modules/workouts/workout.schema.ts`, workout bodies in `backend/src/modules/workout-sessions/workout-session.schema.ts`, search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
 
 Lengths count characters, not UTF-16 units: an emoji counts as one on both sides (`[...text].length` on the frontend, zod on the backend). Text is stored as typed, not HTML-escaped: React escapes it when it renders and Prisma sends every value as a query parameter, so `<script>` in a name is plain text. Control characters are rejected because PostgreSQL refuses NUL in text (it used to give a 500) and none belong in a one-line name.
 
@@ -652,7 +654,7 @@ Adds exercises at the end of a workout in progress, each with one empty set.
 
 - **Path:** `sessionId`.
 - **Body:** `{ "exerciseIds": string[] }` — 1 to 20 UUIDs, no duplicates; a non-UUID item returns `400 "Exercise not found."`. Messages: `"Pick at least one exercise."`, `"A workout can have at most 20 exercises."`, `"Pick each exercise only once."`.
-- **Limit:** at most 20 exercises per workout, counting the ones already there (`MAX_EXERCISES_PER_SESSION` in `workout-session.schema.ts`).
+- **Limit:** at most 20 exercises per workout, counting the ones already there (`MAX_EXERCISES` in `backend/src/lib/validation.ts`).
 - **Effects:** in one transaction, the exercises get `order` = current highest + 1, + 2, … in the order sent; each gets set 1 (`NORMAL`, all values `null`).
 - **Code:** `addSessionExercisesController` → `addSessionExercises`.
 
@@ -676,7 +678,7 @@ Adds an empty set at the end of one exercise of a workout in progress.
 
 - **Path:** `sessionId`, `exerciseId` — `exerciseId` is the `WorkoutSessionExercise.id` (the `exercises[].id` of the session), not the catalog exercise id. No body.
 - **Effects:** `setNumber` = the exercise's highest + 1; `setType` `NORMAL`; every value `null`.
-- **Limit:** at most 20 sets per exercise (`MAX_SETS_PER_EXERCISE` in `workout-session.schema.ts`).
+- **Limit:** at most 20 sets per exercise (`MAX_SETS_PER_EXERCISE` in `backend/src/lib/validation.ts`).
 - **Code:** `addSessionSetController` → `addSessionSet`.
 
 Response `201` — the new set, one `WorkoutSessionSet`.

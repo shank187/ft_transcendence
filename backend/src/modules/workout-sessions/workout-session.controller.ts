@@ -1,7 +1,8 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, getWorkoutSession, updateSessionSet } from "./workout-session.service";
-import { MAX_EXERCISES_PER_SESSION, MAX_SETS_PER_EXERCISE, addExercisesBody, discardSessionBody, idParam, updateSetBody } from "./workout-session.schema";
+import { addExercisesBody, discardSessionBody, updateSetBody } from "./workout-session.schema";
+import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE, idParam } from "../../lib/validation";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type SessionRequest = AuthenticatedRequest & { params: { sessionId: string } };
@@ -58,7 +59,7 @@ export async function addSessionExercisesController(req: SessionRequest, res: Re
             if(result.reason === "CLOSED")
                 return res.status(409).json({message: "This workout is finished or cancelled."})
             if(result.reason === "TOO_MANY_EXERCISES")
-                return res.status(422).json({message: `A workout can have at most ${MAX_EXERCISES_PER_SESSION} exercises.`})
+                return res.status(422).json({message: `A workout can have at most ${MAX_EXERCISES} exercises.`})
             if(result.reason === "EXERCISE_NOT_FOUND")
                 return res.status(404).json({message: "Exercise not found."})
             return res.status(409).json({message: "The workout changed. Please try again."})
