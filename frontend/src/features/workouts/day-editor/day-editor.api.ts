@@ -1,7 +1,8 @@
 import type { DayDetail, DayExercise, SaveDayBody, SetTargets } from "./day-editor.types";
-import type { ExerciseSummary, SetType } from "../shared/workouts.types";
+import type { ExerciseSummary } from "../shared/workouts.types";
 import { getPlanDetails } from "../shared/get-plan-details";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../shared/limits";
+import { SET_TYPES } from "../shared/exercise-fields";
 
 // The day's name, order and plan name come from the real
 // GET /api/workout-plans/:planId. Only its exercises are still fake.
@@ -11,7 +12,6 @@ import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../shared/limits";
 // FAKE-DATA: a save with a target equal to 999 always rejects.
 
 const FAKE_DELAY_MS = 500
-const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
 // FAKE-DATA: the exercises the picker added, so the fake save can rebuild
 // their summary from an id. Remove with the real day API (Phase 2).

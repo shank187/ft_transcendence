@@ -1,3 +1,4 @@
+import { WorkoutSetType } from "@prisma/client";
 import { z } from "zod";
 
 // The frontend checks the same limits in frontend/src/features/workouts/shared/limits.ts.
@@ -36,7 +37,7 @@ export const updateSetBody = z.object({
     duration: z.number().int(DURATION_MESSAGE).min(1, DURATION_MESSAGE).max(86400, DURATION_MESSAGE).nullable().optional(),
     distance: z.number().gt(0, DISTANCE_MESSAGE).max(1000000, DISTANCE_MESSAGE)
         .refine(value => Number(value.toFixed(1)) === value, DISTANCE_MESSAGE).nullable().optional(),
-    setType: z.enum(["NORMAL", "WARMUP", "DROP", "FAILURE"]).optional(),
+    setType: z.enum(WorkoutSetType).optional(),
     completed: z.boolean().optional(),
 }).refine(body => Object.values(body).some(value => value !== undefined), "Nothing to update.");
 

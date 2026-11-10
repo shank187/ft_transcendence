@@ -23,7 +23,8 @@ export interface WorkoutPlanInput
     description: string | null,
 }
 
-export type SetType = "NORMAL" | "WARMUP" | "DROP" | "FAILURE"
+// Same values as the WorkoutSetType enum in backend/prisma/schema.prisma.
+export type SetType = "NORMAL" | "HEAVY" | "WARMUP" | "DROP" | "FAILURE"
 
 export interface PlannedSet {            // WorkoutExerciseSet
     id: string

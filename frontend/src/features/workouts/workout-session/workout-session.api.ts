@@ -1,7 +1,8 @@
-import type { SetType, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "../shared/workouts.types";
+import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "../shared/workouts.types";
 import type { AwardResult, FinishResult, SetPatch } from "./workout-session.types";
 import { catalog, copyExercise, copySession, sessions, storeSession, wait } from "../shared/fake-sessions";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../shared/limits";
+import { SET_TYPES } from "../shared/exercise-fields";
 import { buildSummary } from "./workout-session.helpers";
 
 // FAKE-DATA: mock of /api/workout-sessions.
@@ -24,8 +25,6 @@ import { buildSummary } from "./workout-session.helpers";
 //                             and unlocked: ["WORKOUTS_1"]
 //   addExercises only knows exercises from a started day or passed to
 //   rememberSessionExercises; any other id rejects "Exercise not found"
-
-const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
 
 // FAKE-DATA: real version will be GET /api/workout-sessions/:id
 // Reads only the stored session, never the day it was started from.

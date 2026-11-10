@@ -705,7 +705,7 @@ Changes what the user did in one set, or ticks/unticks it.
 | `reps` | integer \| null | 1–999 |
 | `duration` | integer \| null | 1–86400 (seconds) |
 | `distance` | number \| null | more than 0, at most 1000000, 1 decimal |
-| `setType` | `"NORMAL"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
+| `setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `completed` | boolean | `true` sets `completedAt` (keeps the first time if already ticked); `false` clears it |
 
 - **Code:** `updateSessionSetController` → `updateSessionSet` (find and update in one transaction).

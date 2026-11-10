@@ -20,13 +20,16 @@ export const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {
     DISTANCE_DURATION: "Distance + time",
 }
 
+// Menu order; the fake APIs also check against this list.
+export const SET_TYPES: SetType[] = ["NORMAL", "HEAVY", "WARMUP", "DROP", "FAILURE"]
+
 export const SET_TYPE_LABEL: Record<SetType, string> = {
-    NORMAL: "Normal", WARMUP: "Warm-up", DROP: "Drop", FAILURE: "Failure",
+    NORMAL: "Normal", HEAVY: "Heavy", WARMUP: "Warm-up", DROP: "Drop", FAILURE: "Failure",
 }
 
 // no NORMAL here, normal sets show their number counted among normal sets only
 const SET_TYPE_LETTER: Record<Exclude<SetType, "NORMAL">, string> = {
-    WARMUP: "W", DROP: "D", FAILURE: "F",
+    HEAVY: "H", WARMUP: "W", DROP: "D", FAILURE: "F",
 }
 
 export function setLabel(sets: { setType: SetType }[], index: number): string {

@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react"
 import type { SetType } from "./workouts.types"
-import { SET_TYPE_LABEL } from "./exercise-fields"
-
-const SET_TYPES: SetType[] = ["NORMAL", "WARMUP", "DROP", "FAILURE"]
-
+import { SET_TYPE_LABEL, SET_TYPES } from "./exercise-fields"
 
 const SET_TYPE_DOT: Record<SetType, string> = {
     NORMAL: "bg-app-text-muted",
+    HEAVY: "bg-app-set-heavy",
     WARMUP: "bg-app-set-warmup",
     DROP: "bg-app-set-drop",
     FAILURE: "bg-app-set-failure",
@@ -14,6 +12,7 @@ const SET_TYPE_DOT: Record<SetType, string> = {
 
 const SET_TYPE_CLASSES: Record<SetType, string> = {
     NORMAL: "border-app-border bg-app-surface-hover text-app-text",
+    HEAVY: "border-app-set-heavy/60 bg-app-set-heavy/10 text-app-set-heavy",
     WARMUP: "border-app-set-warmup/60 bg-app-set-warmup/10 text-app-set-warmup",
     DROP: "border-app-set-drop/60 bg-app-set-drop/10 text-app-set-drop",
     FAILURE: "border-app-set-failure/60 bg-app-set-failure/10 text-app-set-failure",
