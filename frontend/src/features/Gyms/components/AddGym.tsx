@@ -16,8 +16,9 @@ function AddGym({onClose} : gymProps){
     const [equiList, setEquiList] = useState<Equipment[]>([]);
     const [selectedEquip, setSelectedEquip] = useState<string[]>([]);
     const [isPrivate, setIsPrivate] = useState(false);
-
-
+    const [webSite, setWebSite] = useState("");
+    const [description, setDescription] = useState("");
+    const [phoneNumber, SetPhoneNumber] = useState("");
 
 
     useEffect(function(){
@@ -31,7 +32,7 @@ function AddGym({onClose} : gymProps){
         }
         fetchEquip();
     }, []);
-    ////////////////////////////////////////
+
     function handleClose(){
         onClose(false);
     }
@@ -53,7 +54,10 @@ function AddGym({onClose} : gymProps){
                 city : city,
                 address : address,
                 isPrivate:isPrivate,
-                equipment: formattedEquip
+                equipment: formattedEquip,
+                description : description,
+                phone  : phoneNumber,
+                website : webSite
             });
             // console.log(res.data);§
             handleClose();
@@ -106,6 +110,17 @@ function AddGym({onClose} : gymProps){
                     />
                 </div>
 
+                <div>
+                    <label className="block text-xs font-bold text-white mb-2">
+                        Description
+                        <span className="font-normal text-zinc-500 ml-1" > (optional)</span>
+                    </label>
+                    <input type="text"
+                            value={description}
+                            placeholder="home gym ..." 
+                            onChange={function(e){setDescription(e.target.value)}}
+                            className="w-full border rounded-xl bg-[#0A0A0A]  border-[#242424] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -135,6 +150,35 @@ function AddGym({onClose} : gymProps){
                         onChange={function(e){setAddress(e.target.value)}}
                         className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600 "/>
                     </div>
+
+
+
+                    <div className="mt-4">
+                        <label className="block text-xs font-bold text-white mb-2">
+                            WebSite 
+                        <span className="font-normal text-zinc-500 ml-1">(optional)</span>
+                        </label>
+                        <input type="text"
+                                    placeholder="e.g www.1337.ma" 
+                                    value={webSite}
+                                    onChange={function(e){setWebSite(e.target.value)}}
+                                    className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
+                    </div>
+                    <div className="mt-4">
+                        <label className="block text-xs font-bold text-white mb-2">
+                            Phone Number  
+                            <span className="font-normal text-zinc-500 ml-1">(optional)</span>
+                        </label>
+                        <input type="text"
+                                placeholder="e.g +212 0616719491" 
+                                value={phoneNumber}
+                                onChange={function(e){SetPhoneNumber(e.target.value)}}
+                                className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
+                    </div>
+                </div>
+
+                <div>
+                    {/* /////// */}
                 </div>
 
                 <div>

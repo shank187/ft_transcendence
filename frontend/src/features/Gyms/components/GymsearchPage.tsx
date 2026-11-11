@@ -80,7 +80,7 @@ function GymsearchPage(){
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
 
-                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-3.5 rounded-3xl transition duration-200 shadow-md">
+                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
                     <span className="text-xl font-bold">+</span>
                     <span>Add gym</span>
                 </button>
