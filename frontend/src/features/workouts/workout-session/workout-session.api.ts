@@ -11,7 +11,7 @@ import { buildSummary } from "./workout-session.helpers";
 //
 // FAKE-DATA: scenarios
 //   startWorkoutFromDay, a day not in the user's plan -> rejects "Day not found"
-//   (the day itself comes from getWorkoutDay, which reads the real plan)
+//   (the day itself comes from getWorkoutDay, which reads the real day)
 //   getWorkoutSession, id "missing"      -> returns null
 //   getWorkoutSession, id "fail"         -> rejects
 //   startEmptyWorkout, page URL ?fake=fail  -> always rejects

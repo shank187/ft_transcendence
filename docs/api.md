@@ -457,7 +457,7 @@ Failure example: adding an 8th day returns `422` `{ "message": "A plan can have 
 
 ### `GET /api/workout-plans/:planId/days/:dayId`
 
-Returns one day with its planned exercises and sets. Meant for the day editor; `frontend/src/features/workouts/day-editor/day-editor.api.ts` still uses its fake data.
+Returns one day with its planned exercises and sets. Used by the day editor and by starting a workout from a day (`getWorkoutDay` in `day-editor/day-editor.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`, `dayId`. No query or body.
@@ -562,7 +562,7 @@ Failure example: deleting a day of another user's plan returns `404` `{ "message
 
 ### `PUT /api/workout-plans/:planId/days/:dayId/exercises`
 
-Replaces all of a day's planned exercises and sets with the body: the day editor's Save. Meant for the day editor; `frontend/src/features/workouts/day-editor/day-editor.api.ts` still uses its fake save.
+Replaces all of a day's planned exercises and sets with the body: the day editor's Save (`saveWorkoutDay` in `day-editor/day-editor.api.ts`).
 
 - **Auth:** required (Bearer access token).
 - **Path:** `planId`, `dayId`.

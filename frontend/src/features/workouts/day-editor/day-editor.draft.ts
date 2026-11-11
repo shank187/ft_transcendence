@@ -131,7 +131,7 @@ export function appendExercises(draft: DraftExercise[], selected: ExerciseItem[]
     return [...draft, ...added]
 }
 
-// Same rule and message as validateBody in day-editor.api.ts.
+// Same rule and message as restSecondsValue in backend/src/lib/validation.ts.
 export function validateRest(value: string): string | null
 {
     const result = toNumber(value)
