@@ -5,6 +5,7 @@ import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel } from "../shared/exerci
 import SetRowSession from "./SetRowSession";
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits";
 import Button from "../../../components/ui/Button";
+import exercisePlaceholder from "../../../assets/exercise-placeholder.svg";
 
 export default function ExerciseSessionCard(props:{
     exercise: WorkoutSessionExercise,
@@ -35,6 +36,7 @@ export default function ExerciseSessionCard(props:{
         <Card className="p-5">
             <div className="flex gap-3">
                 <p>{props.position}</p>
+                <img src={props.exercise.exerciseSummary.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-md object-cover" />
                 <div className="min-w-0 flex-1">
                     <h2>{name}</h2>
                     <p className="text-app-text-muted">
