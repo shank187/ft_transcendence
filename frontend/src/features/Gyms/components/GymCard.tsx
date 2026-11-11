@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Gym } from "../data/FakeData";
+import type { Gym } from "../type/gym";
 
 interface GymCardPara {
     gym : Gym;
@@ -23,7 +23,7 @@ function GymCard({gym} : GymCardPara){
                     View Details
                 </Link>
             </div>
-            <img src={gym.image} alt={gym.name} className="w-32 h-32 object-cover  border"/>
+            <img src={gym.imageUrl || "/gym-images/default-gym.png"} alt={gym.name} className="w-32 h-32 object-cover  border"/>
         </div>
     )
 }

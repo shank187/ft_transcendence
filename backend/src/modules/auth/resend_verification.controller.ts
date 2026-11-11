@@ -10,12 +10,8 @@ export const resend_verification = async (req: Request, res: Response) => {
 
     const errors = validationResult(req);
 
-    if (!errors.isEmpty()){
-        return res.status(400).json({
-            success: false,
-            error: errors.array()[0].msg
-        });
-    }
+    if (!errors.isEmpty())
+        return res.status(400).json({ message: errors.array()[0].msg });
 
     const registrationId: string = req.body.registrationId;
 
@@ -27,12 +23,7 @@ export const resend_verification = async (req: Request, res: Response) => {
         });
 
         if (!pending)
-        {
-            return res.status(409).json({
-                success: false,
-                error: 'This registration is no longer valid. Please register again.'
-            });
-        }
+            return res.status(409).json({ message: 'This registration is no longer valid. Please register again.' });
 
         const code = generate_verification_code();
         const codeHash = await hash(code, 10);
@@ -51,10 +42,7 @@ export const resend_verification = async (req: Request, res: Response) => {
 
         if (updated.count === 0)
         {
-            return res.status(409).json({
-                success: false,
-                error: 'Another resend request was already processed.'
-            });
+            return res.status(409).json({ message: 'Another resend request was already processed.' });
         }
 
         try {
@@ -73,10 +61,7 @@ export const resend_verification = async (req: Request, res: Response) => {
                 }
             });
 
-            return res.status(503).json({
-                success: false,
-                error: 'Unable to send verification email. Please try again.'
-            });
+            return res.status(503).json({ message: 'Unable to send verification email. Please try again.' });
         }
 
         return res.status(200).json({
@@ -85,9 +70,6 @@ export const resend_verification = async (req: Request, res: Response) => {
         });
     }
     catch {
-        return res.status(500).json({
-            success: false,
-            error: 'Internal server error'
-        });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };

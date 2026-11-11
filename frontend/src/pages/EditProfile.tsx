@@ -2,6 +2,7 @@ import Profile_fields from "../components/profile/Profile_fields";
 import { useState, useEffect } from "react";
 import api from "../features/auth/axiosInstance";
 import type { User } from "../components/profile/Profile_fields";
+import { isAxiosError } from 'axios';
 
 import Avatar_upload from "../components/profile/Avatar_upload";
 
@@ -9,7 +10,7 @@ import Avatar_upload from "../components/profile/Avatar_upload";
 
 
 
-export default function Edit_profile() {
+export default function EditProfile() {
 
     const [user, set_user] = useState<User | null>(null);
     const [error, set_error] = useState("");
@@ -22,8 +23,11 @@ export default function Edit_profile() {
                 const response = await api.get<User>('/api/users/me');
                 set_user(response.data);
             }
-            catch{
-                set_error("Could not load your profile.");
+            catch (error) {
+                if (isAxiosError(error))
+                    set_error(error.response?.data?.message || "Could not load your profile.");
+                else
+                    set_error("Could not load your profile.");
             }
         }
         

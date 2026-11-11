@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
-import type { Gym } from "../data/FakeData";
+// import type { Gym } from "../data/FakeData";
+import type {Gym} from "../type/gym"
 import SearchBar from "./SearchBar";
 import GymCard from "./GymCard";
-// import axios from "axios";
-import {getFakeData} from "../data/FakeData";
+
+// import {getFakeData} from "../data/FakeData";
+
 import LoadingState from "../../../components/states/LoadingState";
 import GymFilters from "./gymFilters";
+import api from "../../auth/axiosInstance";
+import PaginationButtons from "./paginationButton";
 
 
 function GymsearchPage(){
@@ -14,29 +18,37 @@ function GymsearchPage(){
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
     const [verified, setVerified]= useState<boolean | null>(null);
-    // const [rating, setRating] = useState<Number | null>(null);
+    const [page , setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(false);
 
+    useEffect (function(){
+        setPage(1);
+    },[textSearched, city, verified]);
 
 
     useEffect(()=> {
         let ignore = false;
         async function fetchGyms(){
-            // if (textSearched === "") {
-            //     setGymList([]);
-            //     setLoading(false);
-            //     return ;
-            // }
             setLoading(true);
 
             try
             {
-                const fakeData = await getFakeData(textSearched, city, verified);
+                // const fakeData = await getFakeData(textSearched, city, verified);
+                const res = await api.get("/api/gyms/search/", {
+                    params : {
+                        textSearched: textSearched || undefined,
+                        city: city,
+                        verified : verified ?? undefined,
+                        page : page,
+                    }
+                });
                 if (ignore === false){
                     setLoading(false);
-                    setGymList(fakeData);
+                    // setGymList(fakeData);
+                    setGymList(res.data.data);
+                    setHasNextPage(res.data.hasNextPage);
                 }
-                // const res = await axios.get("api/gym?search=" + textSearched);
-                // setGymList(res.data);
+
             }
             catch(err){
                 console.log(err);
@@ -49,7 +61,7 @@ function GymsearchPage(){
         return  function(){
             ignore = true;
         }
-    }, [textSearched, city, verified]);
+    }, [textSearched, city, verified, page]);
     // }, [textSearched, city, verified, rating]);
 
     // if (loading) {
@@ -76,6 +88,12 @@ function GymsearchPage(){
                 ))}
             </div>)
         }
+        <div>
+            <PaginationButtons 
+                currentPage={page} 
+                onPageChange={setPage}
+                hasNextPage={hasNextPage}/>
+        </div>
         </div>
     )
 }

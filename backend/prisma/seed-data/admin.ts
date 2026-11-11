@@ -50,5 +50,5 @@ export async function seedAdmin(prisma: PrismaClient) {
             roleId: adminRole.id,
         }
     });
-    
+    // return admin_user;
 }

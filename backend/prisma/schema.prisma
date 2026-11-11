@@ -243,6 +243,7 @@ model Session {
 model Gym {
   id          String        @id @default(uuid())
   name        String
+  imageUrl    String?
   description String?
   address     String?
   city        String?
