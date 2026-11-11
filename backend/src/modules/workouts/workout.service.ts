@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, type WorkoutPlanBody } from "./workout.schema";
-import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet, WorkoutPlan } from "./workout.types";
+import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet, SaveDayBody, WorkoutPlan } from "./workout.types";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
 
@@ -311,6 +311,53 @@ export async function deleteWorkoutDay(userId: string, planId: string, dayId: st
         // Another request (e.g. add day) changed this plan's day numbers at the same time.
         if(isUniqueViolation(error))
             return({ok: false, reason:"CONFLICT"})
+        throw error
+    }
+}
+
+type ReplaceDayResult =
+    | { ok: true; day: DayDetail }
+    | { ok: false; reason: "NOT_FOUND" | "EXERCISE_NOT_FOUND" | "CONFLICT" };
+
+export async function replaceWorkoutDay(userId: string, planId: string, dayId: string, body: SaveDayBody): Promise<ReplaceDayResult>
+{
+
+    const day = await prisma.workoutDay.findUnique({
+        where:{id: dayId, workoutPlan: {id: planId, userId: userId}
+    }})
+    if(!day)
+        return {ok: false, reason:"NOT_FOUND"}
+    const uniqueIds = new Set(body.exercises.map(e => e.exerciseId))
+    const found = await prisma.exercise.count({where:{id:{ in : [...uniqueIds]  }}})
+    if(found !== uniqueIds.size)
+        return{ok: false, reason:"EXERCISE_NOT_FOUND"}
+    try{
+        const ReplacedDay = await prisma.$transaction(async (tx) =>{
+            await tx.workoutExercise.deleteMany({where: {workoutDayId: dayId}})
+            for (const [index, item] of body.exercises.entries()){
+                await tx.workoutExercise.create({data:{
+                    workoutDay:{connect:{id: dayId}},
+                    exercise: {connect:{ id: item.exerciseId}},
+                    order: index + 1,
+                    restSeconds: item.restSeconds,
+                    sets:{
+                        createMany:{
+                            data: item.sets.map((set, setIndex)=>({...set,setNumber: setIndex + 1}))
+                        }
+                    }}})
+            }
+            const day = await tx.workoutDay.findFirstOrThrow({where:{id: dayId, workoutPlan:{id: planId, userId: userId}},
+                select: dayDetailSelect
+            })
+            return day
+        })
+        return {ok: true, day: toDayDetailDto(ReplacedDay)}
+    }catch(error)
+    {
+        if(isNotFoundError(error))
+            return({ok:false, reason:"NOT_FOUND"})
+        if(isUniqueViolation(error))
+            return({ok:false, reason:"CONFLICT"})
         throw error
     }
 }

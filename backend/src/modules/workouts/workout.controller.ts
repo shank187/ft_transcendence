@@ -1,7 +1,8 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, updateWorkoutPlan } from "./workout.service";
-import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, idParam, workoutDayBody, workoutPlanBody } from "./workout.schema";
+import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, replaceWorkoutDay, updateWorkoutPlan } from "./workout.service";
+import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, saveDayBody, workoutDayBody, workoutPlanBody } from "./workout.schema";
+import { idParam } from "../../lib/validation";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type PlanRequest = AuthenticatedRequest & { params: { planId: string } };
@@ -165,6 +166,29 @@ export async function deleteWorkoutDayController(req: DayRequest, res: Response)
         return res.status(200).json(result.days)
     }catch(error){
         console.error("DELETE /api/workout-plans/:planId/days/:dayId failed:", error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function putWorkoutDayController(req: DayRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.planId).success || !idParam.safeParse(req.params.dayId).success) return res.status(404).json({message: "Day not found."})
+    const parsed = saveDayBody.safeParse(req.body)
+    if(!parsed.success)
+        return res.status(400).json({message: parsed.error.issues[0].message})
+    try{
+        const result = await replaceWorkoutDay(req.userId, req.params.planId, req.params.dayId, parsed.data)
+        if(!result.ok)
+        {
+            if(result.reason === "NOT_FOUND")
+                return res.status(404).json({message: "Day not found."})
+            if(result.reason === "EXERCISE_NOT_FOUND")
+                return res.status(404).json({message: "Exercise not found."})
+            return res.status(409).json({message: "The day changed. Please try again."})
+        }
+        return res.status(200).json(result.day)
+    }catch(error){
+        console.error("PUT /api/workout-plans/:planId/days/:dayId/exercises failed:", error)
         return res.status(500).json({message: "Internal server error"})
     }
 }

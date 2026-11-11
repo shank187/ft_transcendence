@@ -37,6 +37,7 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | GET | `/api/workout-plans/:planId/days/:dayId` | Yes | Return one day of an owned plan with its exercises and sets |
 | PATCH | `/api/workout-plans/:planId/days/:dayId` | Yes | Rename a day of an owned plan |
 | DELETE | `/api/workout-plans/:planId/days/:dayId` | Yes | Delete a day and renumber the remaining days |
+| PUT | `/api/workout-plans/:planId/days/:dayId/exercises` | Yes | Replace a day's planned exercises and sets |
 | GET | `/api/workout-sessions/:sessionId` | Yes | Return one owned workout with its exercises and sets |
 | PATCH | `/api/workout-sessions/:sessionId` | Yes | Discard a workout in progress |
 | POST | `/api/workout-sessions/:sessionId/exercises` | Yes | Add exercises to a workout in progress |
@@ -247,14 +248,14 @@ Every limit is checked on both sides with the same message: the frontend for fas
 | Day name | 1–30 characters, trimmed | `workoutDayBody` | `DAY_NAME_MAX` | `400` |
 | Days per plan | 7 | `MAX_DAYS_PER_PLAN` | `MAX_DAYS_PER_PLAN` | `422` "A plan can have at most 7 days." |
 | Exercises per workout | 20 | `MAX_EXERCISES` | `MAX_EXERCISES` | `422` "A workout can have at most 20 exercises." |
-| Exercises per day (day editor) | 20 | `MAX_EXERCISES` (day save route pending) | `MAX_EXERCISES` | fake save: "A day can have at most 20 exercises." |
+| Exercises per day (day editor) | 20 | `MAX_EXERCISES` in `saveDayBody` | `MAX_EXERCISES` | `400` "A day can have at most 20 exercises." |
 | Sets per exercise | 20 | `MAX_SETS_PER_EXERCISE` | `MAX_SETS_PER_EXERCISE` | `422` "An exercise can have at most 20 sets." |
 | Set weight | 0–1000, at most 2 decimals | `weightValue` | `set-values.ts` | `400` "Weight must be between 0 and 1000 kg." |
 | Set reps | whole number 1–999 | `repsValue` | `set-values.ts` | `400` "Reps must be a whole number between 1 and 999." |
 | Set time | whole seconds 1–86400 | `durationValue` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
 | Set distance | more than 0, at most 1000000, 1 decimal | `distanceValue` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
 | Set type | `NORMAL`, `HEAVY`, `WARMUP`, `DROP`, `FAILURE` | `setTypeValue` | `SET_TYPES` | `400` "Invalid set type." |
-| Rest (day editor) | whole seconds 0–3600, `null` = no timer | `restSecondsValue` (day save route pending) | `validateRest` | `400` "Rest must be between 0 and 3600 seconds." |
+| Rest (day editor) | whole seconds 0–3600, `null` = no timer | `restSecondsValue` | `validateRest` | `400` "Rest must be between 0 and 3600 seconds." |
 | Exercise search | at most 100 characters, trimmed, no control characters | `exercise.schema.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
 | Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
 | Names (plan, day) | at least one visible character (letter, number, punctuation or symbol; emoji are fine) | `VISIBLE_CHARACTER` refine | `VISIBLE_CHARACTER` | `400` "Plan name is required." / "Day name is required." |
@@ -506,7 +507,7 @@ Status codes:
 
 Failure example: a `dayId` from another user's plan returns `404` `{ "message": "Day not found." }`.
 
-Frontend types: `DayDetail` and `DayExercise` in `frontend/src/features/workouts/day-editor/day-editor.types.ts`; `PlannedSet` and `ExerciseSummary` in `frontend/src/features/workouts/shared/workouts.types.ts`.
+Types: `DayDetail`, `DayExercise` and `PlannedSet` in `shared/workouts.d.ts`, `ExerciseSummary` in `shared/exercises.d.ts`, read by both the backend and the frontend.
 
 ### `PATCH /api/workout-plans/:planId/days/:dayId`
 
@@ -558,6 +559,56 @@ Status codes:
 - `500` unexpected error — `{ "message": "Internal server error" }`
 
 Failure example: deleting a day of another user's plan returns `404` `{ "message": "Day not found." }`.
+
+### `PUT /api/workout-plans/:planId/days/:dayId/exercises`
+
+Replaces all of a day's planned exercises and sets with the body: the day editor's Save. Meant for the day editor; `frontend/src/features/workouts/day-editor/day-editor.api.ts` still uses its fake save.
+
+- **Auth:** required (Bearer access token).
+- **Path:** `planId`, `dayId`.
+- **Body:** `SaveDayBody`. Array position is the order: exercise `i` gets `order` `i + 1`, set `j` gets `setNumber` `j + 1`. The client never sends `order`, `setNumber` or row ids; unknown keys are dropped. `exercises: []` clears the day. The same exercise may appear more than once.
+
+```json
+{
+  "exercises": [
+    {
+      "exerciseId": "c3d4e5f6-0000-4000-8000-000000000001",
+      "restSeconds": 90,
+      "sets": [
+        { "setType": "WARMUP", "targetWeight": 40, "targetReps": 8, "targetDuration": null, "targetDistance": null },
+        { "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Type | Limits |
+|---|---|---|
+| `exercises` | array | at most 20 (`MAX_EXERCISES`) |
+| `exercises[].exerciseId` | string (UUID) | must exist in the exercise catalog |
+| `exercises[].restSeconds` | integer \| null | 0–3600; `null` = no rest timer |
+| `exercises[].sets` | array | at most 20 per exercise (`MAX_SETS_PER_EXERCISE`) |
+| `sets[].setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
+| `sets[].targetWeight`, `targetReps`, `targetDuration`, `targetDistance` | number \| null | same limits as a workout set (see Limits); `null` = no target, never `0` |
+
+- **Ownership:** same rule as reading a day. The exercises are a shared catalog, so they only need to exist.
+- **Effects:** in one transaction, the day's planned exercises are deleted (their sets with them, Cascade) and the body's exercises and sets are created. The day keeps its `id`, `name` and `dayOrder`. Past sessions are not touched: they copied their values. If any step fails, the day keeps its old exercises.
+- **Code:** `putWorkoutDayController` → `replaceWorkoutDay`; body rules in `workout.schema.ts` (`saveDayBody`) and `backend/src/lib/validation.ts`.
+
+Response `200` — the saved day, read back inside the transaction, same shape as `GET /api/workout-plans/:planId/days/:dayId` (`DayDetail`, new row ids).
+
+Status codes:
+
+- `200` day saved, fresh day returned
+- `400` body fails validation — `{ "message": "<first validation error>" }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Day not found." }` — the day does not exist, belongs to another plan, the plan is not the user's, or the day was deleted during the save
+- `404` `{ "message": "Exercise not found." }` — an `exerciseId` is not in the catalog
+- `409` `{ "message": "The day changed. Please try again." }` — another save of the same day ran at the same time
+- `500` unexpected error — `{ "message": "Internal server error" }`
+
+Failure example: a set with `"setType": "BANANA"` returns `400` `{ "message": "Invalid set type." }`.
 
 ## Workout sessions
 
