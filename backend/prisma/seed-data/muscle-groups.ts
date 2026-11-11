@@ -15,7 +15,11 @@ export const MUSCLE_GROUPS = [
     "Quadriceps",
     "Glutes",
     "Hamstrings",
-    "Calves"
+    "Calves",
+    "Hip Flexors",
+    "Adductors",
+    "Cardio",
+    "Neck"
 ] as const;
 
 export type MuscleGroupName = typeof MUSCLE_GROUPS[number];
