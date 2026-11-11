@@ -28,6 +28,7 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | PATCH | `/api/users/onboarding` | Yes | Save onboarding fields |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses |
+| GET | `/api/equipment` | Yes | Return every equipment item with its category |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
 | POST | `/api/workout-plans` | Yes | Create a custom plan |
 | GET | `/api/workout-plans/:planId` | Yes | Return one owned plan with its days |
@@ -120,7 +121,7 @@ Use intentional status codes:
 Lists canonical exercises, paginated and optionally filtered.
 
 - **Auth:** required (Bearer access token).
-- **Ordering:** `name` ascending.
+- **Ordering:** by `name`, ascending by default or descending with `sort=name_desc`; `id` ascending breaks ties, so a row never appears on two pages.
 
 Query parameters, all optional:
 
@@ -131,6 +132,7 @@ Query parameters, all optional:
 | `search` | text | none | Trimmed; case-insensitive "contains" match on `name`. Empty or whitespace-only means no filter |
 | `muscle` | `MuscleGroup.id` | none | Matches the **primary** muscle only; secondary muscles are ignored. Trimmed; empty means no filter |
 | `equipment` | `Equipment.id` | none | Matches exercises linked to this equipment. Trimmed; empty means no filter |
+| `sort` | `name_asc` \| `name_desc` | `name_asc` | Exactly one of the two values; unlike the filters, empty is not accepted |
 
 Filters combine with AND. Pagination applies to the filtered result, and `total` counts the filtered rows. A `page` past `totalPages` returns `200` with an empty `items` array.
 
@@ -194,6 +196,7 @@ Status codes:
 | Repeated `limit` key | `Invalid Limit` |
 | `page`/`limit` not plain digits or out of range, e.g. `page=0`, `page=abc`, `page=`, `page=1.5`, `page=1e2`, `page=-1`, `page=+1`, `page=0x10`, `limit=51` | `Invalid Pagination` |
 | `page` above `Number.MAX_SAFE_INTEGER` | `Invalid Pagination` |
+| `sort` not `name_asc` or `name_desc` (including empty), or a repeated `sort` key | `Invalid Sort` |
 | `muscle` is not an existing `MuscleGroup.id` | `Invalid Muscle` |
 | `equipment` is not an existing `Equipment.id` | `Invalid Equipment` |
 
@@ -233,6 +236,40 @@ Required validation hardening before final QA:
 - later-page failure retains loaded cards and retries the failed page;
 - overlapping/repeated requests cannot duplicate/corrupt results;
 - final-page controls are deliberate.
+
+### `GET /api/equipment`
+
+Returns every equipment item in the catalog with its category, including equipment no exercise uses yet (unlike `GET /api/exercises/filters`).
+
+- **Auth:** required (Bearer access token).
+- **Request:** no path, query, or body parameters.
+- **Ordering:** by `category` in the order of the `EquipmentCategory` enum (`FREE_WEIGHTS`, `BENCHES_RACKS`, `MACHINES`, `CABLES_ATTACHMENTS`, `CARDIO`, `ACCESSORIES`, `OTHER`; PostgreSQL sorts an enum by its declared order, not alphabetically), then by `name` ascending.
+- **Code:** `getEquipmentController` → `getEquipment` in `backend/src/modules/equipment/`.
+
+Response `200` — `EquipmentItem[]` (possibly `[]`):
+
+```json
+[
+  { "id": "6f5e4d3c-2b1a-4c9d-8e7f-a0b1c2d3e4f5", "name": "Adjustable Dumbbells", "category": "FREE_WEIGHTS" },
+  { "id": "7a6b5c4d-3e2f-4a1b-9c8d-e7f6a5b4c3d2", "name": "Adjustable Bench", "category": "BENCHES_RACKS" }
+]
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string (UUID) | `Equipment.id`, the value `GET /api/exercises` accepts in `equipment` |
+| `name` | string | Unique |
+| `category` | `EquipmentCategory` | One of the seven values above |
+
+Status codes:
+
+- `200` list returned
+- `401` missing, invalid, or expired access token
+- `500` `{ "message": "Internal server error" }` when the database fails; the error is logged on the server
+
+Failure example: a request without an access token returns `401`.
+
+Type: `EquipmentItem` and `EquipmentCategory` in `shared/equipment.d.ts`, read by both the backend and the frontend.
 
 ## Workout plans
 
