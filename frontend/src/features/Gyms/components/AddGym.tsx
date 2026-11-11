@@ -279,8 +279,24 @@ function AddGym({onClose, onSuccess} : gymProps){
                         <label className="block text-xs font-bold text-white mb-2" >Photos
                             <span className="font-normal text-zinc-500 ml-1">(one image max, for the review)</span>
                         </label>
-                        <input type="file" accept="image/png, image/jpeg" 
-                                onChange={handleImageUpload}/>
+
+                        {imageUrl ? (
+                            <div className="relative h-58 w-58 rounded-xl overflow-hidden border border-[#2E2E2E]">
+                                <img src={new URL(imageUrl, api.defaults.baseURL).href} alt="gym preview"
+                                    className="h-full w-full object-cover"/>
+                                    <button type="button"
+                                            onClick={function(){setImageUrl("")}}
+                                            className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-full p-1">
+                                                <X className="w-4.5 h-4.5"/>
+                                    </button>
+                            </div>
+                        ) : (
+                            <div>
+                                <input type="file" accept="image/png, image/jpeg" 
+                                    onChange={handleImageUpload}/>
+                            </div>
+                        )}
+
                     </div>
 
 
