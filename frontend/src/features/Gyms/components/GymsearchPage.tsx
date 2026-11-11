@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-// import type { Gym } from "../data/FakeData";
 import type {Gym} from "../type/gym"
 import SearchBar from "./SearchBar";
 import GymCard from "./GymCard";
-
-// import {getFakeData} from "../data/FakeData";
 
 import LoadingState from "../../../components/states/LoadingState";
 import GymFilters from "./gymFilters";
 import api from "../../auth/axiosInstance";
 import PaginationButtons from "./paginationButton";
+import AddGym from "./AddGym";
+
+
+
 
 
 function GymsearchPage(){
@@ -20,6 +21,8 @@ function GymsearchPage(){
     const [verified, setVerified]= useState<boolean | null>(null);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
+
+    const [isAddGymOpen, setIsAddGymOpen] = useState(false);
 
     useEffect (function(){
         setPage(1);
@@ -33,7 +36,6 @@ function GymsearchPage(){
 
             try
             {
-                // const fakeData = await getFakeData(textSearched, city, verified);
                 const res = await api.get("/api/gyms/search/", {
                     params : {
                         textSearched: textSearched || undefined,
@@ -44,7 +46,7 @@ function GymsearchPage(){
                 });
                 if (ignore === false){
                     setLoading(false);
-                    // setGymList(fakeData);
+
                     setGymList(res.data.data);
                     setHasNextPage(res.data.hasNextPage);
                 }
@@ -62,18 +64,28 @@ function GymsearchPage(){
             ignore = true;
         }
     }, [textSearched, city, verified, page]);
-    // }, [textSearched, city, verified, rating]);
-
-    // if (loading) {
-    //     return <LoadingState message="Loading gyms..." />;
-    // }
+    if (isAddGymOpen){
+        return <AddGym  onClose={setIsAddGymOpen}/>
+    }
     return (
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
-            <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
 
-        <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
-        {/* <GymFilters setCityProps={setCity} setRatingProps={setRating} setverifiedProps={setVerified}></GymFilters> */}
+
+
+
+
+
+
+            <div className="flex justify-between  items-center gap-4 mb-6">
+                <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
+
+                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-3.5 rounded-3xl transition duration-200 shadow-md">
+                    <span className="text-xl font-bold">+</span>
+                    <span>Add gym</span>
+                </button>
+            </div>
+            <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 
 
         {loading ? 
@@ -94,6 +106,8 @@ function GymsearchPage(){
                 onPageChange={setPage}
                 hasNextPage={hasNextPage}/>
         </div>
+
+        {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
         </div>
     )
 }
