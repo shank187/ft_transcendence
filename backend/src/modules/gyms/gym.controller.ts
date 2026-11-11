@@ -87,14 +87,18 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
     const data = {
         userID : req.userId,
         dataName : name.trim(),
-        dataCity : typeof city === "string" ? city.trim() : undefined,
-        dataAddress : typeof address === "string" ? address.trim() : undefined,
-        dataPhone : typeof phone === "string" ? phone.trim() : undefined,
-        dataWebsite: typeof website === "string" ? website.trim() : undefined,
-        dataDescription : typeof description === "string" ? description.trim() : undefined,
+        dataCity : typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
+        dataAddress : typeof address === "string" && address.trim() !== "" ? address.trim() :  undefined,
+        dataPhone : typeof phone === "string" && phone.trim() !== "" ? phone.trim() : undefined,
+        dataWebsite: typeof website === "string" && website.trim() !== "" ? website.trim()  : undefined,
+        dataDescription : typeof description === "string" &&  description.trim() !== "" ? description.trim() : undefined,
         dataImageUrl : typeof imageUrl === "string" ? imageUrl.trim() : undefined,
         dataIsPrivate : isPrivate === true,
-        dataEquip : Array.isArray(equipment) ? equipment : [],
+
+
+        dataEquip : Array.isArray(equipment) ? equipment.filter(function(item){
+            return typeof item.equipmentId === "string" && item.equipmentid.trim() !== ""
+        }) : [],
     };
     
     try {

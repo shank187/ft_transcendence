@@ -127,7 +127,7 @@ function AddGym({onClose, onSuccess} : gymProps){
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs front-bold text-white mb-2">
+                        <label className="block text-xs font-bold text-white mb-2">
                             City
                         </label>
                         <select value={city}
@@ -156,7 +156,7 @@ function AddGym({onClose, onSuccess} : gymProps){
 
 
 
-                    <div className="mt-4">
+                    <div>
                         <label className="block text-xs font-bold text-white mb-2">
                             WebSite 
                         <span className="font-normal text-zinc-500 ml-1">(optional)</span>
@@ -167,7 +167,7 @@ function AddGym({onClose, onSuccess} : gymProps){
                                     onChange={function(e){setWebSite(e.target.value)}}
                                     className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
                     </div>
-                    <div className="mt-4">
+                    <div>
                         <label className="block text-xs font-bold text-white mb-2">
                             Phone Number  
                             <span className="font-normal text-zinc-500 ml-1">(optional)</span>
@@ -230,7 +230,7 @@ function AddGym({onClose, onSuccess} : gymProps){
                     </div>
                     
 
-                    <div className="mt-3 rounded-xl bg-[#0A0A0A] border border-[#242424] max-h-60 p-1.5 overflow-y-auto divide-[#181818]">
+                    <div className="mt-3 rounded-xl bg-[#0A0A0A] border border-[#242424] max-h-60 p-1.5 overflow-y-auto divide-y divide-[#181818]">
                         <p className="text-xs text-zinc-500 py-2">Machines</p>
                         {equiList.map(function(item){
                             const isSelected = selectedEquip.includes(item.id);
@@ -288,7 +288,7 @@ function AddGym({onClose, onSuccess} : gymProps){
                         <div className="flex items-center gap-3">
                             <button type="button" onClick={handleClose}
                                     className="px-4 py-2.5 text-xs font-bold text-zinc-400 hover:text-white transition-colors">
-                                <div>cancle</div>
+                                <div>cancel</div>
                             </button>
                             <button type="submit"
                                     className="px-4 py-2.5 rounded-xl bg-[#CCFF00] hover:bg-[#d8ff33] text-xs font-extrabold text-[#0F0F0F] transition-all">
