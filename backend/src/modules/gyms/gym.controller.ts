@@ -127,3 +127,30 @@ export async function getSubmissionsController(req : AuthenticatedRequest, res:R
         res.status(500).json({e: "server error"});
     }
 }
+
+
+
+
+
+
+
+export async function uploadGymImageController(req: AuthenticatedRequest, res: Response) {
+    // 1. Safety check: Is user logged in?
+    if (!req.userId) {
+        return res.status(401).json({ message: "unauthorized" });
+    }
+
+    // 2. Safety check: Did Multer actually receive a file?
+    // If the user sent empty data, req.file will be undefined!
+    if (!req.file) {
+        return res.status(400).json({ message: "Please select an image." });
+    }
+
+    // 3. Multer already saved the file to disk!
+    // req.file.filename is the generated name, like "9a2f-48bc.jpg".
+    // We build the URL path that the browser can visit:
+    const imageUrl = "/uploads/gyms/" + req.file.filename;
+
+    // 4. Send that URL back to the frontend!
+    res.status(200).json({ imageUrl });
+}

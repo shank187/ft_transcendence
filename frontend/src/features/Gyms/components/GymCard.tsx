@@ -1,11 +1,19 @@
 import { Link } from "react-router-dom";
 import type { Gym } from "../type/gym";
+import api from "../../auth/axiosInstance";
 
 interface GymCardPara {
     gym : Gym;
 }
 
 function GymCard({gym} : GymCardPara){
+    let imageUrl = "";
+
+    if (gym.imageUrl){
+        imageUrl = new URL(gym.imageUrl, api.defaults.baseURL).href;
+    }else
+        imageUrl ="/gym-images/default-gym.png";
+        
     return (
         <div className="flex flex-row items-center justify-between w-1/2 bg-[#111928] p-6 rounded-lg shadow-md border border-gray-200 text-[#ffffff] mb-2 hover:bg-[#1f2937] transition duration-300">
             <div className="flex flex-col items-start w-full">
@@ -23,7 +31,7 @@ function GymCard({gym} : GymCardPara){
                     View Details
                 </Link>
             </div>
-            <img src={gym.imageUrl || "/gym-images/default-gym.png"} alt={gym.name} className="w-32 h-32 object-cover  border"/>
+            <img src={imageUrl} alt={gym.name} className="w-32 h-32 object-cover  border"/>
         </div>
     )
 }

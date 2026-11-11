@@ -7,6 +7,9 @@ import {createGymController} from "./gym.controller"
 import {getSubmissionsController} from "./gym.controller";
 
 
+import { upload_gym_image } from "../../middleware/upload_gym";
+import { uploadGymImageController } from "./gym.controller";
+
 
 
 const router = Router();
@@ -16,6 +19,7 @@ router.get('/submissions', authenticate, getSubmissionsController);
 router.get('/search', authenticate, searchGymsController);
 router.get('/equip', authenticate, getALLEquipController);
 router.post('/', authenticate, createGymController);
+router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
 
 
 

@@ -87,7 +87,7 @@ function GymsearchPage(){
             {bannerMessage && (
                 <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0e2716] border border-emerald-500/40 p-4 text-white text-xs transition-all">
                     <span>{bannerMessage}</span>
-                    <button onClick={function(e){setBannerMessage(null)}}
+                    <button onClick={function(){setBannerMessage(null)}}
                             className="text-red-400 hover:text-white font-bold px-2 py-1"
                             >X</button>
                 </div>

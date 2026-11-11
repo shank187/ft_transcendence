@@ -21,6 +21,7 @@ function AddGym({onClose, onSuccess} : gymProps){
     const [webSite, setWebSite] = useState("");
     const [description, setDescription] = useState("");
     const [phoneNumber, SetPhoneNumber] = useState("");
+    const [imageUrl, setImageUrl] = useState("");
 
 
     useEffect(function(){
@@ -59,7 +60,8 @@ function AddGym({onClose, onSuccess} : gymProps){
                 equipment: formattedEquip,
                 description : description,
                 phone  : phoneNumber,
-                website : webSite
+                website : webSite,
+                imageUrl : imageUrl || undefined
             });
             // console.log(res.data);§
             onSuccess(res.data.msg);
@@ -68,6 +70,23 @@ function AddGym({onClose, onSuccess} : gymProps){
         catch(e){
             console.error("Failed to create gym:",e);
             alert("Failed to submit gym. Please try again.");
+        }
+    }
+
+    async function handleImageUpload(e : React.ChangeEvent<HTMLInputElement>){
+        if(!e.target.files || !e.target.files[0])
+                return;
+
+        const file = e.target.files[0];
+        const fileToSend = new FormData();
+
+        fileToSend.append("image", file);
+
+        try{
+            const res = await api.post("/api/gyms/upload-image", fileToSend);
+            setImageUrl(res.data.imageUrl);
+        }catch(e){
+            console.log(e);
         }
     }
 
@@ -254,6 +273,16 @@ function AddGym({onClose, onSuccess} : gymProps){
                             );
                         })}
                     </div>
+
+
+                    <div className="mt-5">
+                        <label className="block text-xs font-bold text-white mb-2" >Photos
+                            <span className="font-normal text-zinc-500 ml-1">(one image max, for the review)</span>
+                        </label>
+                        <input type="file" accept="image/png, image/jpeg" 
+                                onChange={handleImageUpload}/>
+                    </div>
+
 
                     <div className="space-y-3">
                             <label className="block text-xs font-bold text-white mt-10">Who can see it?</label>
