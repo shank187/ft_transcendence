@@ -41,7 +41,7 @@ type ExerciseListResult =
     | { ok: false; reason: "MUSCLE_NOT_FOUND" | "EQUIPMENT_NOT_FOUND" };
 
 export async function getExercises(query: ExerciseListQuery): Promise<ExerciseListResult> {
-    const { page, limit, search, muscle, equipment } = query;
+    const { page, limit, search, muscle, equipment, sort } = query;
 
     if (muscle && !(await prisma.muscleGroup.findUnique({ where: { id: muscle }, select: { id: true } })))
         return { ok: false, reason: "MUSCLE_NOT_FOUND" }
@@ -65,9 +65,8 @@ export async function getExercises(query: ExerciseListQuery): Promise<ExerciseLi
         where,
         skip,
         take: limit,
-        orderBy: {
-            name: "asc",
-        },
+        // id breaks ties, so the same row never lands on two pages.
+        orderBy: [{ name: sort === "name_desc" ? "desc" : "asc" }, { id: "asc" }],
         select: exerciseListSelect,
     });
     const total = await prisma.exercise.count({ where })

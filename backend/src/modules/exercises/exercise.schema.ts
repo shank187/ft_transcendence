@@ -21,6 +21,7 @@ export const exerciseListQuery = z.object({
         .refine(value => value === "" || idParam.safeParse(value).success, "Invalid Muscle").optional(),
     equipment: z.string("Invalid Equipment").trim()
         .refine(value => value === "" || idParam.safeParse(value).success, "Invalid Equipment").optional(),
+    sort: z.enum(["name_asc", "name_desc"], "Invalid Sort").default("name_asc"),
 });
 
 export type ExerciseListQuery = z.infer<typeof exerciseListQuery>;

@@ -1,4 +1,4 @@
-import type { ExerciseFilters as ServerExerciseFilters } from "../../../../../../shared/exercises"
+import type { ExerciseFilters as ServerExerciseFilters, ExerciseSort } from "../../../../../../shared/exercises"
 
 export type { ExerciseItem, ExerciseList, ExerciseType } from "../../../../../../shared/exercises"
 
@@ -9,6 +9,7 @@ export interface ExerciseQuery {
     search?: string
     muscle?: string
     equipment?: string
+    sort?: ExerciseSort
     gymId?: string
 }
 

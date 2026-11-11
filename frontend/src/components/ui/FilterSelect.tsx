@@ -15,12 +15,13 @@ type FilterSelectProps = {
     allLabel: string
     onChange: (value: string) => void
     disabled?: boolean
+    showLabel?: boolean
 }
 
-function FilterSelect({id, label, value, options, allLabel, onChange, disabled = false}: FilterSelectProps) {
+function FilterSelect({id, label, value, options, allLabel, onChange, disabled = false, showLabel = false}: FilterSelectProps) {
     return (
-        <div className="flex flex-col gap-1">
-            <label className="sr-only" htmlFor={id}>{label}</label>
+        <div className={showLabel ? "flex items-center gap-2" : "flex flex-col gap-1"}>
+            <label className={showLabel ? "text-sm text-app-text-secondary" : "sr-only"} htmlFor={id}>{label}</label>
             <select
                 id={id}
                 value={value}

@@ -22,6 +22,7 @@ const INITIAL_QUERY: ExerciseQuery = {
     search: "",
     muscle: "",
     equipment: "",
+    sort: "name_asc",
     gymId: "",
 }
 
@@ -165,6 +166,16 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         options={filters?.muscles ?? []}
                         onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
                         allLabel="All muscles"
+                    />
+                    {/* "" is FilterSelect's first option, used here for the default order. */}
+                    <FilterSelect
+                        id="sort-select"
+                        label="Sort"
+                        showLabel
+                        value={query.sort === "name_desc" ? "name_desc" : ""}
+                        options={[{ id: "name_desc", name: "Name Z–A" }]}
+                        onChange={(value) => setQuery((prev) => ({...prev, page: 1, sort: value === "name_desc" ? "name_desc" : "name_asc"}))}
+                        allLabel="Name A–Z"
                     />
                     <Button
                         disabled={filterState.status !== "success" || !filters?.gym}

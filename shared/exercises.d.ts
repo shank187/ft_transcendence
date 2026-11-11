@@ -5,6 +5,9 @@ export type ExerciseType =
     | "WEIGHT_REPS" | "BODYWEIGHT_REPS" | "WEIGHTED_BODYWEIGHT" | "ASSISTED_BODYWEIGHT"
     | "DURATION" | "WEIGHT_DURATION" | "DISTANCE_DURATION"
 
+// GET /api/exercises?sort=… (default name_asc)
+export type ExerciseSort = "name_asc" | "name_desc"
+
 // GET /api/exercises
 export interface ExerciseItem
 {
