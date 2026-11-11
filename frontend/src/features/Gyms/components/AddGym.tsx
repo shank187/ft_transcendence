@@ -7,8 +7,10 @@ import { Check, ChevronLeft, X } from "lucide-react";
 
 interface gymProps{
     onClose : (bool : boolean)=>void;
+    onSuccess : (msg : string)=>void;
 }
-function AddGym({onClose} : gymProps){
+
+function AddGym({onClose, onSuccess} : gymProps){
     const [name, setName] = useState("");
     const [city, setCity] = useState("");
     const [address, setAddress] = useState("");
@@ -60,6 +62,7 @@ function AddGym({onClose} : gymProps){
                 website : webSite
             });
             // console.log(res.data);§
+            onSuccess(res.data.msg);
             handleClose();
         }
         catch(e){

@@ -11,8 +11,6 @@ import AddGym from "./AddGym";
 
 
 
-
-
 function GymsearchPage(){
     const [GymList  , setGymList] = useState<Gym[]>([]);//emptyy array of Gym type object 
     const [textSearched, setTextSearched] = useState("");
@@ -23,6 +21,7 @@ function GymsearchPage(){
     const [hasNextPage, setHasNextPage] = useState(false);
 
     const [isAddGymOpen, setIsAddGymOpen] = useState(false);
+    const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
     useEffect (function(){
         setPage(1);
@@ -64,18 +63,35 @@ function GymsearchPage(){
             ignore = true;
         }
     }, [textSearched, city, verified, page]);
+    useEffect(function(){
+        if (!bannerMessage)
+            return;
+        const timer = setTimeout(function(){
+            setBannerMessage(null);
+        }, 3000);
+        return function(){
+            clearTimeout(timer);
+        }
+    },[bannerMessage]);
+
     if (isAddGymOpen){
-        return <AddGym  onClose={setIsAddGymOpen}/>
+        return <AddGym  onClose={setIsAddGymOpen} onSuccess={function(msg){setBannerMessage(msg); }}/>
     }
+
+
     return (
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
 
 
-
-
-
-
+            {bannerMessage && (
+                <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0e2716] border border-emerald-500/40 p-4 text-white text-xs transition-all">
+                    <span>{bannerMessage}</span>
+                    <button onClick={function(e){setBannerMessage(null)}}
+                            className="text-red-400 hover:text-white font-bold px-2 py-1"
+                            >X</button>
+                </div>
+            )} 
 
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
