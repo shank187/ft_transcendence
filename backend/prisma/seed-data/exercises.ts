@@ -1,319 +1,112 @@
 import { ExerciseType, PrismaClient } from "@prisma/client";
-import type { MuscleGroupName } from "./muscle-groups";
-import type { EquipmentName } from "./equipment";
+import { z } from "zod";
+import { MUSCLE_GROUPS } from "./muscle-groups";
+import { EQUIPMENT } from "./equipment";
+import data from "./exercises.json";
 
+// The catalog lives in exercises.json (see README.md); this file only checks it and writes it.
+// Muscle groups and equipment are written by name in the file and must exist in
+// MUSCLE_GROUPS and EQUIPMENT, so a typo fails here and not as a missing link in the database.
+const muscleGroup = z.enum(MUSCLE_GROUPS, "not a name in MUSCLE_GROUPS (muscle-groups.ts)");
+const equipmentName = z.enum(EQUIPMENT.map((item) => item.name), "not a name in EQUIPMENT (equipment.ts)");
 
-export type ExerciseSeed = {
-  name: string;
-  type: ExerciseType;
-  primaryMuscle: MuscleGroupName;
-  secondaryMuscles: MuscleGroupName[];
-  equipment: EquipmentName[];
-};
+const exerciseRow = z.strictObject({
+    sourceId: z.string().min(1).nullable(),
+    name: z.string().trim().min(1),
+    type: z.enum(ExerciseType),
+    primaryMuscle: muscleGroup,
+    secondaryMuscles: z.array(muscleGroup),
+    equipment: z.array(equipmentName),
+    description: z.string().min(1).nullable(),
+    image: z.string().regex(/^[a-z0-9-]+\.jpg$/).nullable(),
+    // Checked now, written later: the schema has no column for these yet.
+    difficulty: z.enum(["beginner", "intermediate", "advanced"]).nullable(),
+    instructions: z.string(),
+    formCues: z.array(z.string()),
+    commonMistakes: z.array(z.string()),
+    aliases: z.array(z.string()),
+});
 
+export type ExerciseSeed = z.infer<typeof exerciseRow>;
 
-const exercises: ExerciseSeed[] = [
-  // CHEST
-  {
-    name: "Barbell Bench Press",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Chest",
-    secondaryMuscles: ["Triceps", "Shoulders"],
-    equipment: ["Barbell", "Bench"],
-  },
-  {
-    name: "Incline Dumbbell Press",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Chest",
-    secondaryMuscles: ["Shoulders", "Triceps"],
-    equipment: ["Dumbbells", "Bench"],
-  },
-  {
-    name: "Chest Press Machine",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Chest",
-    secondaryMuscles: ["Triceps", "Shoulders"],
-    equipment: ["Chest Press Machine"],
-  },
-  {
-    name: "Cable Chest Fly",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Chest",
-    secondaryMuscles: ["Shoulders"],
-    equipment: ["Cable Machine"],
-  },
-
-  // UPPER BACK
-  {
-    name: "Lat Pulldown",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Upper Back",
-    secondaryMuscles: ["Biceps", "Forearms"],
-    equipment: ["Lat Pulldown Machine"],
-  },
-  {
-    name: "T-Bar Row",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Upper Back",
-    secondaryMuscles: ["Biceps", "Forearms", "Lower Back"],
-    equipment: ["T-Bar Row Machine"],
-  },
-  {
-    name: "Barbell Row",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Upper Back",
-    secondaryMuscles: ["Biceps", "Forearms", "Lower Back"],
-    equipment: ["Barbell"],
-  },
-
-  // LOWER BACK
-  {
-    name: "Superman",
-    type: ExerciseType.BODYWEIGHT_REPS,
-    primaryMuscle: "Lower Back",
-    secondaryMuscles: ["Glutes", "Hamstrings"],
-    equipment: [],
-  },
-  {
-    name: "Barbell Deadlift",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Lower Back",
-    secondaryMuscles: ["Glutes", "Hamstrings", "Forearms"],
-    equipment: ["Barbell"],
-  },
-
-  // SHOULDERS
-  {
-    name: "Seated Dumbbell Shoulder Press",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Shoulders",
-    secondaryMuscles: ["Triceps"],
-    equipment: ["Dumbbells", "Bench"],
-  },
-  {
-    name: "Dumbbell Lateral Raise",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Shoulders",
-    secondaryMuscles: [],
-    equipment: ["Dumbbells"],
-  },
-  {
-    name: "Rear Delt Cable Fly",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Shoulders",
-    secondaryMuscles: ["Upper Back"],
-    equipment: ["Cable Machine"],
-  },
-
-  // BICEPS
-  {
-    name: "Dumbbell Biceps Curl",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Biceps",
-    secondaryMuscles: ["Forearms"],
-    equipment: ["Dumbbells"],
-  },
-  {
-    name: "Hammer Curl",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Biceps",
-    secondaryMuscles: ["Forearms"],
-    equipment: ["Dumbbells"],
-  },
-
-  // TRICEPS
-  {
-    name: "Rope Triceps Pushdown",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Triceps",
-    secondaryMuscles: [],
-    equipment: ["Cable Machine", "Rope"],
-  },
-  {
-    name: "Barbell Skull Crusher",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Triceps",
-    secondaryMuscles: [],
-    equipment: ["Barbell", "Bench"],
-  },
-
-  // FOREARMS
-  {
-    name: "Dumbbell Wrist Curl",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Forearms",
-    secondaryMuscles: [],
-    equipment: ["Dumbbells", "Bench"],
-  },
-
-  // ABDOMINALS
-  {
-    name: "Ab Crunch Machine",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Abdominals",
-    secondaryMuscles: [],
-    equipment: ["Ab Crunch Machine"],
-  },
-  {
-    name: "Plank",
-    type: ExerciseType.DURATION,
-    primaryMuscle: "Abdominals",
-    secondaryMuscles: ["Oblique", "Lower Back"],
-    equipment: [],
-  },
-
-  // OBLIQUE
-  {
-    name: "Side Plank",
-    type: ExerciseType.DURATION,
-    primaryMuscle: "Oblique",
-    secondaryMuscles: ["Abdominals", "Lower Back"],
-    equipment: [],
-  },
-
-  // QUADRICEPS
-  {
-    name: "Barbell Back Squat",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Quadriceps",
-    secondaryMuscles: ["Glutes", "Hamstrings", "Lower Back"],
-    equipment: ["Barbell"],
-  },
-  {
-    name: "Leg Press",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Quadriceps",
-    secondaryMuscles: ["Glutes", "Hamstrings"],
-    equipment: ["Leg Press Machine"],
-  },
-  {
-    name: "Leg Extension",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Quadriceps",
-    secondaryMuscles: [],
-    equipment: ["Leg Extension Machine"],
-  },
-
-  // GLUTES
-  {
-    name: "Barbell Hip Thrust",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Glutes",
-    secondaryMuscles: ["Hamstrings", "Lower Back"],
-    equipment: ["Barbell", "Bench"],
-  },
-  {
-    name: "Smith Machine Hip Thrust",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Glutes",
-    secondaryMuscles: ["Hamstrings"],
-    equipment: ["Smith Machine", "Bench"],
-  },
-
-  // HAMSTRINGS
-  {
-    name: "Romanian Deadlift",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Hamstrings",
-    secondaryMuscles: ["Glutes", "Lower Back", "Forearms"],
-    equipment: ["Barbell"],
-  },
-  {
-    name: "Leg Curl",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Hamstrings",
-    secondaryMuscles: [],
-    equipment: ["Leg Curl Machine"],
-  },
-
-  // CALVES
-  {
-    name: "Smith Machine Standing Calf Raise",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Calves",
-    secondaryMuscles: [],
-    equipment: ["Smith Machine"],
-  },
-  {
-    name: "Leg Press Calf Raise",
-    type: ExerciseType.WEIGHT_REPS,
-    primaryMuscle: "Calves",
-    secondaryMuscles: [],
-    equipment: ["Leg Press Machine"],
-  },
-];
-
-
-async function getMuscleGroupByName(name :string, prisma: PrismaClient) {
-    return prisma.muscleGroup.findUniqueOrThrow({
-        where: {
-            name: name,
-        },
-    });
+function nameAt(index: unknown): string
+{
+    const row = typeof index === "number" ? (data as { name?: unknown }[])[index] : undefined;
+    return typeof row?.name === "string" ? row.name : `row ${String(index)}`;
 }
 
-async function getEquipmentByName(name :string, prisma: PrismaClient) {
-    return prisma.equipment.findUniqueOrThrow({
-        where: {
-            name: name,
-        },
-    });
+// Checks the whole file before anything is written.
+function parseExercises(): ExerciseSeed[]
+{
+    const parsed = z.array(exerciseRow).safeParse(data);
+    if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const [index, ...field] = issue.path;
+        throw new Error(`exercises.json: "${nameAt(index)}", field "${field.join(".") || "(row)"}": ${issue.message}`);
+    }
+    const seen = new Set<string>();
+    for (const exercise of parsed.data) {
+        if (seen.has(exercise.name))
+            throw new Error(`exercises.json: "${exercise.name}", field "name": used twice`);
+        seen.add(exercise.name);
+        if (exercise.secondaryMuscles.includes(exercise.primaryMuscle))
+            throw new Error(`exercises.json: "${exercise.name}", field "secondaryMuscles": repeats the primary muscle`);
+    }
+    return parsed.data;
 }
 
-export async function SeedExercises(prisma: PrismaClient){
-    // seeding the exercice ad primary muscle group
-    for (const exerciseItem of exercises){
-        const exerciseData = await prisma.exercise.upsert({
-            where:{
-                name: exerciseItem.name,
-            },
-            update:{
-                type: exerciseItem.type,
-                primaryMuscleGroup: {
-                    connect: {name: exerciseItem.primaryMuscle},
-                },
-            },
-            create :{
-                name: exerciseItem.name,
-                type: exerciseItem.type,
-                primaryMuscleGroup: {
-                    connect: {name: exerciseItem.primaryMuscle},
-                },
-            },
-        });
-        //seeding the secondary muscle group list in the join table exerciseSecondaryMuscle
-        for (const secondaryMuscle of exerciseItem.secondaryMuscles){
-            const secondaryMuscleGroupData = await getMuscleGroupByName(secondaryMuscle, prisma);
-            await prisma.exerciseSecondaryMuscle.upsert({
-                where: {
-                    exerciseId_muscleGroupId:{
-                        exerciseId: exerciseData.id,
-                        muscleGroupId: secondaryMuscleGroupData.id,
-                    },
-                },
-                update:{},
-                create: {
-                    exerciseId: exerciseData.id,
-                    muscleGroupId: secondaryMuscleGroupData.id,
-                },
-            });
-        };        
-        for (const equipment of exerciseItem.equipment){
-            const equipmentData = await getEquipmentByName(equipment, prisma);
-            await prisma.exerciseEquipment.upsert({
-                where: {
-                    exerciseId_equipmentId:{
-                        exerciseId: exerciseData.id,
-                        equipmentId: equipmentData.id,
-                    },
-                },
-                update:{},
-                create: {
-                    exerciseId: exerciseData.id,
-                    equipmentId: equipmentData.id,
-                },
-            });
-        };
+// Safe to run again: every exercise is upserted by name and its links are rebuilt from the file.
+export async function seedExercises(prisma: PrismaClient)
+{
+    const exercises = parseExercises();
+
+    const muscleRows = await prisma.muscleGroup.findMany({ select: { id: true, name: true } });
+    const equipmentRows = await prisma.equipment.findMany({ select: { id: true, name: true } });
+    const muscleIds = new Map(muscleRows.map((row) => [row.name, row.id]));
+    const equipmentIds = new Map(equipmentRows.map((row) => [row.name, row.id]));
+
+    const idOf = (ids: Map<string, string>, name: string, exercise: string): string => {
+        const id = ids.get(name);
+        if (!id)
+            throw new Error(`"${exercise}": "${name}" is not in the database; seed muscle groups and equipment first`);
+        return id;
     };
 
+    for (const exercise of exercises) {
+        const fields = {
+            type: exercise.type,
+            description: exercise.description,
+            imageUrl: exercise.image ? `/exercise-images/${exercise.image}` : null,
+            primaryMuscleGroupId: idOf(muscleIds, exercise.primaryMuscle, exercise.name),
+        };
+        const secondaryIds = exercise.secondaryMuscles.map((name) => idOf(muscleIds, name, exercise.name));
+        const requiredIds = exercise.equipment.map((name) => idOf(equipmentIds, name, exercise.name));
+
+        // All or nothing per exercise: it never keeps half of its old links.
+        await prisma.$transaction(async (tx) => {
+            const row = await tx.exercise.upsert({
+                where: { name: exercise.name },
+                update: fields,
+                create: { name: exercise.name, ...fields },
+                select: { id: true },
+            });
+            await tx.exerciseSecondaryMuscle.deleteMany({ where: { exerciseId: row.id } });
+            await tx.exerciseEquipment.deleteMany({ where: { exerciseId: row.id } });
+            await tx.exerciseSecondaryMuscle.createMany({
+                data: secondaryIds.map((muscleGroupId) => ({ exerciseId: row.id, muscleGroupId })),
+            });
+            await tx.exerciseEquipment.createMany({
+                data: requiredIds.map((equipmentId) => ({ exerciseId: row.id, equipmentId })),
+            });
+        });
+    }
+
+    // An exercise that left the file is removed only when no plan and no workout uses it:
+    // plans and history must keep pointing at a real exercise.
+    const names = exercises.map((exercise) => exercise.name);
+    const removed = await prisma.exercise.deleteMany({
+        where: { name: { notIn: names }, workoutExercises: { none: {} }, sessionExercises: { none: {} } },
+    });
+    const keptInUse = await prisma.exercise.count({ where: { name: { notIn: names } } });
+    console.log(`Exercises: ${exercises.length} in the file, ${removed.count} old removed, ${keptInUse} old kept because a plan or a workout uses them.`);
 }

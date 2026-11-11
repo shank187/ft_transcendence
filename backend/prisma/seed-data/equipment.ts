@@ -113,7 +113,10 @@ export const EQUIPMENT = [
     { name: "Gymnastic Rings", category: "ACCESSORIES" },
     { name: "Suspension Trainer", category: "ACCESSORIES" },
     { name: "Landmine", category: "ACCESSORIES" },
-    { name: "Parallettes", category: "ACCESSORIES" }
+    { name: "Parallettes", category: "ACCESSORIES" },
+    { name: "Reverse Hyperextension Machine", category: "MACHINES" },
+    { name: "Shrug Machine", category: "MACHINES" },
+    { name: "Air Walker", category: "CARDIO" }
 ] as const;
 
 export type EquipmentName = typeof EQUIPMENT[number]["name"];
