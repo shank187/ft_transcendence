@@ -11,38 +11,29 @@ import { assignUserRole } from './auth.controller';
 export const verify_registration = async (req: Request, res: Response) => {
     const { registrationId, code } = req.body;
 
-    if (typeof registrationId !== 'string' || !registrationId.trim()) {
-        return res.status(400).json({
-            success: false,
-            error: 'Registration ID is required.',
-        });
-    }
+    if (typeof registrationId !== 'string' || !registrationId.trim())
+        return res.status(400).json({ message: 'Registration ID is required.' });
 
-    if (typeof code !== 'string' || code.length !== 6) {
-        return res.status(400).json({success: false, error: 'Code must contain 6 digits.'});
-    }
+    if (typeof code !== 'string' || code.length !== 6)
+        return res.status(400).json({ message: 'Code must contain 6 digits.' });
 
     for (let i = 0; i < code.length; i++)
     {
         if (code[i] < '0' || code[i] > '9')
-            return res.status(400).json({success: false, error: 'Code must contain only digits.'});
+            return res.status(400).json({ message: 'Code must contain only digits.' });
     }
 
     try {
         const pending = await prisma.pendingRegistration.findUnique({
-            where: { id: registrationId },
+            where: { id: registrationId }
         });
 
         if (!pending)
-            return res.status(400).json({success: false, error: 'Registration not found. Please register again.'});
+            return res.status(400).json({ message: 'Registration not found. Please register again.' });
 
 
-        if (pending.expiresAt.getTime() <= Date.now()) {
-            return res.status(400).json({
-                success: false,
-                error: 'Code expired. Please register again.',
-            });
-        }
+        if (pending.expiresAt.getTime() <= Date.now())
+            return res.status(400).json({ message: 'Code expired. Please register again.' });
 
         const attempt = await prisma.pendingRegistration.updateMany({
             where: {id: pending.id,
@@ -54,12 +45,12 @@ export const verify_registration = async (req: Request, res: Response) => {
         });
 
         if (attempt.count === 0)// prisma add count  by default in apdate many    
-            return res.status(400).json({ success: false, error: 'Too many attempts. Please register again.'});
+            return res.status(400).json({ message: 'Too many attempts. Please register again.' });
 
         const valid_code = await compare(code, pending.codeHash);
 
         if (!valid_code)
-            return res.status(400).json({success: false, error: 'Invalid verification code.'});
+            return res.status(400).json({ message: 'Invalid verification code.' });
 
         const user = await prisma.user.create({
             data: {
@@ -95,15 +86,9 @@ export const verify_registration = async (req: Request, res: Response) => {
         });
     } catch (error) {
         if (error instanceof Error && 'code' in error && error.code === 'P2002') {
-            return res.status(409).json({
-                success: false,
-                error: 'Username or email already taken. Try logging in.',
-            });
+            return res.status(409).json({ message: 'Username or email already taken. Try logging in.' });
         }
 
-        return res.status(500).json({
-            success: false,
-            error: 'Internal server error',
-        });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };

@@ -9,7 +9,7 @@ import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
 import CreatePlan from './pages/CreatePlan';
-import Edit_profile from "./pages/PrivateProfile";
+import EditProfile from "./pages/EditProfile";
 import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
@@ -45,7 +45,7 @@ function App() {
           <Route path="/gyms/:id" element={<GymDetailsPage />} />
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/new-plan" element={<CreatePlan />} />
-          <Route path="profile/settings" element={<Edit_profile />} />
+          <Route path="profile/settings" element={<EditProfile />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
           <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/workouts/session/:sessionId" element={<WorkoutSession />} />
