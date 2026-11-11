@@ -5,6 +5,7 @@ import 'dotenv/config';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import exerciseRouter from "./modules/exercises/exercise.route";
+import equipmentRouter from "./modules/equipment/equipment.route";
 import workoutRouter from "./modules/workouts/workout.route"
 import workoutSessionRouter from "./modules/workout-sessions/workout-session.route";
 import progressRouter from "./modules/progress/progress.route";
@@ -26,6 +27,7 @@ app.use(cookieParser());
 
 
 app.use("/api/exercises", exerciseRouter)
+app.use("/api/equipment", equipmentRouter)
 app.use('/api/workout-plans', workoutRouter)
 app.use('/api/workout-sessions', workoutSessionRouter)
 
