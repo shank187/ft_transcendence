@@ -1,5 +1,3 @@
-import { ChevronDown } from "lucide-react";
-
 interface filtersProps {
     setCityProps : (text : string) => void;
     // setRatingProps : (num : number)=> void;
