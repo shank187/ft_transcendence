@@ -124,7 +124,7 @@ enum GymSubmissionStatus {
 
 enum GymRejectReason {
   ALREADY_LISTED
-  NOT_A_GYM
+  NOT_A_GYM 
   CANT_CONFIRM
   OTHER
 }

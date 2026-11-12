@@ -21,6 +21,8 @@ app.use(cors({
     credentials: true,
 }));
 app.use("/uploads/avatars", express.static("uploads/avatars"));
+app.use("/uploads/gyms", express.static("uploads/gyms"));
+
 app.use(express.json());
 app.use(cookieParser());
 

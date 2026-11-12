@@ -5,7 +5,7 @@ interface searchBarProps{
 
 function SearchBar({ searchTerm, onSearchChange } : searchBarProps){
     return (
-        <div className="w-full max-w-md mb-6 flex ">
+        <div className="w-full max-w-md ">
             <input type="text" placeholder="search gyms/users by name" value={searchTerm} onChange={function(e){onSearchChange(e.target.value)}}
             className="w-full px-4 rounded-3xl bg-[#111928] text-[#ffffff] border border-gray-700 py-4"/>
         </div>

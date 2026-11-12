@@ -2,6 +2,11 @@ import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { Request, Response } from "express";
 import {searchForGyms} from "./gym.service"
 import {getGymById} from "./gym.service";
+import {getALLEquip} from "./gym.service"
+import {createGym} from "./gym.service";
+import {getSubmissions} from "./gym.service"
+import { prisma } from "../../lib/prisma";
+
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -25,7 +30,6 @@ export async function searchGymsController(req : AuthenticatedRequest, res : Res
         console.log("error fetching gyms",e);
         res.status(500).json({error : "server error"})
     }
-
 }
 
 export async function getGymByIdController(req :AuthenticatedRequest, res:Response){
@@ -54,4 +58,112 @@ export async function getGymByIdController(req :AuthenticatedRequest, res:Respon
         console.log("error fetching this gym", e);
         res.status(500).json({error : "server error"});
     }
+}
+
+
+export async function getALLEquipController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
+
+    try{
+        const equip = await getALLEquip();
+        res.status(200).json(equip);
+    }
+    catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});
+    }
+}
+
+
+export async function createGymController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
+
+    const {name , city , address, phone ,website, description, imageUrl, isPrivate, equipment} = req.body;
+
+    if (!name  || typeof name != "string" || name.trim() === "")
+        return res.status(400).json({e: "gym name is required"});
+
+    const data = {
+        userID : req.userId,
+        dataName : name.trim(),
+        dataCity : typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
+        dataAddress : typeof address === "string" && address.trim() !== "" ? address.trim() :  undefined,
+        dataPhone : typeof phone === "string" && phone.trim() !== "" ? phone.trim() : undefined,
+        dataWebsite: typeof website === "string" && website.trim() !== "" ? website.trim()  : undefined,
+        dataDescription : typeof description === "string" &&  description.trim() !== "" ? description.trim() : undefined,
+        dataImageUrl : typeof imageUrl === "string" ? imageUrl.trim() : undefined,
+        dataIsPrivate : isPrivate === true,
+
+
+        dataEquip : Array.isArray(equipment) ? equipment.filter(function(item){
+            return typeof item.equipmentId === "string" && item.equipmentId.trim() !== ""
+        }) : [],
+    };
+    
+    try {
+        const result = await createGym(data);
+
+        const msg  = isPrivate 
+        ? "Private gym created successfully" 
+        :"Gym submitted for admin approval";
+        res.status(201).json({msg, result});
+    }catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});
+    }
+}
+
+export async function getSubmissionsController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
+
+
+    try{
+
+        const isAdmin = await prisma.userRole.findFirst({
+            where : {
+                userId : req.userId,
+                role : {
+                    name : "ADMIN"
+                }}
+        });
+        if (!isAdmin){
+            return res.status(403).json({message: "Forbidden: admin access required."});
+        }
+        const submissions = await getSubmissions();
+        res.status(200).json(submissions);
+    }
+    catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});
+    }
+}
+
+
+
+
+
+
+
+export async function uploadGymImageController(req: AuthenticatedRequest, res: Response) {
+    // 1. Safety check: Is user logged in?
+    if (!req.userId) {
+        return res.status(401).json({ message: "unauthorized" });
+    }
+
+    // 2. Safety check: Did Multer actually receive a file?
+    // If the user sent empty data, req.file will be undefined!
+    if (!req.file) {
+        return res.status(400).json({ message: "Please select an image." });
+    }
+
+    // 3. Multer already saved the file to disk!
+    // req.file.filename is the generated name, like "9a2f-48bc.jpg".
+    // We build the URL path that the browser can visit:
+    const imageUrl = "/uploads/gyms/" + req.file.filename;
+
+    // 4. Send that URL back to the frontend!
+    res.status(200).json({ imageUrl });
 }
