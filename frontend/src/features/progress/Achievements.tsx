@@ -1,10 +1,10 @@
 import { Trophy, Medal, Zap } from "lucide-react";
-import type { SavedAchievement } from "./progress.types";
+import type { SavedAchievements } from "./progress.types";
 import { achievements } from "./achievements.data";
 import AchievementCard from "./AchievementCard";
 
 type AchievementsProps = {
-    savedAchievements: SavedAchievement[];
+    savedAchievements: SavedAchievements[];
 };
 
 export default function Achievements({

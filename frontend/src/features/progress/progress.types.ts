@@ -7,7 +7,7 @@ export type LeaderboardEntry = {
     xp: number;
 };
 
-export type savedAchievements = {
+export type SavedAchievements = {
     code: string;
     unlockedAt: string;
 };
@@ -15,5 +15,5 @@ export type savedAchievements = {
 export type ProgressSummary = {
     completedWorkouts: number;
     totalXp: number;
-    achievements: savedAchievements[];
+    achievements: SavedAchievements[];
 };
