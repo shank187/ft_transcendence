@@ -153,11 +153,12 @@ function AddGym({onClose, onSuccess} : gymProps){
                                 onChange={function(e){setCity(e.target.value)}}
                                 className="appearance-none w-full rounded-xl bg-[#0A0A0A] border border-[#242424] px-4 py-3 text-sm text-white">
                                 <option value="">Select a city (optional)</option>
-                                <option value="Casablanca">Casablanca</option>
+                                <option value="Casablanca">Khouribga</option>
                                 <option value="Rabat">Rabat</option>
-                                <option value="Marrakech">Marrakech</option>
-                                <option value="Tangier">Tangier</option>
-                                <option value="Agadir">Agadir</option>
+                                <option value="Rabat">Kenitra</option>
+                                <option value="Rabat">Beni Mellal</option>
+
+
                         </select>
                     </div>
 

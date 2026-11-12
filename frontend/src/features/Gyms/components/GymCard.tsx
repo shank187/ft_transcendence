@@ -7,12 +7,7 @@ interface GymCardPara {
 }
 
 function GymCard({gym} : GymCardPara){
-    let imageUrl = "";
-
-    if (gym.imageUrl){
-        imageUrl = new URL(gym.imageUrl, api.defaults.baseURL).href;
-    }else
-        imageUrl ="/gym-images/default-gym.png";
+    let imageUrl =  gym.imageUrl || "/gym-images/default-gym.png";
         
     return (
         <div className="flex flex-row items-center justify-between w-1/2 bg-[#111928] p-6 rounded-lg shadow-md border border-gray-200 text-[#ffffff] mb-2 hover:bg-[#1f2937] transition duration-300">

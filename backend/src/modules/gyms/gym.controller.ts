@@ -5,6 +5,7 @@ import {getGymById} from "./gym.service";
 import {getALLEquip} from "./gym.service"
 import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
+import { prisma } from "../../lib/prisma";
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -97,7 +98,7 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
 
 
         dataEquip : Array.isArray(equipment) ? equipment.filter(function(item){
-            return typeof item.equipmentId === "string" && item.equipmentid.trim() !== ""
+            return typeof item.equipmentId === "string" && item.equipmentId.trim() !== ""
         }) : [],
     };
     
@@ -118,7 +119,19 @@ export async function getSubmissionsController(req : AuthenticatedRequest, res:R
     if (!req.userId)
         return res.status(401).json({message :  "unauthorized"});
 
+
     try{
+
+        const isAdmin = await prisma.userRole.findFirst({
+            where : {
+                userId : req.userId,
+                role : {
+                    name : "ADMIN"
+                }}
+        });
+        if (!isAdmin){
+            return res.status(403).json({message: "Forbidden: admin access required."});
+        }
         const submissions = await getSubmissions();
         res.status(200).json(submissions);
     }

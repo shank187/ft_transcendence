@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 
+
 interface CreateGymData {
     userID: string;
     dataName: string;
@@ -52,31 +53,20 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
     }
     
     
-    // {
-        //   "name": {
-            //     "contains": "Gold",
-            //     "mode": "insensitive"
-            //   },
-            //   "city": {
-                //     "equals": "Rabat",
-                //     "mode": "insensitive"
-                //   },
-                //   "verified": true
-                // }
                 
-                export async function getGymById(id :string){
-    const gym = await prisma.gym.findUnique({
-        where : {id : id},
-        include :{
-            equipment : {
-                include :{equipment : true}
+    export async function getGymById(id :string){
+        const gym = await prisma.gym.findUnique({
+            where : {id : id},
+            include :{
+                equipment : {
+                    include :{equipment : true}
+                }
             }
-        }
-    });
-    if (!gym)
-        return null;
-    return gym;
-}
+        });
+        if (!gym)
+            return null;
+        return gym;
+    }
 
 
 export async function getALLEquip(){
@@ -118,6 +108,7 @@ export async function createGym(data : CreateGymData){
                         }
                     })
                 }
+                
 
             }
         });
@@ -132,6 +123,18 @@ export async function createGym(data : CreateGymData){
                 city : data.dataCity,
                 address :data.dataAddress,
                 note : data.dataDescription,
+                photos : data.dataImageUrl ?{
+                    create : {
+                        position : 0,
+                        media : {
+                            create :{
+                                url : data.dataImageUrl,
+                                uploadedById :data.userID,
+                                type : "IMAGE"
+                            }
+                        }
+                    }
+                } : undefined,
                 equipment :{
                     create : data.dataEquip?.map(function(item){
                         return {
@@ -162,7 +165,11 @@ export async function getSubmissions(){
                     equipment : true,
                 }
             },
-            
+            photos : {
+                include :{
+                    media: true,
+                }
+            }
         }
     });
 }
