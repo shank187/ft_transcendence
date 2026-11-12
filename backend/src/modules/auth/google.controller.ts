@@ -107,7 +107,8 @@ export const googleCallback = async (req: Request, res: Response) => {
 
         return res.redirect(`${FRONTEND_URL}/home`);
     }
-    catch {
+    catch (error) {
+        console.log("error :", error);
         return res.redirect(`${FRONTEND_URL}/login?error=google`);
     }
 };

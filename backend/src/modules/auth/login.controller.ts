@@ -32,9 +32,6 @@ export const login = async (req: Request, res: Response) => {
     email = email.trim().toLowerCase();
 
 
-
-    
-
     try {
         const user = await prisma.user.findUnique({ 
             where: { email },
@@ -62,6 +59,7 @@ export const login = async (req: Request, res: Response) => {
             user: { id: user.id, username: user.username, email: user.email , onboardingCompletedAt: user.onboardingCompletedAt, roles: user.roles.map(entry => entry.role.name)}
         });
     } catch (error) {
+        console.log("error :", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

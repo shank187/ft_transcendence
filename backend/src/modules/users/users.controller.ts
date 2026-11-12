@@ -79,6 +79,7 @@ export const updateOnboarding = async (req: AuthenticatedRequest, res: Response)
             }
         });
     } catch (error) {
+        console.log("error :", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -162,8 +163,9 @@ export const update_me = async (req: AuthenticatedRequest, res: Response) =>{
             ...profile,
             hasPassword: Boolean(passwordHash)
         });
-    }catch
+    }catch (error)
     {
+        console.log("error :", error);
         return res.status(500).json({ message: "Could not update your profile."});
     }
 }
@@ -225,7 +227,8 @@ export const change_password = async (req: AuthenticatedRequest, res: Response) 
         });
 
         return res.status(200).json({ message: "Password updated successfully." });
-    } catch {
+    } catch (error) {
+        console.log("error :", error);
         return res.status(500).json({ message: "Could not update your password." });
     }
 
@@ -260,6 +263,7 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
                     try {
                         await unlink("uploads/avatars/" + filename);
                     } catch (error) {
+                        console.log("error :", error);
                         if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
                             throw error;
                     }
@@ -268,7 +272,8 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
         }
 
         return res.status(200).json({message: "Avatar updated successfully.", avatarUrl: user.avatarUrl});
-    } catch {
+    } catch (error) {
+        console.log("error :", error);
         return res.status(500).json({message: "Could not update your avatar."});
     }
 };
@@ -296,6 +301,7 @@ export const delete_avatar  = async(req :AuthenticatedRequest, res:Response)=>
             try {
                 await unlink("uploads/avatars/" + filename);
             } catch (error){
+                console.log("error :", error);
                 if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
                     return res.status(500).json({message: "Could not remove your avatar."});
             }

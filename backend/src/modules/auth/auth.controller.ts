@@ -56,6 +56,7 @@ export const refresh = async (req: Request, res: Response) => {
         res.status(200).json({ access_token });
     } catch (error)
     {
+        console.log("error :", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -92,6 +93,7 @@ export const logout = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error)
     {
+        console.log("error :", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -122,7 +124,8 @@ export const check_session = async (req: Request, res: Response) => {
             authenticated: true
         });
 
-    } catch {
+    } catch (error) {
+        console.log("error :", error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };

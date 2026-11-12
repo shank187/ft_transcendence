@@ -85,7 +85,8 @@ export const register = async (req: Request, res: Response) => {
         try {
             await send_email(email, code);
         }
-        catch {
+        catch (error) {
+            console.log("error :", error);
             await prisma.pendingRegistration.deleteMany({
                 where: {
                     id: pending.id
@@ -116,7 +117,8 @@ export const register = async (req: Request, res: Response) => {
             message: "Check your email for the verification code."
         });
     }
-    catch {
+    catch (error) {
+        console.log("error :", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
