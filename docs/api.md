@@ -649,7 +649,7 @@ Failure example: a set with `"setType": "BANANA"` returns `400` `{ "message": "I
 
 ## Workout sessions
 
-Routes under `/api/workout-sessions`, code in `backend/src/modules/workout-sessions/`. Starting and finishing a workout are not implemented yet, and `frontend/src/features/workouts/workout-session/workout-session.api.ts` still uses its fake data.
+Routes under `/api/workout-sessions`, code in `backend/src/modules/workout-sessions/`. Frontend calls in `frontend/src/features/workouts/workout-session/workout-session.api.ts` and `frontend/src/features/workouts/shared/start-workout.ts`.
 
 Rules shared by every route below:
 
@@ -658,6 +658,31 @@ Rules shared by every route below:
 - **Ids:** every id in the URL must be a UUID; anything else returns the same `404` as a missing row (`"Workout not found."`, `"Exercise not found."`, `"Set not found."`).
 - **Closed workouts:** every write first checks the session's status. A `COMPLETED` or `CANCELLED` session returns `409 { "message": "This workout is finished or cancelled." }`. The write itself also requires `status = IN_PROGRESS` in its `where`, so a workout finished between the check and the write is never changed (that case answers `404 "Workout not found."`).
 - **Errors:** `400` returns the first validation message; unexpected errors return `500 { "message": "Internal server error" }`.
+
+### `POST /api/workout-sessions`
+
+Starts a workout, empty or from one of the user's plan days.
+
+- **Body:** `{}` for an empty workout, or `{ "dayId": "<uuid>" }` to start from that day.
+- **From a day:** the day's exercises and sets are copied in one transaction. `order`, `restSeconds`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
+- **One active workout:** a user with a workout `IN_PROGRESS` gets `409` with that workout's id, so the client can offer to resume or discard it.
+- **Daily limit:** at most 5 workouts started in the last 24 hours (`MAX_WORKOUTS_PER_DAY` in `workout-session.schema.ts`). Discarded workouts count too, so start and discard can't be repeated without end.
+- **Starts at the same moment:** the checks and the insert run in one `Serializable` transaction. When two starts overlap, PostgreSQL rolls one back, and that request answers `409` without an id. Tested with 10 starts sent together: one workout saved, nine `409`.
+- **Code:** `startWorkoutSessionController` → `startWorkoutSession`.
+
+Response `201`: the new workout, same shape as `GET /api/workout-sessions/:sessionId`. An empty workout has `"name": "Workout"`, `"workoutDayId": null` and `"exercises": []`.
+
+Status codes:
+
+- `201` workout started
+- `400` body is not an object, or `dayId` is not a UUID (`{ "message": "Day not found." }`)
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Day not found." }` — the day doesn't exist or isn't in one of the user's plans
+- `409` `{ "message": "You have a workout in progress.", "activeSessionId": "<uuid>" }`, or `{ "message": "Another workout was started at the same time. Please try again." }`
+- `422` `{ "message": "You can start at most 5 workouts in 24 hours." }`
+- `500` unexpected error
+
+Failure example: starting a second workout while one is running returns `409` with the running workout's `activeSessionId`.
 
 ### `GET /api/workout-sessions/:sessionId`
 
@@ -702,7 +727,7 @@ Response `200`:
 | `exercises[].sets[].planned*` | number \| null | Targets copied from the plan when the workout starts |
 | `exercises[].sets[].weight` / `reps` / `duration` / `distance` | number \| null | What the user did |
 | `exercises[].sets[].completedAt` | ISO string \| null | `null` = set not ticked |
-| `summary` | `WorkoutSummary` \| null | Always `null` here; the summary comes with finishing a workout (not implemented yet) |
+| `summary` | `WorkoutSummary` \| null | `null` unless `status` is `COMPLETED`. `durationSeconds`, `setsCompleted` / `setsTotal`, `volumeKg` (completed sets with weight and reps), `exerciseCount`, `prSetIds` (empty until PR detection exists) |
 
 Status codes:
 
@@ -736,6 +761,28 @@ Status codes:
 
 Failure example: discarding the same workout twice returns `409` `{ "message": "This workout is finished or cancelled." }` the second time.
 
+### `POST /api/workout-sessions/:sessionId/finish`
+
+Finishes a workout in progress: `status` becomes `COMPLETED` and `completedAt` is set.
+
+- **Path:** `sessionId`. No body.
+- **Rule:** at least one set must be ticked (`completedAt` not null).
+- **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200`, so a retry after a lost response is not an error.
+- **Code:** `finishWorkoutSessionController` → `finishWorkoutSession`.
+
+Response `200`: the finished workout, same shape as `GET /api/workout-sessions/:sessionId`, with its `summary`. The award (XP, level) is not implemented yet.
+
+Status codes:
+
+- `200` workout finished, or already finished
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }`
+- `409` `{ "message": "This workout was discarded." }`
+- `422` `{ "message": "Complete at least one set to finish." }`
+- `500` unexpected error
+
+Failure example: finishing a workout with no ticked set returns `422` `{ "message": "Complete at least one set to finish." }`.
+
 ### `POST /api/workout-sessions/:sessionId/exercises`
 
 Adds exercises at the end of a workout in progress, each with one empty set.
@@ -759,6 +806,28 @@ Status codes:
 - `500` unexpected error
 
 Failure example: a workout with 19 exercises plus 2 more returns `422` `{ "message": "A workout can have at most 20 exercises." }`.
+
+### `PATCH /api/workout-sessions/:sessionId/exercises/:exerciseId`
+
+Moves an exercise one place up or down by swapping `order` with its neighbour.
+
+- **Path:** `sessionId`, `exerciseId` (the workout exercise's `id`, not the catalog exercise).
+- **Body:** `{ "direction": -1 }` (up) or `{ "direction": 1 }` (down).
+- **Code:** `moveSessionExerciseController` → `moveSessionExercise`.
+
+Response `200`: the workout's exercise ids in their new order, e.g. `["f6a7…02", "f6a7…01", "f6a7…03"]`.
+
+Status codes:
+
+- `200` exercise moved
+- `400` `{ "message": "Direction must be -1 (up) or 1 (down)." }`
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Exercise not found." }`
+- `409` `{ "message": "This workout is finished or cancelled." }`, or `{ "message": "The workout changed. Please try again." }` when another request changed the order at the same time
+- `422` `{ "message": "This exercise is already first." }` or `{ "message": "This exercise is already last." }`
+- `500` unexpected error
+
+Failure example: moving the first exercise up returns `422` `{ "message": "This exercise is already first." }`.
 
 ### `POST /api/workout-sessions/:sessionId/exercises/:exerciseId/sets`
 

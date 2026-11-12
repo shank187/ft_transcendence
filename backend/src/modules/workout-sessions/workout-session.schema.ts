@@ -10,6 +10,20 @@ export const discardSessionBody = z.object({
     status: z.literal("CANCELLED"),
 });
 
+// Workouts started in the last 24 hours, discarded ones included.
+export const MAX_WORKOUTS_PER_DAY = 5;
+
+// {} starts an empty workout; { dayId } starts from that day.
+export const startSessionBody = z.object({
+    dayId: z.uuid("Day not found.").optional(),
+}, "Send a JSON body: {} or { \"dayId\": \"...\" }.");
+
+const DIRECTION_MESSAGE = "Direction must be -1 (up) or 1 (down)."
+
+export const moveExerciseBody = z.object({
+    direction: z.union([z.literal(-1), z.literal(1)], DIRECTION_MESSAGE),
+});
+
 export const addExercisesBody = z.object({
     exerciseIds: z.array(exerciseIdValue)
         .min(1, "Pick at least one exercise.")

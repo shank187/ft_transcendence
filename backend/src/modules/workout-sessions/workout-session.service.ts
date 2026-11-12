@@ -1,10 +1,10 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
-import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
-import type { UpdateSetBody } from "./workout-session.schema";
+import { isNotFoundError, isUniqueViolation, isWriteConflict } from "../../lib/prisma-errors";
+import { MAX_WORKOUTS_PER_DAY, type UpdateSetBody } from "./workout-session.schema";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../../lib/validation";
-import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "./workout-session.types";
+import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "./workout-session.types";
 
 const setSelect = {
     id: true,
@@ -19,6 +19,7 @@ const setSelect = {
     duration: true,
     distance: true,
     completedAt: true,
+    isPr: true,
 } satisfies Prisma.WorkoutSetSelect;
 
 const sessionExerciseSelect = {
@@ -75,6 +76,25 @@ function toSessionExerciseDto(exercise: SessionExerciseRowDb): WorkoutSessionExe
     }
 }
 
+// S3 -> S5 contract ("Workout results"): only a finished workout has a summary.
+// Volume counts completed sets that have both a weight and reps.
+function toSummaryDto(session: SessionRowDb): WorkoutSummary | null
+{
+    if(session.status !== "COMPLETED" || !session.completedAt)
+        return null
+    const sets = session.exercises.flatMap(exercise => exercise.sets)
+    const completed = sets.filter(set => set.completedAt !== null)
+    return {
+        durationSeconds: Math.max(0, Math.floor((session.completedAt.getTime() - session.startedAt.getTime()) / 1000)),
+        setsCompleted: completed.length,
+        setsTotal: sets.length,
+        volumeKg: completed.reduce((total, set) =>
+            set.weight !== null && set.reps !== null ? total + set.weight * set.reps : total, 0),
+        exerciseCount: session.exercises.length,
+        prSetIds: completed.filter(set => set.isPr).map(set => set.id),
+    }
+}
+
 function toSessionDto(session: SessionRowDb): WorkoutSession
 {
     return {
@@ -86,8 +106,7 @@ function toSessionDto(session: SessionRowDb): WorkoutSession
         completedAt: session.completedAt?.toISOString() ?? null,
         bodyWeightKg: session.bodyWeightKg,
         exercises: session.exercises.map(toSessionExerciseDto),
-        // The summary is added with POST /:sessionId/finish.
-        summary: null,
+        summary: toSummaryDto(session),
     }
 }
 
@@ -330,3 +349,156 @@ export async function deleteSessionSet(userId: string, sessionId: string, setId:
         throw error
     }
 }
+
+type FinishSessionResult = {ok: false, reason: "NOT_FOUND" | "CANCELLED" | "NO_COMPLETED_SET"}| {ok: true, session: WorkoutSession}
+
+// Finishing twice returns the finished workout again, so a retry after a lost response is not an error.
+export async function finishWorkoutSession(userId: string, sessionId: string): Promise<FinishSessionResult>
+{
+    const session = await getWorkoutSession(userId, sessionId)
+    if(!session)
+        return {ok: false, reason: "NOT_FOUND"}
+    if(session.status === "CANCELLED")
+        return {ok: false, reason: "CANCELLED"}
+    if(session.status === "COMPLETED")
+        return {ok: true, session}
+    if(!session.exercises.some(exercise => exercise.sets.some(set => set.completedAt !== null)))
+        return {ok: false, reason: "NO_COMPLETED_SET"}
+    try{
+        const sessionrow = await prisma.workoutSession.update({
+            where:{id: sessionId, userId: userId, status: "IN_PROGRESS"},
+            data: {status:"COMPLETED", completedAt: new Date()},
+            select: sessionSelect
+        })
+        return {ok: true, session: toSessionDto(sessionrow)}
+    }
+    catch(err){
+        // Discarded between the read and the update.
+        if(isNotFoundError(err))
+            return {ok: false, reason: "NOT_FOUND"}
+        throw err
+    }
+}
+
+const daySnapshotSelect = {
+    exercises: {
+        orderBy: { order: "asc" },
+        select: {
+            exerciseId: true,
+            order: true,
+            restSeconds: true,
+            sets: {
+                orderBy: { setNumber: "asc" },
+                select: { setNumber: true, setType: true, targetWeight: true, targetReps: true, targetDuration: true, targetDistance: true },
+            },
+        },
+    },
+} satisfies Prisma.WorkoutDaySelect;
+
+type StartSessionResult =
+    | { ok: true; session: WorkoutSession }
+    | { ok: false; reason: "ACTIVE"; activeSessionId: string }
+    | { ok: false; reason: "DAILY_LIMIT" | "DAY_NOT_FOUND" | "CONFLICT" };
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+// No dayId starts an empty workout. With a dayId, the day's exercises and sets are copied
+// (targets become planned* values), so later plan edits never change this workout.
+export async function startWorkoutSession(userId: string, dayId: string | undefined): Promise<StartSessionResult>
+{
+    try{
+        // Serializable: two starts sent at the same moment both read "no active workout";
+        // PostgreSQL then rolls one of them back (P2034) instead of saving two.
+        return await prisma.$transaction(async (tx): Promise<StartSessionResult> => {
+            const active = await tx.workoutSession.findFirst({
+                where: { userId, status: "IN_PROGRESS" },
+                select: { id: true },
+            })
+            if(active)
+                return { ok: false, reason: "ACTIVE", activeSessionId: active.id }
+            const startedToday = await tx.workoutSession.count({
+                where: { userId, startedAt: { gte: new Date(Date.now() - DAY_MS) } },
+            })
+            if(startedToday >= MAX_WORKOUTS_PER_DAY)
+                return { ok: false, reason: "DAILY_LIMIT" }
+            const day = dayId === undefined ? null : await tx.workoutDay.findFirst({
+                where: { id: dayId, workoutPlan: { userId } },
+                select: daySnapshotSelect,
+            })
+            if(dayId !== undefined && !day)
+                return { ok: false, reason: "DAY_NOT_FOUND" }
+            const session = await tx.workoutSession.create({
+                data: {
+                    userId,
+                    workoutDayId: dayId,
+                    exercises: {
+                        create: (day?.exercises ?? []).map(exercise => ({
+                            exerciseId: exercise.exerciseId,
+                            order: exercise.order,
+                            restSeconds: exercise.restSeconds,
+                            sets: {
+                                createMany: {
+                                    data: exercise.sets.map(set => ({
+                                        setNumber: set.setNumber,
+                                        setType: set.setType,
+                                        plannedWeight: set.targetWeight,
+                                        plannedReps: set.targetReps,
+                                        plannedDuration: set.targetDuration,
+                                        plannedDistance: set.targetDistance,
+                                    })),
+                                },
+                            },
+                        })),
+                    },
+                },
+                select: sessionSelect,
+            })
+            return { ok: true, session: toSessionDto(session) }
+        }, { isolationLevel: "Serializable" })
+    }catch(error){
+        if(isWriteConflict(error))
+            return { ok: false, reason: "CONFLICT" }
+        throw error
+    }
+}
+
+type MoveExerciseResult =
+    | { ok: true; exerciseIds: string[] }
+    | { ok: false; reason: "NOT_FOUND" | "CLOSED" | "EXERCISE_NOT_FOUND" | "ALREADY_FIRST" | "ALREADY_LAST" | "CONFLICT" };
+
+// Swaps order with the neighbour and returns the exercise ids in their new order.
+// order is unique per workout, so the moved exercise waits at 0 while the neighbour takes its place.
+export async function moveSessionExercise(userId: string, sessionId: string, exerciseId: string, direction: -1 | 1): Promise<MoveExerciseResult>
+{
+    const state = await getSessionState(userId, sessionId)
+    if(state !== "OPEN")
+        return { ok: false, reason: state }
+    try{
+        return await prisma.$transaction(async (tx): Promise<MoveExerciseResult> => {
+            const exercises = await tx.workoutSessionExercise.findMany({
+                where: { workoutSession: { id: sessionId, userId, status: "IN_PROGRESS" } },
+                orderBy: { order: "asc" },
+                select: { id: true, order: true },
+            })
+            const index = exercises.findIndex(exercise => exercise.id === exerciseId)
+            if(index === -1)
+                return { ok: false, reason: "EXERCISE_NOT_FOUND" }
+            const current = exercises[index]
+            const neighbour = exercises[index + direction]
+            if(!neighbour)
+                return { ok: false, reason: direction === -1 ? "ALREADY_FIRST" : "ALREADY_LAST" }
+            await tx.workoutSessionExercise.update({ where: { id: current.id }, data: { order: 0 } })
+            await tx.workoutSessionExercise.update({ where: { id: neighbour.id }, data: { order: current.order } })
+            await tx.workoutSessionExercise.update({ where: { id: current.id }, data: { order: neighbour.order } })
+            const ids = exercises.map(exercise => exercise.id)
+            ids[index] = neighbour.id
+            ids[index + direction] = current.id
+            return { ok: true, exerciseIds: ids }
+        })
+    }catch(error){
+        // Another move or add changed this workout's order at the same time.
+        if(isUniqueViolation(error))
+            return { ok: false, reason: "CONFLICT" }
+        throw error
+    }
+} 
