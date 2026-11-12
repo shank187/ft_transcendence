@@ -99,7 +99,7 @@ export default function DayRow(
                     setStartState(true)
                     setStartError(null)
                     try{
-                        const session = await startWorkoutFromDay(props.planId, props.day.id)
+                        const session = await startWorkoutFromDay(props.day.id)
                         navigate(`/workouts/session/${session.id}`)
                     }catch(err){
                         if (err instanceof ActiveWorkoutError)
@@ -119,7 +119,7 @@ export default function DayRow(
             {activeSessionId &&
                 <ActiveWorkoutDialog
                 activeSessionId={activeSessionId}
-                startNew={() => startWorkoutFromDay(props.planId, day.id)}
+                startNew={() => startWorkoutFromDay(day.id)}
                 onClose={() => setActiveSessionId(null)}
                 />
             }

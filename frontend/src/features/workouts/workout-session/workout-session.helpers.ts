@@ -1,7 +1,7 @@
 import { toNumber } from "../shared/set-values";
 import type { FieldKey } from "../shared/exercise-fields";
 import { type PerformedValues } from "./workout-session.types";
-import { type WorkoutSession, type WorkoutSessionExercise, type WorkoutSessionSet, type WorkoutSummary } from "../shared/workouts.types";
+import { type WorkoutSessionExercise, type WorkoutSessionSet } from "../shared/workouts.types";
 
 // Inputs hold text: a row starts from the server numbers, null shows as "".
 export function toText(value: number | null): string
@@ -56,24 +56,4 @@ export function formatElapsed(ms: number): string
     return hours > 0
         ? `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`
         : `${minutes}:${seconds}`
-}
-
-// Volume only counts completed sets that have both a weight and reps.
-// prSetIds stays empty: PRs are detected on the server.
-export function buildSummary(session: WorkoutSession): WorkoutSummary
-{
-    const sets = session.exercises.flatMap(exercise => exercise.sets)
-    const completed = sets.filter(set => set.completedAt !== null)
-    const durationMs = session.completedAt
-        ? new Date(session.completedAt).getTime() - new Date(session.startedAt).getTime()
-        : 0
-    return {
-        durationSeconds: Math.max(0, Math.floor(durationMs / 1000)),
-        setsCompleted: completed.length,
-        setsTotal: sets.length,
-        volumeKg: completed.reduce((total, set) =>
-            set.weight !== null && set.reps !== null ? total + set.weight * set.reps : total, 0),
-        exerciseCount: session.exercises.length,
-        prSetIds: [],
-    }
 }

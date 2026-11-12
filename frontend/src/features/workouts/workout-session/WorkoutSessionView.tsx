@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
-import type { AwardResult, PerformedValues } from "./workout-session.types";
+import type { PerformedValues } from "./workout-session.types";
 import type { SetType, WorkoutSession } from "../shared/workouts.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
-import { rememberSessionExercises } from "../shared/fake-sessions";
 import { orderExercises, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../../components/states/LoadingState";
 import NotFoundState from "../../../components/states/NotFoundState";
@@ -34,8 +33,6 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [incompleteFinish, setIncompleteFinish] = useState(false)
     const [finishing, setFinishing] = useState(false)
     const [finishError, setFinishError] = useState<string|null>(null)
-    // Kept only in memory: the contract shows XP once, from the finish response.
-    const [award, setAward] = useState<AwardResult | null>(null)
 
     const [showPicker, setShowPicker] = useState(false)
     const [addError, setAddError] = useState<string | null>(null)
@@ -55,9 +52,6 @@ export default function WorkoutSessionView(props: {sessionId: string})
         setAdding(true)
         setAddError(null)
         try {
-            rememberSessionExercises(selected.map(e => ({
-                id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl,
-            })))
             const added = await addExercises(sessionId, selected.map(e => e.id))
             setLoadState(prev => prev.status !== "success" ? prev : {
                 ...prev,
@@ -177,10 +171,9 @@ export default function WorkoutSessionView(props: {sessionId: string})
         setFinishing(true)
         setFinishError(null)
         try {
-            const result = await finishWorkout(sessionId)
-            setAward(result.award)
+            const finished = await finishWorkout(sessionId)
             setIncompleteFinish(false)
-            reloadSession()
+            setLoadState({ status: "success", session: finished })
         } catch (err) {
             setFinishError(err instanceof Error ? err.message : "Can't finish your workout, try again.")
         } finally {
@@ -253,7 +246,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
             />
             {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
             {session.status === "COMPLETED" && session.summary &&
-                <SessionSummaryCard summary={session.summary} award={award}/>
+                // The award (XP, level up) will come from S5's award() in the finish response.
+                <SessionSummaryCard summary={session.summary} award={null}/>
             }
             {!isReadOnly && session.exercises.length === 0
                 ? <EmptyState title="No exercises yet" action={addExercisesButton}/>
