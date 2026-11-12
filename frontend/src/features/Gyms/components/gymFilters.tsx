@@ -25,20 +25,20 @@ function GymFilters({setCityProps, setverifiedProps } : filtersProps){
                 <div className="flex 0 gap-1.5">
                     <select onChange={function(e){
                         const value = e.target.value;
-
-                        if (value === "all"){
+                        if (value === ""){
                             setverifiedProps(null);
-
-                        }else if(value === "true") {
+                        }
+                        else if(value === "true") {
                             setverifiedProps(true);
                         }else {
                            setverifiedProps(false); 
                         }
                         }} className="appearance-none rounded-full bg-[#181818] border-[#2a2a2a] hover:border-zinc-500 text-white text-sm font-medium pl-4 pr-9 py-2 cursor-pointer">
                         
-                        <option value="all" >verified : all</option>
-                        <option value="true" >yes</option>
-                        <option value="false">no</option>
+                        <option value="true" >Verified</option>
+                        <option value="false">Unverified</option>
+                        <option value="">All</option>
+
                     </select>
                 </div>
             </div> 
@@ -46,4 +46,9 @@ function GymFilters({setCityProps, setverifiedProps } : filtersProps){
         </div>
     )
 }
+
+
+
+
+
 export default GymFilters;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../auth/axiosInstance";
 import type { Equipment } from "../type/gym";
-import { Check, ChevronLeft, X } from "lucide-react";
+import { Check, ChevronLeft, X, Camera} from "lucide-react";
 
 
 
@@ -153,10 +153,10 @@ function AddGym({onClose, onSuccess} : gymProps){
                                 onChange={function(e){setCity(e.target.value)}}
                                 className="appearance-none w-full rounded-xl bg-[#0A0A0A] border border-[#242424] px-4 py-3 text-sm text-white">
                                 <option value="">Select a city (optional)</option>
-                                <option value="Casablanca">Khouribga</option>
+                                <option value="khouribga">Khouribga</option>
+                                <option value="kenitra">kenitra</option>
                                 <option value="Rabat">Rabat</option>
-                                <option value="Rabat">Kenitra</option>
-                                <option value="Rabat">Beni Mellal</option>
+                                <option value="beni mellal">Beni Mellal</option>
 
 
                         </select>
@@ -277,27 +277,38 @@ function AddGym({onClose, onSuccess} : gymProps){
 
 
                     <div className="mt-5">
-                        <label className="block text-xs font-bold text-white mb-2" >Photos
-                            <span className="font-normal text-zinc-500 ml-1">(one image max, for the review)</span>
+                        <label className="block text-xs font-bold text-white mb-2" >
+                            Photos
+                            <span className="font-normal text-zinc-500 ml-1">
+                                (one image max, for the review)
+                            </span>
                         </label>
 
-                        {imageUrl ? (
-                            <div className="relative h-58 w-58 rounded-xl overflow-hidden border border-[#2E2E2E]">
-                                <img src={new URL(imageUrl, api.defaults.baseURL).href} alt="gym preview"
-                                    className="h-full w-full object-cover"/>
-                                    <button type="button"
-                                            onClick={function(){setImageUrl("")}}
-                                            className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-full p-1">
-                                                <X className="w-4.5 h-4.5"/>
-                                    </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <input type="file" accept="image/png, image/jpeg" 
-                                    onChange={handleImageUpload}/>
-                            </div>
-                        )}
 
+                        <div className="mt-5 flex flex-wrap items-center gap-3">
+                            {!imageUrl && (
+                                <label className=" flex flex-col items-center justify-center gap-1.5 text-xs  h-28 w-28 rounded-xl border border-dashed border-[#CCFF00]/60 bg-[#121212] hover:bg-[#1A1A1A] text-[#D4D4D4] transition-colors cursor-pointer">
+                                    <Camera className="w-5 h-5 text-[#CCFF00]"/>
+                                    <span>Add photo</span>
+                                    <input type="file" 
+                                            accept="image/png, image/jpeg"
+                                            className="hidden"
+                                            onChange={handleImageUpload}/>
+                                </label>
+                            )}
+                        </div>
+                        <div>
+                            {imageUrl && (
+                                <div className="relative h-48 w-48 rounded-xl overflow-hidden border border-[#2E2E2E]">
+                                    <img src={imageUrl} alt="gym preview" 
+                                            className="h-full w-full"/>
+                                    <button type="button" onClick={function(){setImageUrl("");}}
+                                            className="absolute top-1.5 right-1.5 bg-black/70 hover:bg-black text-white rounded-full p-1 transition-colors cursor-pointer">
+                                                <X className="w-3.5 h-3.5"/>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
 

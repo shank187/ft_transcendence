@@ -16,7 +16,7 @@ function GymsearchPage(){
     const [textSearched, setTextSearched] = useState("");
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
-    const [verified, setVerified]= useState<boolean | null>(null);
+    const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
 

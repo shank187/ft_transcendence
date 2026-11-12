@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Gym } from "../type/gym";
-import api from "../../auth/axiosInstance";
+
 
 interface GymCardPara {
     gym : Gym;
@@ -30,6 +30,8 @@ function GymCard({gym} : GymCardPara){
         </div>
     )
 }
+
+
 
 
 export default GymCard;
