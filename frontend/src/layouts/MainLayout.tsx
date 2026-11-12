@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import WebSocketProvider from "./WebSocketProvider"
 import { useState, useEffect , useRef} from 'react';
 
@@ -71,7 +71,7 @@ function MainLayout() {
             <div className="hidden md:flex  p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2  md:border-app-border md:bg-app-surface">
 
                 {nav_items.map((item)=> (
-                    <NavLink key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</NavLink>
+                    <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
                 ))}
             </div>
             
@@ -84,14 +84,14 @@ function MainLayout() {
             <div ref={navigation_ref} className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-5   bg-app-surface md:hidden">
 
                 {mobile_nav_items.map((item)=> (
-                    <NavLink key={item.to} to={item.to} onClick={() => set_more(false)} className="min-w-0 py-4 text-center text-xs" >{item.label}</NavLink>
+                    <Link key={item.to} to={item.to} onClick={() => set_more(false)} className="min-w-0 py-4 text-center text-xs" >{item.label}</Link>
                 ))}
 
                {more && (<div className="absolute bottom-full right-2 mb-2 w-44 rounded-lg border bg-app-surface p-2">
                         {more_nav_items.map((item) => (
-                            <NavLink key={item.to} to={item.to} onClick={() => set_more(false)} className="block  px-3 py-3 text-sm hover:bg-app-surface-hover">
+                            <Link key={item.to} to={item.to} onClick={() => set_more(false)} className="block  px-3 py-3 text-sm hover:bg-app-surface-hover">
                                 {item.label}
-                            </NavLink>
+                            </Link>
                         ))}
                     </div>
                 )}

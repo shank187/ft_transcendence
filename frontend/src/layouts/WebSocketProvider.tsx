@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-
+import api from "../features/auth/axiosInstance"
 import { useAuth } from "../features/auth/AuthContext";
 import { WebSocketContext } from "../pages/WebSocketContext";
 import type { ClientMessage, ServerMessage } from "../features/chat/chat.types";
@@ -57,18 +57,18 @@ export default function WebSocketProvider({
                 };
 
                 connection.send(JSON.stringify(message));
+                // console.log(`${accessToken}`)
             };
 
-            connection.onmessage = (event) => {
+            connection.onmessage = async (event) => {
                 const message: ServerMessage = JSON.parse(event.data);
-
                 setLastMessage(message);
 
                 if (message.type === "authenticated") {
                     setConnectionStatus("connected");
                 }
                 else if (message.type === "presence_snapshot") {
-                    setOnlineUserIds(message.onlineUserIds);
+                    setOnlineUserIds(message.onlineUserIds);                    
                 }
                 else if (message.type === "presence") {
                     if (message.status === "online") {
@@ -84,6 +84,21 @@ export default function WebSocketProvider({
                         );
                     }
                 }
+else if (message.type === "friendship_updated") {
+    try {
+        const response = await api.get("/api/friends")
+
+        const friendIds = new Set(
+            response.data.map((friend: { id: string }) => friend.id)
+        )
+
+        setOnlineUserIds(current =>
+            current.filter(id => friendIds.has(id))
+        )
+    } catch (error) {
+        console.error("Failed to update online friends:", error)
+    }
+}
             };
 
             connection.onclose = () => {

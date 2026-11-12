@@ -7,6 +7,6 @@ export default function PlanDetail()
     const {planId} = useParams()
     if(!planId) return <NotFoundState title="Plan not found."/>
     return(
-        <PlanDetailView planId = {planId}/>
+        <PlanDetailView key={planId} planId={planId}/>
     )
 }

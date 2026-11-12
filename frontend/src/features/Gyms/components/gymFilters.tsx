@@ -16,9 +16,10 @@ function GymFilters({setCityProps, setverifiedProps } : filtersProps){
                         city
                     </button>
                     <select onChange={function(e){setCityProps(e.target.value)}} className="rounded-full  px-4 py-1 text-sm hover:border-white transform bg-black " name="" id="">
+                        <option value="" >all</option>
                         <option value="khouribga" >khouribga</option>
                         <option value="kenitra">kenitra</option>
-                        <option value="casa">casa</option>
+                        <option value="Rabat">Rabat</option>
                         <option value="beni mellal">beni mellal</option>
                     </select>
                 </div>

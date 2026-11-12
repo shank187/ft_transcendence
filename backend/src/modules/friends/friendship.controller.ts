@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { prisma } from "../../lib/prisma";
 import { Response } from "express";
+import { notifyFriendshipUpdate } from "./friends.service"
 
 export const deleteFriendship = async (req: AuthenticatedRequest, res: Response) => {
     const deleterId = req.userId
@@ -43,6 +44,8 @@ export const deleteFriendship = async (req: AuthenticatedRequest, res: Response)
                 }
             }
         })
+        await notifyFriendshipUpdate(deleterId, otherFriend)
+        await notifyFriendshipUpdate(otherFriend, deleterId)
         return res.status(200).json({ message: "Friendship deleted" });
     } catch (error) {
         console.error(error)
@@ -51,12 +54,14 @@ export const deleteFriendship = async (req: AuthenticatedRequest, res: Response)
 }
 
 
-export const return_uses_id = async (req: AuthenticatedRequest, res: Response) => {
-    const users = prisma.user.findMany({
-        select: {
-            id: true
-        }
-    })
-    const users_Ids = (await users).map(user => user.id)
-    res.json({ users_Ids })
-}
+// export const return_uses_id = async (req: AuthenticatedRequest, res: Response) => {
+//     const users = prisma.user.findMany({
+//         select: {
+//             id: true,
+//             email: true
+//         }
+//     })
+//     const users_Ids = (await users).map(user => user.id)
+//     const user_Emails = (await users).map(user => user.email)
+//     res.json({ users_Ids, user_Emails})
+// }

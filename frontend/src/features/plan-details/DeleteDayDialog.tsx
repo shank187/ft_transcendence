@@ -29,7 +29,7 @@ export default function DeleteDayDialog(props: {
     }
 
     return (
-        <Dialog isWorking={submitting} open={true} title={`Delete ${props.day.name}?`} onClose={props.onClose}>
+        <Dialog isWorking={submitting} title={`Delete ${props.day.name}?`} onClose={props.onClose}>
             <p>Past workouts stay in your history.</p>
             {deleteDayError && <p className="text-app-danger">{deleteDayError}</p>}
             <div className="flex gap-2 mt-3">
