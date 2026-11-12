@@ -187,9 +187,10 @@ export const change_password = async (req: AuthenticatedRequest, res: Response) 
             minNumbers: 1,
             minSymbols: 1,
         })
+        .withMessage('New password must contain at least 8 characters, including uppercase, lowercase, a number and a symbol.')
         .run(req);
 
-    const errors = validationResult(req); //Get all validation errors stored on this request.
+    const errors = validationResult(req);
 
     if (!errors.isEmpty())
         return res.status(400).json({message: errors.array()[0].msg});

@@ -11,11 +11,13 @@ export const register = async (req: Request, res: Response) => {
 
     await body('username')
         .isLength({ min: 3, max: 30 })
+        .withMessage('Username must be between 3 and 30 characters.')
         .run(req);
 
     await body('email')
-        .isEmail()//create the rule
-        .run(req);//Execute this validator on the current request.
+        .isEmail()
+        .withMessage('Please enter a valid email address.')
+        .run(req);
 
     await body('password')
         .isStrongPassword({
@@ -25,9 +27,10 @@ export const register = async (req: Request, res: Response) => {
             minNumbers: 1,
             minSymbols: 1,
         })
+        .withMessage('Password must contain at least 8 characters, including uppercase, lowercase, a number and a symbol.')
         .run(req);
 
-    const errors = validationResult(req); //Get all validation errors stored on this request.
+    const errors = validationResult(req);
 
     if (!errors.isEmpty())
         return res.status(400).json({ message: errors.array()[0].msg });
