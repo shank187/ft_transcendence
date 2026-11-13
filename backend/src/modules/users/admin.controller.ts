@@ -39,7 +39,8 @@ export async function add_admin(req: AuthenticatedRequest, res: Response)
         });
 
         return res.status(200).json({ success: true, message: "Admin added successfully." });
-    } catch {
+    } catch (error) {
+        console.log("error :", error);
         return res.status(500).json({ message: "Could not add admin. Please try again." });
     }
 }

@@ -85,6 +85,7 @@ export const verify_registration = async (req: Request, res: Response) => {
             user
         });
     } catch (error) {
+        console.log("error :", error);
         if (error instanceof Error && 'code' in error && error.code === 'P2002') {
             return res.status(409).json({ message: 'Username or email already taken. Try logging in.' });
         }
