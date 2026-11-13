@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { Trophy } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import { validateSet } from "../shared/set-values";
 import type { FieldKey, SetField } from "../shared/exercise-fields";
@@ -15,6 +16,7 @@ export default function SetRowSession(props:{
     label: string
     isMenuOpen: boolean
     isMenuBusy: boolean
+    isPr: boolean
     toggleSetMenu: () => void,
     onComplete: (setId: string, values: PerformedValues) => Promise<void>
     onUncomplete: () => Promise<void>
@@ -124,6 +126,12 @@ export default function SetRowSession(props:{
                     {saving ? "…" : "✓"}
                 </Button>
             </div>
+            {props.isPr &&
+                <p className="flex items-center gap-1 text-xs font-semibold text-app-primary">
+                    <Trophy aria-hidden="true" className="size-4" />
+                    PR
+                </p>
+            }
             {error && <p role="alert" className="text-xs text-app-danger">{error}</p>}
             {props.menuError && <p role="alert" className="text-xs text-app-danger">{props.menuError}</p>}
         </li>

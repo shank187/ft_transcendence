@@ -27,6 +27,7 @@ export default function ExerciseSessionCard(props:{
     toggleSetMenu: (setId: string) => void,
     openSetMenuId: string | null,
     savingSetId: string | null,
+    prSetIds: Set<string>,
 })
 {
     const exerciseType = EXERCISE_TYPE_LABEL[props.exercise.exerciseSummary.type];
@@ -73,6 +74,7 @@ export default function ExerciseSessionCard(props:{
                     isReadOnly={props.isReadOnly}
                     isMenuOpen={props.openSetMenuId === set.id}
                     isMenuBusy={props.savingSetId === set.id}
+                    isPr={props.prSetIds.has(set.id)}
                     toggleSetMenu={() => props.toggleSetMenu(set.id)}
                     onComplete={(setId, values) => props.onCompleteSet(props.exercise.id, setId, values)}
                     onUncomplete={() => props.onUncompleteSet(props.exercise.id, set.id)}

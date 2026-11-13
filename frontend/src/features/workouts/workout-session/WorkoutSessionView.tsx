@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import type { PerformedValues } from "./workout-session.types";
 import type { AwardResult, SetType, WorkoutSession } from "../shared/workouts.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
-import { orderExercises, updateSet } from "./workout-session.helpers";
+import { livePrSetIds, orderExercises, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../../components/states/LoadingState";
 import NotFoundState from "../../../components/states/NotFoundState";
 import ErrorState from "../../../components/states/ErrorState";
@@ -230,6 +230,10 @@ export default function WorkoutSessionView(props: {sessionId: string})
         }
     }
     const isReadOnly = session.status !== "IN_PROGRESS"
+    // In progress the badge follows the ticked sets; once finished, what the server stored wins.
+    const prSetIds = session.status === "IN_PROGRESS"
+        ? livePrSetIds(session.exercises)
+        : new Set(session.summary?.prSetIds ?? [])
 
     const addExercisesButton = <Button variant="secondary" onClick={() => setShowPicker(true)}>Add exercises</Button>
 
@@ -266,6 +270,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                             isMoving={moving}
                             openSetMenuId={openSetMenuId}
                             savingSetId={savingSetId}
+                            prSetIds={prSetIds}
                             addSetError={exercise.id === addSetError?.exerciseId ? addSetError.message : null}
                             moveError={moveError?.id === exercise.id ? moveError.message : null}
                             setError={setError}

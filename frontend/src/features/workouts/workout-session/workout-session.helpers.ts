@@ -35,6 +35,39 @@ export function updateSet(
     )
 }
 
+// Same Epley formula as finishWorkoutSession on the backend, so the live badge
+// and the PR stored at finish agree.
+export function estimateOneRepMax(weight: number, reps: number): number
+{
+    if (reps === 1)
+        return weight
+    return weight * (1 + reps / 30)
+}
+
+// The sets that would be PRs if the workout finished now: per exercise, the best ticked set,
+// when it beats previousBest. previousBest is null for the types that can't have a PR,
+// so the type is not checked here.
+export function livePrSetIds(exercises: WorkoutSessionExercise[]): Set<string>
+{
+    // Keyed by the catalog exercise, like the backend: an exercise added twice still gets one PR.
+    const best = new Map<string, { setId: string, estimate: number }>()
+    for (const exercise of exercises)
+    {
+        if (exercise.previousBest === null)
+            continue
+        for (const set of exercise.sets)
+        {
+            if (set.completedAt === null || set.weight === null || set.reps === null)
+                continue
+            const estimate = estimateOneRepMax(set.weight, set.reps)
+            const current = best.get(exercise.exerciseSummary.id)
+            if (estimate > exercise.previousBest && (!current || estimate > current.estimate))
+                best.set(exercise.exerciseSummary.id, { setId: set.id, estimate })
+        }
+    }
+    return new Set([...best.values()].map(entry => entry.setId))
+}
+
 // Rebuilds the list in the order the server returned; ids it does not know are dropped.
 // The existing order values are handed out again in that sequence, the same swap the server makes.
 export function orderExercises(exercises: WorkoutSessionExercise[], ids: string[]): WorkoutSessionExercise[]
