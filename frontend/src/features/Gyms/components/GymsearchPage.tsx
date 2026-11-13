@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
-// import type { Gym } from "../data/FakeData";
 import type {Gym} from "../type/gym"
 import SearchBar from "./SearchBar";
 import GymCard from "./GymCard";
-
-// import {getFakeData} from "../data/FakeData";
 
 import LoadingState from "../../../components/states/LoadingState";
 import GymFilters from "./gymFilters";
 import api from "../../auth/axiosInstance";
 import PaginationButtons from "./paginationButton";
+import AddGym from "./AddGym";
+
 
 
 function GymsearchPage(){
@@ -17,9 +16,12 @@ function GymsearchPage(){
     const [textSearched, setTextSearched] = useState("");
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
-    const [verified, setVerified]= useState<boolean | null>(null);
+    const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
+
+    const [isAddGymOpen, setIsAddGymOpen] = useState(false);
+    const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
     useEffect (function(){
         setPage(1);
@@ -33,7 +35,6 @@ function GymsearchPage(){
 
             try
             {
-                // const fakeData = await getFakeData(textSearched, city, verified);
                 const res = await api.get("/api/gyms/search/", {
                     params : {
                         textSearched: textSearched || undefined,
@@ -44,7 +45,7 @@ function GymsearchPage(){
                 });
                 if (ignore === false){
                     setLoading(false);
-                    // setGymList(fakeData);
+
                     setGymList(res.data.data);
                     setHasNextPage(res.data.hasNextPage);
                 }
@@ -62,18 +63,45 @@ function GymsearchPage(){
             ignore = true;
         }
     }, [textSearched, city, verified, page]);
-    // }, [textSearched, city, verified, rating]);
+    useEffect(function(){
+        if (!bannerMessage)
+            return;
+        const timer = setTimeout(function(){
+            setBannerMessage(null);
+        }, 3000);
+        return function(){
+            clearTimeout(timer);
+        }
+    },[bannerMessage]);
 
-    // if (loading) {
-    //     return <LoadingState message="Loading gyms..." />;
-    // }
+    if (isAddGymOpen){
+        return <AddGym  onClose={setIsAddGymOpen} onSuccess={function(msg){setBannerMessage(msg); }}/>
+    }
+
+
     return (
         <div className="min-h-screen text-[#ffffff] p-4">
             <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
-            <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
 
-        <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
-        {/* <GymFilters setCityProps={setCity} setRatingProps={setRating} setverifiedProps={setVerified}></GymFilters> */}
+
+            {bannerMessage && (
+                <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0e2716] border border-emerald-500/40 p-4 text-white text-xs transition-all">
+                    <span>{bannerMessage}</span>
+                    <button onClick={function(){setBannerMessage(null)}}
+                            className="text-red-400 hover:text-white font-bold px-2 py-1"
+                            >X</button>
+                </div>
+            )} 
+
+            <div className="flex justify-between  items-center gap-4 mb-6">
+                <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
+
+                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
+                    <span className="text-xl font-bold">+</span>
+                    <span>Add gym</span>
+                </button>
+            </div>
+            <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 
 
         {loading ? 
@@ -94,6 +122,8 @@ function GymsearchPage(){
                 onPageChange={setPage}
                 hasNextPage={hasNextPage}/>
         </div>
+
+        {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
         </div>
     )
 }
