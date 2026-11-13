@@ -357,6 +357,21 @@ function openSetWhere(userId: string, sessionId: string, setId: string)
     } satisfies Prisma.WorkoutSetWhereInput
 }
 
+// Locks this user's workout row until the transaction ends, only while it is IN_PROGRESS.
+// Finish and the set writes take it first, so they run one after the other: a tick can't
+// change a workout that is being finished, and finish counts the sets after the tick.
+// After waiting, PostgreSQL checks the status again, so a workout finished meanwhile
+// returns false. Same lock as award() takes on the User row in progress.service.ts.
+async function lockOpenSession(tx: Prisma.TransactionClient, userId: string, sessionId: string): Promise<boolean>
+{
+    const rows = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "WorkoutSession"
+        WHERE "id" = ${sessionId} AND "userId" = ${userId} AND "status" = 'IN_PROGRESS'
+        FOR UPDATE
+    `
+    return rows.length > 0
+}
+
 type UpdateSetResult =
     | { ok: true; set: WorkoutSessionSet }
     | { ok: false; reason: "NOT_FOUND" | "CLOSED" | "SET_NOT_FOUND" };
@@ -367,13 +382,16 @@ export async function updateSessionSet(userId: string, sessionId: string, setId:
     if(state !== "OPEN")
         return { ok: false, reason: state }
     try{
-        const updated = await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx): Promise<UpdateSetResult> => {
+            // Finished or discarded since the check above.
+            if(!await lockOpenSession(tx, userId, sessionId))
+                return { ok: false, reason: "NOT_FOUND" }
             const set = await tx.workoutSet.findFirst({
                 where: openSetWhere(userId, sessionId, setId),
                 select: { completedAt: true },
             })
             if(!set)
-                return null
+                return { ok: false, reason: "SET_NOT_FOUND" }
             // undefined keeps the value, null clears it.
             // Ticking an already ticked set keeps its first completedAt.
             let completedAt: Date | null | undefined = undefined
@@ -381,7 +399,7 @@ export async function updateSessionSet(userId: string, sessionId: string, setId:
                 completedAt = set.completedAt ?? new Date()
             else if(patch.completed === false)
                 completedAt = null
-            return tx.workoutSet.update({
+            const updated = await tx.workoutSet.update({
                 where: openSetWhere(userId, sessionId, setId),
                 data: {
                     weight: patch.weight,
@@ -393,10 +411,8 @@ export async function updateSessionSet(userId: string, sessionId: string, setId:
                 },
                 select: setSelect,
             })
+            return { ok: true, set: toSessionSetDto(updated) }
         })
-        if(!updated)
-            return { ok: false, reason: "SET_NOT_FOUND" }
-        return { ok: true, set: toSessionSetDto(updated) }
     }catch(error){
         if(isNotFoundError(error))
             return { ok: false, reason: "NOT_FOUND" }
@@ -416,13 +432,16 @@ export async function deleteSessionSet(userId: string, sessionId: string, setId:
         return { ok: false, reason: state }
     try{
         // All or nothing: if one step fails, the set is not deleted.
-        const deleted = await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx): Promise<DeleteSetResult> => {
+            // Finished or discarded since the check above.
+            if(!await lockOpenSession(tx, userId, sessionId))
+                return { ok: false, reason: "NOT_FOUND" }
             const set = await tx.workoutSet.findFirst({
                 where: openSetWhere(userId, sessionId, setId),
                 select: { workoutSessionExerciseId: true },
             })
             if(!set)
-                return false
+                return { ok: false, reason: "SET_NOT_FOUND" }
             await tx.workoutSet.delete({ where: openSetWhere(userId, sessionId, setId) })
             const sets = await tx.workoutSet.findMany({
                 where: { workoutSessionExerciseId: set.workoutSessionExerciseId },
@@ -433,11 +452,8 @@ export async function deleteSessionSet(userId: string, sessionId: string, setId:
             // so @@unique([workoutSessionExerciseId, setNumber]) never sees two sets with the same number.
             for (const [index, s] of sets.entries())
                 await tx.workoutSet.update({ where: { id: s.id }, data: { setNumber: index + 1 } })
-            return true
+            return { ok: true }
         })
-        if(!deleted)
-            return { ok: false, reason: "SET_NOT_FOUND" }
-        return { ok: true }
     }catch(error){
         if(isNotFoundError(error))
             return { ok: false, reason: "NOT_FOUND" }
@@ -465,53 +481,57 @@ export async function finishWorkoutSession(userId: string, sessionId: string): P
         return { ok: true, session: current, award: null }
     if(!current.exercises.some(exercise => exercise.sets.some(set => set.completedAt !== null)))
         return { ok: false, reason: "NO_COMPLETED_SET" }
-    try{
-        // All or nothing: the status, the PR flags and the award are saved together.
-        return await prisma.$transaction(async (tx): Promise<FinishSessionResult> => {
-            // Throws P2025 when the workout is no longer IN_PROGRESS. Of two finishes sent
-            // together, the second waits for the first to commit and then matches no row.
-            await tx.workoutSession.update({
-                where: { id: sessionId, userId, status: "IN_PROGRESS" },
-                data: { status: "COMPLETED", completedAt: new Date() },
-                select: { id: true },
-            })
-            const todaySets = await tx.workoutSet.findMany({
-                where: prSetWhere({ workoutSession: { id: sessionId, userId } }),
-                orderBy: [{ workoutSessionExercise: { order: "asc" } }, { setNumber: "asc" }],
-                select: prSetSelect,
-            })
-            const todayBest = bestPerExercise(toPrCandidates(todaySets))
-            const previousBest = await getPreviousBestByExercise(tx, userId, [...todayBest.keys()], sessionId)
-            // A PR beats an earlier best, so the first time an exercise is done is not one.
-            const prSetIds: string[] = []
-            for (const [exerciseId, best] of todayBest)
-            {
-                const previous = previousBest.get(exerciseId)
-                if(previous !== undefined && best.estimate > previous)
-                    prSetIds.push(best.setId)
-            }
-            if(prSetIds.length > 0)
-                await tx.workoutSet.updateMany({ where: { id: { in: prSetIds } }, data: { isPr: true } })
-            const events: AwardEvent[] = [
-                { reason: "WORKOUT_COMPLETED", sourceId: sessionId },
-                ...prSetIds.map((setId): AwardEvent => ({ reason: "PR_SET", sourceId: setId })),
-            ]
-            const awarded = await award(tx, userId, events)
-            const session = await tx.workoutSession.findUniqueOrThrow({
-                where: { id: sessionId },
-                select: sessionSelect,
-            })
-            return { ok: true, session: await buildSessionDto(tx, userId, session), award: awarded }
+    // All or nothing: the status, the PR flags and the award are saved together.
+    // null: another request finished or discarded the workout after the checks above.
+    const finished = await prisma.$transaction(async (tx): Promise<FinishSessionResult | null> => {
+        // Of two finishes sent together, the second waits here for the first to commit.
+        if(!await lockOpenSession(tx, userId, sessionId))
+            return null
+        // Counted again under the lock: a set unticked or deleted after the check above counts.
+        const ticked = await tx.workoutSet.count({
+            where: { completedAt: { not: null }, workoutSessionExercise: { workoutSessionId: sessionId } },
         })
-    }catch(error){
-        if(!isNotFoundError(error))
-            throw error
-        // Finished or discarded by another request after the checks above.
-        const session = await getWorkoutSession(userId, sessionId)
-        if(session?.status === "COMPLETED")
-            return { ok: true, session, award: null }
-        return { ok: false, reason: "NOT_FOUND" }
-    }
+        if(ticked === 0)
+            return { ok: false, reason: "NO_COMPLETED_SET" }
+        await tx.workoutSession.update({
+            where: { id: sessionId, userId, status: "IN_PROGRESS" },
+            data: { status: "COMPLETED", completedAt: new Date() },
+            select: { id: true },
+        })
+        const todaySets = await tx.workoutSet.findMany({
+            where: prSetWhere({ workoutSession: { id: sessionId, userId } }),
+            orderBy: [{ workoutSessionExercise: { order: "asc" } }, { setNumber: "asc" }],
+            select: prSetSelect,
+        })
+        const todayBest = bestPerExercise(toPrCandidates(todaySets))
+        const previousBest = await getPreviousBestByExercise(tx, userId, [...todayBest.keys()], sessionId)
+        // A PR beats an earlier best, so the first time an exercise is done is not one.
+        const prSetIds: string[] = []
+        for (const [exerciseId, best] of todayBest)
+        {
+            const previous = previousBest.get(exerciseId)
+            if(previous !== undefined && best.estimate > previous)
+                prSetIds.push(best.setId)
+        }
+        if(prSetIds.length > 0)
+            await tx.workoutSet.updateMany({ where: { id: { in: prSetIds } }, data: { isPr: true } })
+        const events: AwardEvent[] = [
+            { reason: "WORKOUT_COMPLETED", sourceId: sessionId },
+            ...prSetIds.map((setId): AwardEvent => ({ reason: "PR_SET", sourceId: setId })),
+        ]
+        const awarded = await award(tx, userId, events)
+        const session = await tx.workoutSession.findUniqueOrThrow({
+            where: { id: sessionId },
+            select: sessionSelect,
+        })
+        return { ok: true, session: await buildSessionDto(tx, userId, session), award: awarded }
+    })
+    if(finished)
+        return finished
+    const session = await getWorkoutSession(userId, sessionId)
+    if(session?.status === "COMPLETED")
+        return { ok: true, session, award: null }
+    return { ok: false, reason: "NOT_FOUND" }
 }
 
 const daySnapshotSelect = {
