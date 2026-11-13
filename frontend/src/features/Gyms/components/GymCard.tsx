@@ -1,4 +1,4 @@
-import { MapPin, Check, Dumbbell } from "lucide-react";
+import { MapPin, Dumbbell } from "lucide-react";
 import type { Gym } from "../type/gym";
 
 
