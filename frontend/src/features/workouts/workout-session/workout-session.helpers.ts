@@ -44,28 +44,55 @@ export function estimateOneRepMax(weight: number, reps: number): number
     return weight * (1 + reps / 30)
 }
 
-// The sets that would be PRs if the workout finished now: per exercise, the best ticked set,
-// when it beats previousBest. previousBest is null for the types that can't have a PR,
-// so the type is not checked here.
+// The live PR badge, in three steps that mirror finishWorkoutSession on the backend.
+type PrCandidate = { setId: string, exerciseId: string, estimate: number }
+
+// Step 1: every ticked set that has a weight and reps, with its estimated one-rep max.
+// exerciseId is the catalog exercise, so an exercise added twice is one exercise.
+function tickedCandidates(exercises: WorkoutSessionExercise[]): PrCandidate[]
+{
+    return exercises.flatMap(exercise => exercise.sets.flatMap(set =>
+        set.completedAt === null || set.weight === null || set.reps === null
+            ? []
+            : [{
+                setId: set.id,
+                exerciseId: exercise.exerciseSummary.id,
+                estimate: estimateOneRepMax(set.weight, set.reps),
+            }]
+    ))
+}
+
+// Step 2: the highest estimate per exercise. On a tie the earlier set keeps it.
+function bestPerExercise(candidates: PrCandidate[]): Map<string, PrCandidate>
+{
+    const best = new Map<string, PrCandidate>()
+    for (const candidate of candidates)
+    {
+        const current = best.get(candidate.exerciseId)
+        if (!current || candidate.estimate > current.estimate)
+            best.set(candidate.exerciseId, candidate)
+    }
+    return best
+}
+
+// Step 3: today's best is a PR when it beats the best from earlier finished workouts.
+// previousBest is null for a first time and for types that can't have a PR, so those never match.
 export function livePrSetIds(exercises: WorkoutSessionExercise[]): Set<string>
 {
-    // Keyed by the catalog exercise, like the backend: an exercise added twice still gets one PR.
-    const best = new Map<string, { setId: string, estimate: number }>()
+    const previousBest = new Map<string, number>()
     for (const exercise of exercises)
     {
-        if (exercise.previousBest === null)
-            continue
-        for (const set of exercise.sets)
-        {
-            if (set.completedAt === null || set.weight === null || set.reps === null)
-                continue
-            const estimate = estimateOneRepMax(set.weight, set.reps)
-            const current = best.get(exercise.exerciseSummary.id)
-            if (estimate > exercise.previousBest && (!current || estimate > current.estimate))
-                best.set(exercise.exerciseSummary.id, { setId: set.id, estimate })
-        }
+        if (exercise.previousBest !== null)
+            previousBest.set(exercise.exerciseSummary.id, exercise.previousBest)
     }
-    return new Set([...best.values()].map(entry => entry.setId))
+    const prSetIds = new Set<string>()
+    for (const [exerciseId, best] of bestPerExercise(tickedCandidates(exercises)))
+    {
+        const previous = previousBest.get(exerciseId)
+        if (previous !== undefined && best.estimate > previous)
+            prSetIds.add(best.setId)
+    }
+    return prSetIds
 }
 
 // Rebuilds the list in the order the server returned; ids it does not know are dropped.
