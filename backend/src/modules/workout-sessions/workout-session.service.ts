@@ -66,14 +66,14 @@ function toSessionSetDto(set: SetRowDb): WorkoutSessionSet
     }
 }
 
-function toSessionExerciseDto(exercise: SessionExerciseRowDb): WorkoutSessionExercise
+function toSessionExerciseDto(exercise: SessionExerciseRowDb, previousBest: number | null): WorkoutSessionExercise
 {
     return {
         id: exercise.id,
         order: exercise.order,
         exerciseSummary: toExerciseSummaryDto(exercise.exercise),
         restSeconds: exercise.restSeconds,
-        previousBest: null,
+        previousBest,
         sets: exercise.sets.map(toSessionSetDto),
     }
 }
@@ -97,7 +97,7 @@ function toSummaryDto(session: SessionRowDb): WorkoutSummary | null
     }
 }
 
-function toSessionDto(session: SessionRowDb): WorkoutSession
+function toSessionDto(session: SessionRowDb, previousBest: Map<string, number>): WorkoutSession
 {
     return {
         id: session.id,
@@ -107,7 +107,8 @@ function toSessionDto(session: SessionRowDb): WorkoutSession
         startedAt: session.startedAt.toISOString(),
         completedAt: session.completedAt?.toISOString() ?? null,
         bodyWeightKg: session.bodyWeightKg,
-        exercises: session.exercises.map(toSessionExerciseDto),
+        exercises: session.exercises.map(exercise =>
+            toSessionExerciseDto(exercise, previousBest.get(exercise.exercise.id) ?? null)),
         summary: toSummaryDto(session),
     }
 }
@@ -191,6 +192,15 @@ async function getPreviousBestByExercise(tx: Prisma.TransactionClient, userId: s
     return previousBest
 }
 
+// Every response with a whole workout goes through here, so previousBest costs
+// one query per response, not one per exercise.
+async function buildSessionDto(tx: Prisma.TransactionClient, userId: string, session: SessionRowDb): Promise<WorkoutSession>
+{
+    const exerciseIds = session.exercises.map(exercise => exercise.exercise.id)
+    const previousBest = await getPreviousBestByExercise(tx, userId, exerciseIds, session.id)
+    return toSessionDto(session, previousBest)
+}
+
 type SessionState = "NOT_FOUND" | "CLOSED" | "OPEN";
 
 // Every write checks this first, then repeats status: "IN_PROGRESS" in its own where,
@@ -216,7 +226,7 @@ export async function getWorkoutSession(userId: string, sessionId: string): Prom
     })
     if(!session)
         return null
-    return toSessionDto(session)
+    return buildSessionDto(prisma, userId, session)
 }
 
 type DiscardResult =
@@ -281,7 +291,12 @@ export async function addSessionExercises(userId: string, sessionId: string, exe
             }
             return exercises
         })
-        return { ok: true, exercises: created.map(toSessionExerciseDto) }
+        const previousBest = await getPreviousBestByExercise(prisma, userId, exerciseIds, sessionId)
+        return {
+            ok: true,
+            exercises: created.map(exercise =>
+                toSessionExerciseDto(exercise, previousBest.get(exercise.exercise.id) ?? null)),
+        }
     }catch(error){
         if(isNotFoundError(error))
             return { ok: false, reason: "NOT_FOUND" }
@@ -484,7 +499,7 @@ export async function finishWorkoutSession(userId: string, sessionId: string): P
                 where: { id: sessionId },
                 select: sessionSelect,
             })
-            return { ok: true, session: toSessionDto(session), award: awarded }
+            return { ok: true, session: await buildSessionDto(tx, userId, session), award: awarded }
         })
     }catch(error){
         if(!isNotFoundError(error))
@@ -570,7 +585,7 @@ export async function startWorkoutSession(userId: string, dayId: string | undefi
                 },
                 select: sessionSelect,
             })
-            return { ok: true, session: toSessionDto(session) }
+            return { ok: true, session: await buildSessionDto(tx, userId, session) }
         }, { isolationLevel: "Serializable" })
     }catch(error){
         if(isWriteConflict(error))

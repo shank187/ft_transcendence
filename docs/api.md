@@ -690,6 +690,7 @@ Returns one workout with its exercises and sets.
 
 - **Path:** `sessionId`. No query or body.
 - **Ordering:** `exercises` by `order` ascending; each exercise's `sets` by `setNumber` ascending.
+- **Previous best:** every response that carries exercises (this one, start, add exercises, finish) has `previousBest` on each exercise, read with one query for the whole response (`getPreviousBestByExercise`). The page compares it with the ticked sets to show a PR while the workout is in progress.
 - **Code:** `getWorkoutSessionController` → `getWorkoutSession`.
 
 Response `200`:
@@ -709,6 +710,7 @@ Response `200`:
       "order": 1,
       "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
       "restSeconds": null,
+      "previousBest": 72.5,
       "sets": [
         { "id": "a7b8c9d0-0000-4000-8000-000000000001", "setType": "NORMAL", "setNumber": 1, "plannedWeight": null, "plannedReps": null, "plannedDuration": null, "plannedDistance": null, "weight": 60, "reps": 8, "duration": null, "distance": null, "completedAt": "2026-11-08T17:05:40.000Z" }
       ]
@@ -724,6 +726,7 @@ Response `200`:
 | `workoutDayId` | string \| null | `null` for an empty workout or when the day was deleted |
 | `status` | `"IN_PROGRESS"` \| `"COMPLETED"` \| `"CANCELLED"` | `WorkoutSessionStatus` |
 | `startedAt`, `completedAt` | ISO string, `completedAt` nullable | |
+| `exercises[].previousBest` | number \| null | Best estimated one-rep max (kg) for this exercise in the user's other `COMPLETED` workouts, this workout left out. `null` when there is none or the exercise type is not `WEIGHT_REPS` / `WEIGHTED_BODYWEIGHT`. Same estimate as the PR rule in `POST …/finish` |
 | `exercises[].sets[].planned*` | number \| null | Targets copied from the plan when the workout starts |
 | `exercises[].sets[].weight` / `reps` / `duration` / `distance` | number \| null | What the user did |
 | `exercises[].sets[].completedAt` | ISO string \| null | `null` = set not ticked |
@@ -810,7 +813,7 @@ Adds exercises at the end of a workout in progress, each with one empty set.
 - **Effects:** in one transaction, the exercises get `order` = current highest + 1, + 2, … in the order sent; each gets set 1 (`NORMAL`, all values `null`).
 - **Code:** `addSessionExercisesController` → `addSessionExercises`.
 
-Response `201` — the new exercises, `WorkoutSessionExercise[]` by `order` ascending.
+Response `201` — the new exercises, `WorkoutSessionExercise[]` by `order` ascending. Each one has its `previousBest`.
 
 Status codes:
 
