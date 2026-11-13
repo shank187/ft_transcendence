@@ -72,6 +72,7 @@ function toSessionExerciseDto(exercise: SessionExerciseRowDb): WorkoutSessionExe
         order: exercise.order,
         exerciseSummary: toExerciseSummaryDto(exercise.exercise),
         restSeconds: exercise.restSeconds,
+        previousBest: null,
         sets: exercise.sets.map(toSessionSetDto),
     }
 }

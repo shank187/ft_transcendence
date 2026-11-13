@@ -1,3 +1,3 @@
 export type {
-    WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary,
+    AwardResult, FinishWorkoutResponse, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary,
 } from "../../../../shared/workouts";

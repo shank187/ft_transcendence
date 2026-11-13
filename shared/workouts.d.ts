@@ -104,6 +104,9 @@ export interface WorkoutSessionExercise
     order: number,
     exerciseSummary: ExerciseSummary,
     restSeconds: number | null,
+    // Best estimated one-rep max from earlier finished workouts.
+    // null when there is none or the exercise type is not eligible.
+    previousBest: number | null,
     sets: WorkoutSessionSet[],
 }
 
@@ -131,4 +134,20 @@ export interface WorkoutSummary
     volumeKg: number,
     exerciseCount: number,
     prSetIds: string[],
+}
+
+// S3 -> S5 contract ("Award function"): what award() returns inside the finish transaction.
+export interface AwardResult
+{
+    xpGained: number,
+    levelUp: boolean,
+    unlocked: string[],
+}
+
+// POST /api/workout-sessions/:sessionId/finish
+export interface FinishWorkoutResponse
+{
+    session: WorkoutSession,
+    // null when the workout was already finished.
+    award: AwardResult | null,
 }

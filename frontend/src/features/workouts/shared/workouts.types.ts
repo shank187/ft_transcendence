@@ -1,6 +1,6 @@
 export type {
-    PlanDay, PlanDetail, PlannedSet, SetType, WorkoutSession, WorkoutSessionExercise,
-    WorkoutSessionSet, WorkoutSessionStatus, WorkoutSummary,
+    AwardResult, FinishWorkoutResponse, PlanDay, PlanDetail, PlannedSet, SetType, WorkoutSession,
+    WorkoutSessionExercise, WorkoutSessionSet, WorkoutSessionStatus, WorkoutSummary,
 } from "../../../../../shared/workouts"
 export type { ExerciseSummary } from "../../../../../shared/exercises"
 

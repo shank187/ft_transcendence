@@ -3,8 +3,7 @@ import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import { buttonClasses } from "../../../components/ui/button-classes";
 import { formatElapsed } from "./workout-session.helpers";
-import type { AwardResult } from "./workout-session.types";
-import type { WorkoutSummary } from "../shared/workouts.types";
+import type { AwardResult, WorkoutSummary } from "../shared/workouts.types";
 
 const volumeFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
 
