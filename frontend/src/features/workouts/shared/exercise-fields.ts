@@ -20,7 +20,7 @@ export const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {
     DISTANCE_DURATION: "Distance + time",
 }
 
-// Menu order; the fake APIs also check against this list.
+// Menu order.
 export const SET_TYPES: SetType[] = ["NORMAL", "HEAVY", "WARMUP", "DROP", "FAILURE"]
 
 export const SET_TYPE_LABEL: Record<SetType, string> = {

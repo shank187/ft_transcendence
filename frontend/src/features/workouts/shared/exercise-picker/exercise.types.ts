@@ -10,10 +10,11 @@ export interface ExerciseQuery {
     muscle?: string
     equipment?: string
     sort?: ExerciseSort
+    // TODO(g-01): sent as is; the server ignores it until the gym filter exists.
     gymId?: string
 }
 
-// FAKE-DATA: the backend does not send gym; getExerciseFilter adds it until S1 adds gymId on User.
+// TODO(g-01): the backend does not send gym yet; getExerciseFilter sets it to null until it does.
 export interface ExerciseFilters extends ServerExerciseFilters {
     gym: { id: string; name: string } | null
 }
