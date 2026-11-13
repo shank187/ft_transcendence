@@ -1,0 +1,25 @@
+import api from "../../auth/axiosInstance";
+import type { WorkoutPlan } from "./plans.types";
+import type { WorkoutPlanInput } from "../shared/workouts.types";
+import { toApiError } from "../shared/api-error";
+
+
+export async function getWorkouts(): Promise<WorkoutPlan[]>
+{
+    try {
+        const resp = await api.get<WorkoutPlan[]>("/api/workout-plans");
+        return resp.data;
+    } catch (error) {
+        throw toApiError(error, "Could not load your plans. Please try again.");
+    }
+}
+
+export async function postWorkoutPlan(body: WorkoutPlanInput): Promise<WorkoutPlan>
+{
+    try {
+        const resp = await api.post<WorkoutPlan>("/api/workout-plans", body);
+        return resp.data;
+    } catch (error) {
+        throw toApiError(error, "Could not create the plan. Please try again.");
+    }
+}

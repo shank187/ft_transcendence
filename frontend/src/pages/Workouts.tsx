@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom"
 import Button from "../components/ui/Button"
-import WorkoutPlanCatalog from "../features/workouts/WorkoutPlanCatalog"
-import { ActiveWorkoutError, startEmptyWorkout } from "../features/workout-session/workout-session.api"
+import WorkoutPlanCatalog from "../features/workouts/plans/WorkoutPlanCatalog"
+import { ActiveWorkoutError, startEmptyWorkout } from "../features/workouts/shared/start-workout"
 import  { useState } from "react"
-import ActiveWorkoutDialog from "../features/workout-session/ActiveWorkoutDialog"
+import ActiveWorkoutDialog from "../features/workouts/shared/ActiveWorkoutDialog"
 
 function Workouts()
 {
