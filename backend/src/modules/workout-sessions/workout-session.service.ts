@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import type { Prisma } from "@prisma/client";
+import type { ExerciseType, Prisma } from "@prisma/client";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation, isWriteConflict } from "../../lib/prisma-errors";
 import { MAX_WORKOUTS_PER_DAY, type UpdateSetBody } from "./workout-session.schema";
@@ -109,6 +109,85 @@ function toSessionDto(session: SessionRowDb): WorkoutSession
         exercises: session.exercises.map(toSessionExerciseDto),
         summary: toSummaryDto(session),
     }
+}
+
+// Epley formula. One rep is the lift itself, so it is not estimated.
+function estimateOneRepMax(weight: number, reps: number): number
+{
+    if(reps === 1)
+        return weight
+    return weight * (1 + reps / 30)
+}
+
+type PrCandidate = { id: string; exerciseId: string; weight: number; reps: number };
+
+// The highest estimate per exercise. On a tie the first set in the list keeps it.
+function bestPerExercise(sets: PrCandidate[]): Map<string, { setId: string; estimate: number }>
+{
+    const best = new Map<string, { setId: string; estimate: number }>()
+    for (const set of sets)
+    {
+        const estimate = estimateOneRepMax(set.weight, set.reps)
+        const current = best.get(set.exerciseId)
+        if(!current || estimate > current.estimate)
+            best.set(set.exerciseId, { setId: set.id, estimate })
+    }
+    return best
+}
+
+// A one-rep max needs a weight and reps; only these types record both.
+const PR_EXERCISE_TYPES: ExerciseType[] = ["WEIGHT_REPS", "WEIGHTED_BODYWEIGHT"]
+
+// exerciseId comes from the saved row, never from the request.
+const prSetSelect = {
+    id: true,
+    weight: true,
+    reps: true,
+    workoutSessionExercise: { select: { exerciseId: true } },
+} satisfies Prisma.WorkoutSetSelect;
+
+type PrSetRowDb = Prisma.WorkoutSetGetPayload<{ select: typeof prSetSelect }>;
+
+// Ticked sets with a weight and reps, of a type that can have a PR.
+// The caller says which workouts and exercises to look in.
+function prSetWhere(sessionExercise: Prisma.WorkoutSessionExerciseWhereInput)
+{
+    return {
+        completedAt: { not: null },
+        weight: { not: null },
+        reps: { not: null },
+        workoutSessionExercise: { ...sessionExercise, exercise: { type: { in: PR_EXERCISE_TYPES } } },
+    } satisfies Prisma.WorkoutSetWhereInput
+}
+
+// prSetWhere already drops null weight and reps; the check here is for the types.
+function toPrCandidates(rows: PrSetRowDb[]): PrCandidate[]
+{
+    return rows.flatMap(row => row.weight === null || row.reps === null ? [] : [{
+        id: row.id,
+        exerciseId: row.workoutSessionExercise.exerciseId,
+        weight: row.weight,
+        reps: row.reps,
+    }])
+}
+
+// Best estimate per exercise in this user's finished workouts, excludeSessionId left out.
+// One query for all the exercises. An exercise with no earlier set is not in the map.
+async function getPreviousBestByExercise(tx: Prisma.TransactionClient, userId: string, exerciseIds: string[], excludeSessionId: string): Promise<Map<string, number>>
+{
+    if(exerciseIds.length === 0)
+        return new Map()
+    const rows = await tx.workoutSet.findMany({
+        where: prSetWhere({
+            exerciseId: { in: exerciseIds },
+            workoutSession: { userId, status: "COMPLETED", id: { not: excludeSessionId } },
+        }),
+        select: prSetSelect,
+    })
+    const previousBest = new Map<string, number>()
+    for (const [exerciseId, best] of bestPerExercise(toPrCandidates(rows)))
+        previousBest.set(exerciseId, best.estimate)
+    return previousBest
 }
 
 type SessionState = "NOT_FOUND" | "CLOSED" | "OPEN";
