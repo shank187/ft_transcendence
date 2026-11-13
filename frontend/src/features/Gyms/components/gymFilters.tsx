@@ -11,51 +11,32 @@ function GymFilters({setCityProps, setverifiedProps } : filtersProps){
         <div className="my-4 space-x-4">
             <div className="flex flex-wrap items-center gap-3">
 
-                <div className="flex 0 gap-1.5">
-                    <button>
-                        city
-                    </button>
-                    <select onChange={function(e){setCityProps(e.target.value)}} className="rounded-full  px-4 py-1 text-sm hover:border-white transform bg-black " name="" id="">
-                        <option value="" >all</option>
+                    <select onChange={function(e){setCityProps(e.target.value)}}
+                    className="appearance-none rounded-full bg-[#181818] border border-[#2a2a2a] hover:border-zinc-500 text-white text-sm font-medium pl-4 pr-9 py-2 cursor-pointer transition-colors">
+                        <option value="" >City: All</option>
                         <option value="khouribga" >khouribga</option>
                         <option value="kenitra">kenitra</option>
                         <option value="Rabat">Rabat</option>
                         <option value="beni mellal">beni mellal</option>
                     </select>
-                </div>
                 
-
-                {/* <div className="flex 0 gap-1.5">
-                    <button>
-                        rating
-                    </button>
-                    <select onChange={function(e){setRatingProps(Number(e.target.value))}} className="rounded-full  px-4 py-1 text-sm hover:border-white transform bg-black" name="" id="">
-                        <option value="5" >5</option>
-                        <option value="4.5">4.5</option>
-                        <option value="3">3</option>
-                    </select>
-                </div> */}
-
                 <div className="flex 0 gap-1.5">
-                    <button>
-                        verified
-                    </button>
                     <select onChange={function(e){
                         const value = e.target.value;
-
-                        if (value === "all"){
+                        if (value === ""){
                             setverifiedProps(null);
-
-                        }else if(value === "true") {
+                        }
+                        else if(value === "true") {
                             setverifiedProps(true);
                         }else {
                            setverifiedProps(false); 
                         }
-                        }} className="rounded-full  px-4 py-1 text-sm hover:border-white transform bg-black">
+                        }} className="appearance-none rounded-full bg-[#181818] border-[#2a2a2a] hover:border-zinc-500 text-white text-sm font-medium pl-4 pr-9 py-2 cursor-pointer">
                         
-                        <option value="all" >all</option>
-                        <option value="true" >yes</option>
-                        <option value="false">no</option>
+                        <option value="true" >Verified</option>
+                        <option value="false">Unverified</option>
+                        <option value="">All</option>
+
                     </select>
                 </div>
             </div> 
@@ -63,4 +44,9 @@ function GymFilters({setCityProps, setverifiedProps } : filtersProps){
         </div>
     )
 }
+
+
+
+
+
 export default GymFilters;
