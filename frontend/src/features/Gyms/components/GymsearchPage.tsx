@@ -110,7 +110,7 @@ function GymsearchPage(){
                 <div className="text-[#ffffff] text-center mt-4">
                     <p>No gyms found for "{textSearched}".</p>
                 </div>)
-            :(<div>
+            :(<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
                 {GymList.map((gym) =>(
                     <GymCard key={gym.id} gym={gym}/>
                 ))}

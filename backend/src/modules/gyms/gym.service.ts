@@ -19,7 +19,7 @@ interface CreateGymData {
 
 
 export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
-    let limit : number = 3;
+    let limit : number = 6;
     if (!page)
             page = 1;
         const gymskiped = (page - 1) * limit;
@@ -40,7 +40,10 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
                 {id : "asc"}
             ],
             skip : gymskiped,
-            take : limit + 1
+            take : limit + 1,
+            include : {
+                equipment : true,
+            }
         });
         const hasNextPage = gyms.length > limit;
         let data;

@@ -103,7 +103,7 @@ function AddGym({onClose, onSuccess} : gymProps){
     }
 
     return(
-        <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl">
+        <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl border border-[#CCFF00]/30">
             <button 
                 onClick={handleClose} 
                 className="inline-flex items-center gap-1 text-xs font-medium text-[#A3A3A3] hover:text-white mb-4 transition-colors">
