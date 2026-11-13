@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import api from "../../auth/axiosInstance";
 import { toApiError } from "../shared/api-error";
-import type { WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "../shared/workouts.types";
+import type { FinishWorkoutResponse, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "../shared/workouts.types";
 import type { SetPatch } from "./workout-session.types";
 
 // null when the workout doesn't exist or belongs to another user (404).
@@ -63,10 +63,10 @@ export async function moveExercise(sessionId: string, exerciseId: string, direct
     }
 }
 
-// Safe to repeat: finishing a finished workout returns it again.
-export async function finishWorkout(id: string): Promise<WorkoutSession> {
+// Safe to repeat: finishing a finished workout returns it again, with award null.
+export async function finishWorkout(id: string): Promise<FinishWorkoutResponse> {
     try{
-        const resp = await api.post<WorkoutSession>(`/api/workout-sessions/${id}/finish`)
+        const resp = await api.post<FinishWorkoutResponse>(`/api/workout-sessions/${id}/finish`)
         return resp.data
     }catch(error){
         throw toApiError(error, "Can't finish your workout, try again.")

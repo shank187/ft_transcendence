@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type { PerformedValues } from "./workout-session.types";
-import type { SetType, WorkoutSession } from "../shared/workouts.types";
+import type { AwardResult, SetType, WorkoutSession } from "../shared/workouts.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
 import { orderExercises, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../../components/states/LoadingState";
@@ -33,6 +33,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [incompleteFinish, setIncompleteFinish] = useState(false)
     const [finishing, setFinishing] = useState(false)
     const [finishError, setFinishError] = useState<string|null>(null)
+    // Only the finish response carries the award, so it is null after a reload.
+    const [award, setAward] = useState<AwardResult | null>(null)
 
     const [showPicker, setShowPicker] = useState(false)
     const [addError, setAddError] = useState<string | null>(null)
@@ -173,7 +175,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
         try {
             const finished = await finishWorkout(sessionId)
             setIncompleteFinish(false)
-            setLoadState({ status: "success", session: finished })
+            setAward(finished.award)
+            setLoadState({ status: "success", session: finished.session })
         } catch (err) {
             setFinishError(err instanceof Error ? err.message : "Can't finish your workout, try again.")
         } finally {
@@ -246,8 +249,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
             />
             {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
             {session.status === "COMPLETED" && session.summary &&
-                // The award (XP, level up) will come from S5's award() in the finish response.
-                <SessionSummaryCard summary={session.summary} award={null}/>
+                <SessionSummaryCard summary={session.summary} award={award}/>
             }
             {!isReadOnly && session.exercises.length === 0
                 ? <EmptyState title="No exercises yet" action={addExercisesButton}/>

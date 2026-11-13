@@ -727,7 +727,7 @@ Response `200`:
 | `exercises[].sets[].planned*` | number \| null | Targets copied from the plan when the workout starts |
 | `exercises[].sets[].weight` / `reps` / `duration` / `distance` | number \| null | What the user did |
 | `exercises[].sets[].completedAt` | ISO string \| null | `null` = set not ticked |
-| `summary` | `WorkoutSummary` \| null | `null` unless `status` is `COMPLETED`. `durationSeconds`, `setsCompleted` / `setsTotal`, `volumeKg` (completed sets with weight and reps), `exerciseCount`, `prSetIds` (empty until PR detection exists) |
+| `summary` | `WorkoutSummary` \| null | `null` unless `status` is `COMPLETED`. `durationSeconds`, `setsCompleted` / `setsTotal`, `volumeKg` (completed sets with weight and reps), `exerciseCount`, `prSetIds` (the sets marked as PRs when the workout finished) |
 
 Status codes:
 
@@ -763,14 +763,29 @@ Failure example: discarding the same workout twice returns `409` `{ "message": "
 
 ### `POST /api/workout-sessions/:sessionId/finish`
 
-Finishes a workout in progress: `status` becomes `COMPLETED` and `completedAt` is set.
+Finishes a workout in progress: `status` becomes `COMPLETED`, `completedAt` is set, PRs are marked and the award is given.
 
 - **Path:** `sessionId`. No body.
 - **Rule:** at least one set must be ticked (`completedAt` not null).
-- **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200`, so a retry after a lost response is not an error.
+- **One transaction:** the status change, the PR flags (`WorkoutSet.isPr`) and `award()` are saved together or not at all.
+- **PR rule:** only ticked sets with a weight and reps count, for exercises of type `WEIGHT_REPS` or `WEIGHTED_BODYWEIGHT`. Each set gets an estimated one-rep max (Epley: `weight * (1 + reps / 30)`; one rep is the weight itself). The workout's best set of an exercise is a PR when its estimate is strictly higher than the best estimate in the user's earlier `COMPLETED` workouts. At most one PR per exercise; the first time an exercise is done is not a PR. Ticking a set never writes `isPr`; only finish does.
+- **Award:** `award()` gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. Until S5's `award()` is merged, the temporary one in `workout-session.award.ts` returns `{ "xpGained": 0, "levelUp": false, "unlocked": [] }`.
+- **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200` and `"award": null`, so a retry after a lost response is not an error and nothing is awarded twice. Two finishes sent at the same moment: the update requires `status = IN_PROGRESS`, so only one changes the row; the other answers `200` with `"award": null`.
 - **Code:** `finishWorkoutSessionController` → `finishWorkoutSession`.
 
-Response `200`: the finished workout, same shape as `GET /api/workout-sessions/:sessionId`, with its `summary`. The award (XP, level) is not implemented yet.
+Response `200`:
+
+```json
+{
+  "session": { "id": "e5f6a7b8-0000-4000-8000-000000000001", "status": "COMPLETED", "summary": { "durationSeconds": 2322, "setsCompleted": 12, "setsTotal": 12, "volumeKg": 5400, "exerciseCount": 4, "prSetIds": ["a7b8c9d0-0000-4000-8000-000000000001"] } },
+  "award": { "xpGained": 0, "levelUp": false, "unlocked": [] }
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `session` | `WorkoutSession` | The finished workout, same shape as `GET /api/workout-sessions/:sessionId` (shortened above), with its `summary` |
+| `award` | `AwardResult` \| null | `null` when the workout was already finished |
 
 Status codes:
 
@@ -782,6 +797,8 @@ Status codes:
 - `500` unexpected error
 
 Failure example: finishing a workout with no ticked set returns `422` `{ "message": "Complete at least one set to finish." }`.
+
+Frontend types: `FinishWorkoutResponse` and `AwardResult` in `frontend/src/features/workouts/shared/workouts.types.ts`.
 
 ### `POST /api/workout-sessions/:sessionId/exercises`
 

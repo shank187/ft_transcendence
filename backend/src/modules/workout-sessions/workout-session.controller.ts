@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, finishWorkoutSession, getWorkoutSession, moveSessionExercise, startWorkoutSession, updateSessionSet } from "./workout-session.service";
 import { MAX_WORKOUTS_PER_DAY, addExercisesBody, discardSessionBody, moveExerciseBody, startSessionBody, updateSetBody } from "./workout-session.schema";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE, idParam } from "../../lib/validation";
+import type { FinishWorkoutResponse } from "./workout-session.types";
 
 // Express types every param as string | string[]; a named :param is always one string.
 type SessionRequest = AuthenticatedRequest & { params: { sessionId: string } };
@@ -181,7 +182,8 @@ export async function finishWorkoutSessionController(req: SessionRequest, res: R
                 return res.status(409).json({message: "This workout was discarded."})
             return res.status(422).json({message: "Complete at least one set to finish."})
         }
-        return res.status(200).json(result.session)
+        const body: FinishWorkoutResponse = { session: result.session, award: result.award }
+        return res.status(200).json(body)
     }catch(error){
         console.error("POST /api/workout-sessions/:sessionId/finish failed:", error)
         return res.status(500).json({message: "Internal server error"})
