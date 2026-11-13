@@ -159,8 +159,10 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
 
 
         <div className="text-sm text-green-700">{success}</div>
-        <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
-        <Button onClick={delet_avatar}> remove avatar </Button>
+        <div className="space-x-1">
+            <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
+            <Button onClick={delet_avatar}> remove avatar </Button>
+        </div>
     </div>
 
     );

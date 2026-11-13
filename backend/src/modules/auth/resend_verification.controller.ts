@@ -48,7 +48,8 @@ export const resend_verification = async (req: Request, res: Response) => {
         try {
             await send_email(pending.email, code);
         }
-        catch {
+        catch (error) {
+            console.log("error :", error);
             await prisma.pendingRegistration.updateMany({
                 where: {
                     id: pending.id,
@@ -69,7 +70,8 @@ export const resend_verification = async (req: Request, res: Response) => {
             message: 'Verification code sent'
         });
     }
-    catch {
+    catch (error) {
+        console.log("error :", error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };

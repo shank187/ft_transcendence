@@ -1,5 +1,3 @@
-NAME = ft_transcendence
-
 # Default: build and start the complete project
 all:
 	docker compose up -d --build
