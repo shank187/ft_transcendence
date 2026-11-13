@@ -9,6 +9,8 @@ import api from "../../auth/axiosInstance";
 import PaginationButtons from "./paginationButton";
 import AddGym from "./AddGym";
 
+import GymNavbar from "./gymNavBar";
+
 
 
 function GymsearchPage(){
@@ -80,8 +82,13 @@ function GymsearchPage(){
 
 
     return (
-        <div className="min-h-screen text-[#ffffff] p-4">
-            <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
+        
+        <div className="min-h-screen text-[#ffffff]">
+            <GymNavbar onSearchPage={function() { setIsAddGymOpen(false); }}
+                        onAddPage={function() { setIsAddGymOpen(true); }}
+                        currentPage="search"/>
+            <div className="p-4">
+            <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
 
 
             {bannerMessage && (
@@ -96,10 +103,10 @@ function GymsearchPage(){
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
 
-                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
+                {/* <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
                     <span className="text-xl font-bold">+</span>
                     <span>Add gym</span>
-                </button>
+                    </button> */}
             </div>
             <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 
@@ -124,6 +131,7 @@ function GymsearchPage(){
         </div>
 
         {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
+            </div>
         </div>
     )
 }
