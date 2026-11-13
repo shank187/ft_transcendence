@@ -1,33 +1,30 @@
-
 import { Trophy, Medal, Zap } from "lucide-react";
+import type { SavedAchievements } from "./progress.types";
 import { achievements } from "./achievements.data";
 import AchievementCard from "./AchievementCard";
 
 type AchievementsProps = {
-    completedWorkouts: number;
+    savedAchievements: SavedAchievements[];
 };
 
 export default function Achievements({
-    completedWorkouts,
+    savedAchievements,
 }: AchievementsProps) {
+    // Extract the codes of the saved unlocks.
+    const unlockedCodes = new Set(
+        savedAchievements.map((achievement) => achievement.code)
+    );
 
-    // Requirements for each achievement
-    const requirements: Record<number, number> = {
-        1: 1,
-        4: 10,
-        5: 50,
-        6: 100,
-    };
-
-    // Calculate unlock status using the user's workouts
+    // Set each card's unlock status using those codes.
     const userAchievements = achievements.map((achievement) => ({
         ...achievement,
-        unlocked: completedWorkouts >= requirements[achievement.id],
+        unlocked: unlockedCodes.has(achievement.code),
     }));
 
-    // Calculate achievement statistics
+    // Count all available achievements.
     const totalAchievements = userAchievements.length;
 
+    // Count only unlocked achievements.
     const unlockedAchievements = userAchievements.filter(
         (achievement) => achievement.unlocked
     ).length;

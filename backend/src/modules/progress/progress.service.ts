@@ -1,4 +1,16 @@
 import { prisma } from "../../lib/prisma"
+import type { Prisma } from "@prisma/client"
+
+import {
+    XP_PER_WORKOUT,
+    XP_PER_PR,
+    getLevel,
+} from "./progress.rules";
+
+export type AwardEvent = {
+    reason: "WORKOUT_COMPLETED" | "PR_SET";
+    sourceId: string;
+};
 
 export async function countCompletedWorkouts( userId : string ) : Promise<number> {
     return prisma.workoutSession.count({
@@ -23,24 +35,122 @@ export async function getTotalXp(
     return result._sum.amount ?? 0;
 }
 
-export async function getLeaderboardEntries() {
-    // Get public identities.
-    const users = await prisma.user.findMany({
+//////////////// achievements
+const workoutMilestones = [
+    { code: "WORKOUTS_1", requiredWorkouts: 1 },
+    { code: "WORKOUTS_10", requiredWorkouts: 10 },
+    { code: "WORKOUTS_50", requiredWorkouts: 50 },
+    { code: "WORKOUTS_100", requiredWorkouts: 100 },
+];
+
+export async function unlockWorkoutAchievements(
+    userId: string,
+    tx: Prisma.TransactionClient = prisma
+): Promise<string[]> {
+    // Read completed workouts using the supplied client.
+    const completedWorkouts = await tx.workoutSession.count({
+        where: {
+            userId,
+            status: "COMPLETED",
+        },
+    });
+
+    const unlocked: string[] = [];
+
+    for (const achievement of workoutMilestones) {
+        if (completedWorkouts < achievement.requiredWorkouts) {
+            continue;
+        }
+
+        // Try saving the earned achievement.
+        const result = await tx.userAchievement.createMany({
+            data: [{
+                userId,
+                code: achievement.code,
+            }],
+            skipDuplicates: true,
+        });
+
+        // Report it only if this call created the unlock.
+        if (result.count > 0) {
+            unlocked.push(achievement.code);
+        }
+    }
+    return unlocked;
+}
+
+export async function getUnlockedAchievements(userId: string) {
+    return prisma.userAchievement.findMany({
+        where: { userId },
+        select: {
+            code: true,
+            unlockedAt: true,
+        },
+        orderBy: {
+            unlockedAt: "asc",
+        },
+    });
+}
+
+
+//////////// leadeboard
+export async function getLeaderboardEntries(userId: string) {
+    let users = await prisma.user.findMany({
+        where: {
+            id: { not: userId },
+            OR: [
+                {
+                    receivedFriendships: {
+                        some: {
+                            requesterId: userId,
+                            status: "ACCEPTED",
+                            blockedById: null,
+                        },
+                    },
+                },
+                {
+                    sentFriendships: {
+                        some: {
+                            addresseeId: userId,
+                            status: "ACCEPTED",
+                            blockedById: null,
+                        },
+                    },
+                },
+            ],
+        },
         select: {
             id: true,
             username: true,
         },
     });
 
-    // Calculate each user's stored XP.
+// Handle zero friends.
+    if (users.length === 0) {
+        users = await prisma.user.findMany({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                username: true,
+            },
+        });
+    }
+
+    // Calculate stored XP for these friends only.
     const xpTotals = await prisma.xpEvent.groupBy({
         by: ["userId"],
+        where: {
+            userId: {
+                in: users.map((user) => user.id),
+            },
+        },
         _sum: {
             amount: true,
         },
     });
 
-    // Associate each user ID with their total XP.
     const xpByUser = new Map(
         xpTotals.map((entry) => [
             entry.userId,
@@ -48,7 +158,6 @@ export async function getLeaderboardEntries() {
         ])
     );
 
-    // Combine identities with XP and rank them.
     return users
         .map((user) => ({
             id: user.id,
@@ -60,4 +169,58 @@ export async function getLeaderboardEntries() {
                 b.xp - a.xp ||
                 a.username.localeCompare(b.username)
         );
+}
+
+////////////////////// award funciton 
+export async function award(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    events: AwardEvent[]
+) {
+    // 1. Keep simultaneous award calls for this user in order.
+    await tx.$queryRaw`
+        SELECT "id" FROM "User"
+        WHERE "id" = ${userId}
+        FOR UPDATE
+    `;
+
+    // 2. Read the user's current XP.
+    const previous = await tx.xpEvent.aggregate({
+        where: { userId },
+        _sum: { amount: true },
+    });
+
+    const previousXp = previous._sum.amount ?? 0;
+    let xpGained = 0;
+
+    // 3. Save XP for each new event.
+    for (const event of events) {
+        const amount =
+            event.reason === "WORKOUT_COMPLETED"
+                ? XP_PER_WORKOUT
+                : XP_PER_PR;
+
+        const result = await tx.xpEvent.createMany({
+            data: [{
+                userId,
+                reason: event.reason,
+                sourceId: event.sourceId,
+                amount,
+            }],
+            skipDuplicates: true,
+        });
+
+        xpGained += result.count * amount;
+    }
+
+    // 4. Save newly earned achievement unlocks.
+    const unlocked = await unlockWorkoutAchievements(userId, tx);
+
+    // 5. Return feedback for the finish response.
+    return {
+        xpGained,
+        levelUp:
+            getLevel(previousXp + xpGained) > getLevel(previousXp),
+        unlocked,
+    };
 }
