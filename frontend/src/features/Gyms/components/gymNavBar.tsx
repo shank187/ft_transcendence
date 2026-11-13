@@ -10,7 +10,7 @@ interface gymProps {
 
 function GymNavbar({onSearchPage, onAddPage, currentPage} : gymProps){
     return (
-        <div className="flex items-center justify-between  gap-3 stciky top-0 z-20   border-b rounded-b-2xl border-[#262626] px-4 sm:px-8 py-3 mb-4">
+        <div className="flex items-center justify-between  gap-3 sticky  bg-black/60 top-0 z-20   border-b rounded-b-2xl border-[#262626] px-4 sm:px-8 py-3 mb-4">
             <p className="text-xs font-bold">Community Gyms</p>
             <div className="flex items-center gap-2">
                 <button type="button" className={`flex items-center gap-2 rounded-full  px-4 py-2 text-xs  transition-all cursor-pointer ${
