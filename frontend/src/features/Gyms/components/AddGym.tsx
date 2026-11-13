@@ -6,6 +6,7 @@ import GymNavbar from "./gymNavBar";
 
 
 
+
 interface gymProps{
     onClose : (bool : boolean)=>void;
     onSuccess : (msg : string)=>void;
