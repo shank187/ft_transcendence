@@ -36,10 +36,13 @@ export function startWorkoutFromDay(dayId: string): Promise<WorkoutSession> {
 }
 
 // Deletes the workout in progress with its exercises and sets.
+// 404 means it is already gone, which is what the caller wants: a retry of
+// "discard and start new" after the start failed must not stop on the discard.
 export async function discardWorkout(id: string): Promise<void> {
     try{
         await api.delete(`/api/workout-sessions/${id}`)
     }catch(error){
+        if(isAxiosError(error) && error.response?.status === 404) return
         throw toApiError(error, "Can't discard your workout, try again.")
     }
 }
