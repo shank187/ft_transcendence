@@ -21,7 +21,7 @@ function GymsearchPage(){
     const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
-    const [paginPage, setPaginPage] = useState(Number);
+    const [paginPage, setPaginPage] = useState(1);
 
 
     const [isAddGymOpen, setIsAddGymOpen] = useState(false);
@@ -48,8 +48,6 @@ function GymsearchPage(){
                     }
                 });
                 if (ignore === false){
-                    setLoading(false);
-
                     setGymList(res.data.data);
                     setHasNextPage(res.data.hasNextPage);
                     setPaginPage(res.data.totalPage);
