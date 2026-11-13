@@ -33,6 +33,9 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         if (typeof verified == "boolean")
             searchCondiions.verified = verified;
         
+        const totalGym = await prisma.gym.count({where : searchCondiions});
+        const totalPage =  Math.ceil(totalGym/limit);
+    
         const gyms = await prisma.gym.findMany({
             where : searchCondiions,
             orderBy : [
@@ -52,9 +55,8 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         }else{
             data = gyms;
         }
-        return {data ,hasNextPage};
+        return {data ,hasNextPage, totalPage};
     }
-    
     
                 
     export async function getGymById(id :string){
@@ -176,3 +178,4 @@ export async function getSubmissions(){
         }
     });
 }
+

@@ -33,11 +33,7 @@ function GymCard({gym} : GymCardPara){
                     <div className="flex items-center gap-2.5">
 
                     </div>
-                    {/* {gym.description && (
-                        <p className="text-xs text-[#8E8E8E] mt-3">
-                            {gym.description}
-                        </p>
-                    )} */}
+
                     <div className="mt-2 flex items-center gap-1.5 text-xs text-[#A3A3A3]">
                         <MapPin className="w-3.5 h-3.5 text-[#A3A3A3] shrink-0"/>
                         <span>{gym.city}</span>

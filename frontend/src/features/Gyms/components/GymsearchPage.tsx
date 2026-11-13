@@ -21,6 +21,8 @@ function GymsearchPage(){
     const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
+    const [paginPage, setPaginPage] = useState(Number);
+
 
     const [isAddGymOpen, setIsAddGymOpen] = useState(false);
     const [bannerMessage, setBannerMessage] = useState<string | null>(null);
@@ -50,6 +52,7 @@ function GymsearchPage(){
 
                     setGymList(res.data.data);
                     setHasNextPage(res.data.hasNextPage);
+                    setPaginPage(res.data.totalPage);
                 }
 
             }
@@ -102,11 +105,6 @@ function GymsearchPage(){
 
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
-
-                {/* <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
-                    <span className="text-xl font-bold">+</span>
-                    <span>Add gym</span>
-                    </button> */}
             </div>
             <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 
@@ -127,7 +125,8 @@ function GymsearchPage(){
             <PaginationButtons 
                 currentPage={page} 
                 onPageChange={setPage}
-                hasNextPage={hasNextPage}/>
+                hasNextPage={hasNextPage}
+                totalPage={paginPage}/>
         </div>
 
         {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
