@@ -5,7 +5,7 @@ import { isNotFoundError, isUniqueViolation, isWriteConflict } from "../../lib/p
 import { MAX_WORKOUTS_PER_DAY, type UpdateSetBody } from "./workout-session.schema";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE } from "../../lib/validation";
 import type { AwardResult, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "./workout-session.types";
-import { award, type AwardEvent } from "./workout-session.award";
+import { award, type AwardEvent } from "../progress/progress.service";
 
 const setSelect = {
     id: true,
