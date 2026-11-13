@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, finishWorkoutSession, getWorkoutSession, moveSessionExercise, startWorkoutSession, updateSessionSet } from "./workout-session.service";
-import { MAX_WORKOUTS_PER_DAY, addExercisesBody, discardSessionBody, moveExerciseBody, startSessionBody, updateSetBody } from "./workout-session.schema";
+import { MAX_WORKOUTS_PER_DAY, addExercisesBody, moveExerciseBody, startSessionBody, updateSetBody } from "./workout-session.schema";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE, idParam } from "../../lib/validation";
 import type { FinishWorkoutResponse } from "./workout-session.types";
 
@@ -27,9 +27,6 @@ export async function getWorkoutSessionController(req: SessionRequest, res: Resp
 export async function discardWorkoutSessionController(req: SessionRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
     if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
-    const parsed = discardSessionBody.safeParse(req.body)
-    if(!parsed.success)
-        return res.status(400).json({message: parsed.error.issues[0].message})
     try{
         const result = await discardWorkoutSession(req.userId, req.params.sessionId)
         if(!result.ok)
@@ -40,7 +37,7 @@ export async function discardWorkoutSessionController(req: SessionRequest, res: 
         }
         return res.status(204).send()
     }catch(error){
-        console.error("PATCH /api/workout-sessions/:sessionId failed:", error)
+        console.error("DELETE /api/workout-sessions/:sessionId failed:", error)
         return res.status(500).json({message: "Internal server error"})
     }
 }

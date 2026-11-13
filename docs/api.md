@@ -40,7 +40,7 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | DELETE | `/api/workout-plans/:planId/days/:dayId` | Yes | Delete a day and renumber the remaining days |
 | PUT | `/api/workout-plans/:planId/days/:dayId/exercises` | Yes | Replace a day's planned exercises and sets |
 | GET | `/api/workout-sessions/:sessionId` | Yes | Return one owned workout with its exercises and sets |
-| PATCH | `/api/workout-sessions/:sessionId` | Yes | Discard a workout in progress |
+| DELETE | `/api/workout-sessions/:sessionId` | Yes | Discard (delete) a workout in progress |
 | POST | `/api/workout-sessions/:sessionId/exercises` | Yes | Add exercises to a workout in progress |
 | POST | `/api/workout-sessions/:sessionId/exercises/:exerciseId/sets` | Yes | Add a set to an exercise of a workout in progress |
 | PATCH | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Update or tick a set of a workout in progress |
@@ -666,7 +666,7 @@ Starts a workout, empty or from one of the user's plan days.
 - **Body:** `{}` for an empty workout, or `{ "dayId": "<uuid>" }` to start from that day.
 - **From a day:** the day's exercises and sets are copied in one transaction. `order`, `restSeconds`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
 - **One active workout:** a user with a workout `IN_PROGRESS` gets `409` with that workout's id, so the client can offer to resume or discard it.
-- **Daily limit:** at most 5 workouts started in the last 24 hours (`MAX_WORKOUTS_PER_DAY` in `workout-session.schema.ts`). Discarded workouts count too, so start and discard can't be repeated without end.
+- **Daily limit:** at most 5 workouts started in the last 24 hours (`MAX_WORKOUTS_PER_DAY` in `workout-session.schema.ts`). Discarded workouts no longer count: discarding deletes the session (`DELETE /api/workout-sessions/:sessionId`).
 - **Starts at the same moment:** the checks and the insert run in one `Serializable` transaction. When two starts overlap, PostgreSQL rolls one back, and that request answers `409` without an id. Tested with 10 starts sent together: one workout saved, nine `409`.
 - **Code:** `startWorkoutSessionController` → `startWorkoutSession`.
 
@@ -743,26 +743,27 @@ Failure example: another user's `sessionId` returns `404` `{ "message": "Workout
 
 Frontend types: `WorkoutSession`, `WorkoutSessionExercise`, `WorkoutSessionSet` and `WorkoutSummary` in `frontend/src/features/workouts/shared/workouts.types.ts`.
 
-### `PATCH /api/workout-sessions/:sessionId`
+### `DELETE /api/workout-sessions/:sessionId`
 
-Discards a workout in progress.
+Discards a workout in progress: the session is deleted with its exercises and sets (Cascade).
 
-- **Path:** `sessionId`.
-- **Body:** `{ "status": "CANCELLED" }` — the only accepted value.
+- **Path:** `sessionId`. No body.
+- **Rule:** only an `IN_PROGRESS` workout can be discarded. The delete itself requires `status = IN_PROGRESS`, so a workout finished at the same moment stays in the history.
+- **Daily limit:** a discarded workout no longer counts toward the 5 workouts in 24 hours, because its row is gone.
+- **Old rows:** `CANCELLED` is no longer written. Sessions discarded before this change keep `status = CANCELLED` and are still handled as closed workouts.
 - **Code:** `discardWorkoutSessionController` → `discardWorkoutSession`.
 
-Response `204` — no body. The session stays in the database with `status = CANCELLED`.
+Response `204` — no body.
 
 Status codes:
 
 - `204` workout discarded
-- `400` body is not `{ "status": "CANCELLED" }` — e.g. `{ "message": "Invalid input: expected \"CANCELLED\"" }`
 - `401` missing, invalid, or expired access token
 - `404` `{ "message": "Workout not found." }`
 - `409` `{ "message": "This workout is finished or cancelled." }`
 - `500` unexpected error
 
-Failure example: discarding the same workout twice returns `409` `{ "message": "This workout is finished or cancelled." }` the second time.
+Failure example: discarding the same workout twice returns `404` `{ "message": "Workout not found." }` the second time; discarding a finished workout returns `409`.
 
 ### `POST /api/workout-sessions/:sessionId/finish`
 

@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/', authenticate, startWorkoutSessionController)
 router.get('/:sessionId', authenticate, getWorkoutSessionController)
-router.patch('/:sessionId', authenticate, discardWorkoutSessionController)
+router.delete('/:sessionId', authenticate, discardWorkoutSessionController)
 router.post('/:sessionId/finish', authenticate, finishWorkoutSessionController)
 router.post('/:sessionId/exercises', authenticate, addSessionExercisesController)
 router.patch('/:sessionId/exercises/:exerciseId', authenticate, moveSessionExerciseController)

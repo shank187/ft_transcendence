@@ -35,9 +35,10 @@ export function startWorkoutFromDay(dayId: string): Promise<WorkoutSession> {
     return startWorkout({ dayId })
 }
 
+// Deletes the workout in progress with its exercises and sets.
 export async function discardWorkout(id: string): Promise<void> {
     try{
-        await api.patch(`/api/workout-sessions/${id}`, { status: "CANCELLED" })
+        await api.delete(`/api/workout-sessions/${id}`)
     }catch(error){
         throw toApiError(error, "Can't discard your workout, try again.")
     }

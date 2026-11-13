@@ -233,15 +233,17 @@ type DiscardResult =
     | { ok: true }
     | { ok: false; reason: "NOT_FOUND" | "CLOSED" };
 
+// Deletes the workout with its exercises and sets (Cascade). Only a workout in progress
+// can be discarded, so a finished one stays in the history.
+// CANCELLED is no longer written; rows discarded before this change keep it.
 export async function discardWorkoutSession(userId: string, sessionId: string): Promise<DiscardResult>
 {
     const state = await getSessionState(userId, sessionId)
     if(state !== "OPEN")
         return { ok: false, reason: state }
     try{
-        await prisma.workoutSession.update({
+        await prisma.workoutSession.delete({
             where: { id: sessionId, userId, status: "IN_PROGRESS" },
-            data: { status: "CANCELLED" },
         })
         return { ok: true }
     }catch(error){
