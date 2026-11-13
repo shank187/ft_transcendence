@@ -40,19 +40,19 @@ export const googleLogin = async (_req: Request, res: Response) => {
 
 export const googleCallback = async (req: Request, res: Response) => {
     try {
-        const code = req.query.code;// Temporary code sent by Google
-        const state = req.query.state;  // State value returned by Google
-        const saved_state = req.cookies.google_oauth_state;  // State value we saved before going to Google
+        const code = req.query.code;
+        const state = req.query.state;
+        const saved_state = req.cookies.google_oauth_state;
 
        res.clearCookie('google_oauth_state', {
         httpOnly: true,
         sameSite: 'lax'
         });
 
-        if (typeof code !== 'string' || typeof state !== 'string' || state !== saved_state) // Check that the Google request is valid
+        if (typeof code !== 'string' || typeof state !== 'string' || state !== saved_state)
             return res.status(400).json({ message: 'Invalid Google request' });
 
-        const { tokens } = await googleClient.getToken(code); // Send the temporary code to Google and get tokens
+        const { tokens } = await googleClient.getToken(code);
 
         if (!tokens.id_token)
             return res.status(401).json({ message: 'Google login failed' });
@@ -64,11 +64,9 @@ export const googleCallback = async (req: Request, res: Response) => {
             audience: process.env.GOOGLE_CLIENT_ID
         });
 
-        // Get the user information from the Google token
         const google_user = ticket.getPayload();
 
-        // Make sure the Google user has valid information
-        if (!google_user || !google_user.email || !google_user.sub || !google_user.email_verified) //means the email is trusted by Google.
+        if (!google_user || !google_user.email || !google_user.sub || !google_user.email_verified)
             return res.status(401).json({ message: 'Invalid Google account' });
 
         const email = google_user.email.toLowerCase();
