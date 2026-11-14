@@ -41,7 +41,7 @@ export interface ExerciseFilters
 {
     muscles: FilterOption[],
     equipment: FilterOption[],
-}
+    gym: { id: string; name: string } | null}
 
 // The exercise as the day editor and the workout page show it.
 export interface ExerciseSummary

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { ExerciseItem, ExerciseFilters, ExerciseQuery } from "./exercise.types"
+import type { ExerciseItem, ExerciseQuery } from "./exercise.types"
 import { getExerciseFilter, getExercises } from "./exercise.api"
 import LoadingState from "../../../../components/states/LoadingState"
 import ErrorState from "../../../../components/states/ErrorState"
@@ -9,6 +9,7 @@ import FilterSelect from "../../../../components/ui/FilterSelect"
 import ExerciseRow from "./ExerciseRow"
 import { EXERCISE_SEARCH_MAX } from "../limits"
 import searchIcon from "../../../../assets/search-icon.svg"
+import type { ExerciseFilters } from "../../../../../../shared/exercises"
 
 type LoadStateType =
     | {status: "loading"}
@@ -23,7 +24,7 @@ const INITIAL_QUERY: ExerciseQuery = {
     muscle: "",
     equipment: "",
     sort: "name_asc",
-    gymId: "",
+    gym: "",
 }
 
 const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
@@ -31,7 +32,7 @@ const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
     search: q.search?.trim() === "" ? undefined: q.search,
     equipment: q.equipment?.trim() === "" ? undefined : q.equipment,
     muscle: q.muscle?.trim() === "" ? undefined : q.muscle,
-    gymId: q.gymId?.trim() === "" ? undefined : q.gymId,
+    gym: q.gym?.trim() === "" ? undefined : q.gym,
 })
 
 type PickerView = "loading" | "error" | "empty" | "list"
@@ -181,14 +182,14 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         disabled={filterState.status !== "success" || !filters?.gym}
                         variant="outline"
                         size="pill"
-                        aria-pressed={query.gymId !== ""}
+                        aria-pressed={query.gym !== ""}
                         onClick={()=>setQuery((prev)=>({
                             ...prev,
                             page: 1,
-                            gymId: prev.gymId === "" ? filters?.gym?.id : ""
+                            gym: prev.gym === "" ? filters?.gym?.id : ""
                         }))}
                     >
-                        {(filters?.gym && query.gymId !== "") && <span aria-hidden="true">✓</span>} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                        {(filters?.gym && query.gym !== "") && <span aria-hidden="true">✓</span>} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
                     </Button>
                 </div>
                 {filterState.status === "error" && <p className="text-xs text-app-danger">Filters unavailable.</p>}

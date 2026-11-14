@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { getExercises, getExercisesFilters } from "./exercise.service";
 import { exerciseListQuery } from "./exercise.schema";
+import type { AuthenticatedRequest } from "../../middleware/authenticate";
 
 export async function getExercisesController(req: Request, res: Response) {
     const parsed = exerciseListQuery.safeParse(req.query)
@@ -12,6 +13,8 @@ export async function getExercisesController(req: Request, res: Response) {
         {
             if(result.reason === "MUSCLE_NOT_FOUND")
                 return res.status(400).json({message: "Invalid Muscle"})
+            else if(result.reason === "GYM_NOT_FOUND")
+                return res.status(400).json({message: "Invalid Gym"})
             return res.status(400).json({message: "Invalid Equipment"})
         }
         return res.status(200).json(result.list)
@@ -21,9 +24,11 @@ export async function getExercisesController(req: Request, res: Response) {
     }
 }
 
-export async function getExercisesFiltersController(_req: Request, res: Response) {
+export async function getExercisesFiltersController(req: AuthenticatedRequest, res: Response) {
+    if (!req.userId)
+        return res.status(401).json({message: "Unauthorized"})
     try{
-        const filters = await getExercisesFilters()
+        const filters = await getExercisesFilters(req.userId)
         return res.status(200).json(filters)
     }catch(error){
         console.error("GET /api/exercises/filters failed:", error)
