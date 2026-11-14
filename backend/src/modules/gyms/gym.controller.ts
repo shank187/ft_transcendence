@@ -7,6 +7,7 @@ import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
 import {selectCurrentGym} from "./gym.service";
+import { error } from "node:console";
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -181,6 +182,8 @@ export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Respo
             return res.status(404).json({error: "Gym not found"});
         if (e.message === "Access denied")
             return res.status(403).json({error: "Access denied"});
+        if (e.message === "Gym is unverified")
+            return res.status(422).json({error : "Cannot select an unverified gym"});
         console.log(e);
         res.status(500).json({ error: "server error" });
     }

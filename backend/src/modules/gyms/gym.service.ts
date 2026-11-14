@@ -197,7 +197,9 @@ export async function selectCurrentGym(gymId : string, userId : string){
 
     if (gym.visibility === "PRIVATE" && gym.createdById !== userId)
         throw new Error("Access denied");
-        
+    
+    if (!gym.verified && gym.visibility !== "PRIVATE")
+        throw new Error("Gym is unverified");
     await prisma.user.update({
         where : {id : userId},
         data :{currentGymId:gymId}
