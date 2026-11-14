@@ -132,6 +132,7 @@ Query parameters, all optional:
 | `search` | text | none | Trimmed; case-insensitive "contains" match on `name`. Empty or whitespace-only means no filter |
 | `muscle` | `MuscleGroup.id` | none | Matches the **primary** muscle only; secondary muscles are ignored. Trimmed; empty means no filter |
 | `equipment` | `Equipment.id` | none | Matches exercises linked to this equipment. Trimmed; empty means no filter |
+| `gym` | `true` \| `false` | `false` | `true` keeps exercises whose equipment is all at the user's current gym (exercises with no equipment always match). The server reads the gym from the user; no gym id is sent. `400 { "message": "No current gym" }` when the user has none |
 | `sort` | `name_asc` \| `name_desc` | `name_asc` | Exactly one of the two values; unlike the filters, empty is not accepted |
 
 Filters combine with AND. Pagination applies to the filtered result, and `total` counts the filtered rows. A `page` past `totalPages` returns `200` with an empty `items` array.
@@ -202,7 +203,7 @@ Status codes:
 
 ### `GET /api/exercises/filters`
 
-Returns the options for the catalog's muscle and equipment filters.
+Returns the options for the catalog's muscle and equipment filters, and the user's current gym.
 
 - **Auth:** required (Bearer access token).
 - **Request:** no path, query, or body parameters.
@@ -218,11 +219,12 @@ Response `200`:
   ],
   "equipment": [
     { "id": "6f5e4d3c-2b1a-4c9d-8e7f-a0b1c2d3e4f5", "name": "Barbell" }
-  ]
+  ],
+  "gym": { "id": "3c2b1a0f-9e8d-4c7b-a6f5-e4d3c2b1a0f9", "name": "City Gym" }
 }
 ```
 
-The `id` values are the ones `GET /api/exercises` accepts in `muscle` and `equipment`.
+The `id` values are the ones `GET /api/exercises` accepts in `muscle` and `equipment`. `gym` is `null` when the user has no current gym; the picker then disables its gym filter.
 
 Status codes:
 

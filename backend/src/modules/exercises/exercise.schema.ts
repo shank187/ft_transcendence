@@ -21,8 +21,9 @@ export const exerciseListQuery = z.object({
         .refine(value => value === "" || idParam.safeParse(value).success, "Invalid Muscle").optional(),
     equipment: z.string("Invalid Equipment").trim()
         .refine(value => value === "" || idParam.safeParse(value).success, "Invalid Equipment").optional(),
-    gym: z.string("Invalid Gym").trim()
-        .refine(value => value === "" || idParam.safeParse(value).success, "Invalid Gym").optional(),
+    // gym=true: only exercises doable at the user's current gym. The server reads
+    // the gym from the user row, so the client never sends a gym id.
+    gym: z.enum(["true", "false"], "Invalid Gym").default("false").transform(value => value === "true"),
     sort: z.enum(["name_asc", "name_desc"], "Invalid Sort").default("name_asc"),
 });
 

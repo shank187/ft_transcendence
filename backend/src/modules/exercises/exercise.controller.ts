@@ -1,20 +1,22 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import { getExercises, getExercisesFilters } from "./exercise.service";
 import { exerciseListQuery } from "./exercise.schema";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
 
-export async function getExercisesController(req: Request, res: Response) {
+export async function getExercisesController(req: AuthenticatedRequest, res: Response) {
+    if (!req.userId)
+        return res.status(401).json({message: "Unauthorized"})
     const parsed = exerciseListQuery.safeParse(req.query)
     if(!parsed.success)
         return res.status(400).json({message: parsed.error.issues[0].message})
     try{
-        const result = await getExercises(parsed.data)
+        const result = await getExercises(parsed.data, req.userId)
         if(!result.ok)
         {
             if(result.reason === "MUSCLE_NOT_FOUND")
                 return res.status(400).json({message: "Invalid Muscle"})
-            else if(result.reason === "GYM_NOT_FOUND")
-                return res.status(400).json({message: "Invalid Gym"})
+            else if(result.reason === "NO_CURRENT_GYM")
+                return res.status(400).json({message: "No current gym"})
             return res.status(400).json({message: "Invalid Equipment"})
         }
         return res.status(200).json(result.list)

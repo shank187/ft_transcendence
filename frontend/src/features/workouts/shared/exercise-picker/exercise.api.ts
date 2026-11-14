@@ -22,8 +22,6 @@ Promise<ExerciseFilters>
 {
     try {
         const resp = await api.get<ExerciseFilters>('/api/exercises/filters')
-        // TODO(g-01): the server does not send the user's gym yet. null keeps the
-        // "available at my gym" button disabled until it does.
         return resp.data
     } catch (error) {
         throw toApiError(error, "Could not load the filters. Please try again.")

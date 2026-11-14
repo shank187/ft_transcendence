@@ -10,8 +10,6 @@ export interface ExerciseQuery {
     muscle?: string
     equipment?: string
     sort?: ExerciseSort
-    // TODO(g-01): sent as is; the server ignores it until the gym filter exists.
-    gym?: string
+    // true: only exercises doable at the user's current gym (the server knows which gym).
+    gym?: boolean
 }
-
-// TODO(g-01): the backend does not send gym yet; getExerciseFilter sets it to null until it does.

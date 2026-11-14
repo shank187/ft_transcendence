@@ -24,7 +24,7 @@ const INITIAL_QUERY: ExerciseQuery = {
     muscle: "",
     equipment: "",
     sort: "name_asc",
-    gym: "",
+    gym: false,
 }
 
 const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
@@ -32,7 +32,8 @@ const cleanQuery = (q: ExerciseQuery):ExerciseQuery =>({
     search: q.search?.trim() === "" ? undefined: q.search,
     equipment: q.equipment?.trim() === "" ? undefined : q.equipment,
     muscle: q.muscle?.trim() === "" ? undefined : q.muscle,
-    gym: q.gym?.trim() === "" ? undefined : q.gym,
+    // Leave gym out when off, like the empty filters above.
+    gym: q.gym ? true : undefined,
 })
 
 type PickerView = "loading" | "error" | "empty" | "list"
@@ -182,14 +183,14 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         disabled={filterState.status !== "success" || !filters?.gym}
                         variant="outline"
                         size="pill"
-                        aria-pressed={query.gym !== ""}
+                        aria-pressed={query.gym}
                         onClick={()=>setQuery((prev)=>({
                             ...prev,
                             page: 1,
-                            gym: prev.gym === "" ? filters?.gym?.id : ""
+                            gym: !prev.gym
                         }))}
                     >
-                        {(filters?.gym && query.gym !== "") && <span aria-hidden="true">✓</span>} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
+                        {(filters?.gym && query.gym) && <span aria-hidden="true">✓</span>} {filters?.gym ? `available at ${filters?.gym.name}` : "No current gym"}
                     </Button>
                 </div>
                 {filterState.status === "error" && <p className="text-xs text-app-danger">Filters unavailable.</p>}

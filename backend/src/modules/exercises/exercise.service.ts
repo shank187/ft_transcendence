@@ -42,17 +42,23 @@ function toExerciseItemDto(exercise: ExerciseRowDb): ExerciseItem
 
 type ExerciseListResult =
     | { ok: true; list: ExerciseList }
-    | { ok: false; reason: "MUSCLE_NOT_FOUND" | "EQUIPMENT_NOT_FOUND" | "GYM_NOT_FOUND" };
+    | { ok: false; reason: "MUSCLE_NOT_FOUND" | "EQUIPMENT_NOT_FOUND" | "NO_CURRENT_GYM" };
 
-export async function getExercises(query: ExerciseListQuery): Promise<ExerciseListResult> {
+export async function getExercises(query: ExerciseListQuery, userId: string): Promise<ExerciseListResult> {
     const { page, limit, search, muscle, equipment, gym, sort } = query;
 
     if (muscle && !(await prisma.muscleGroup.findUnique({ where: { id: muscle }, select: { id: true } })))
         return { ok: false, reason: "MUSCLE_NOT_FOUND" }
     if (equipment && !await prisma.equipment.findUnique({ where: { id: equipment }, select: { id: true } }))
         return { ok: false, reason: "EQUIPMENT_NOT_FOUND" }
-    if (gym && !await prisma.gym.findUnique({where:{ id: gym}, select:{id:true}}))
-        return { ok: false, reason: "GYM_NOT_FOUND" }
+    let currentGymId: string | null = null
+    if (gym) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { currentGymId: true } })
+        currentGymId = user?.currentGymId ?? null
+        if (!currentGymId)
+            return { ok: false, reason: "NO_CURRENT_GYM" }
+    }
+
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
 
@@ -67,8 +73,8 @@ export async function getExercises(query: ExerciseListQuery): Promise<ExerciseLi
     }
     // Spread keeps the equipment filter: both filters live on the same relation.
     // every: all of the exercise's equipment is at the gym (no equipment also matches).
-    if (gym) {
-        where.equipment = { ...where.equipment, every: { equipment: { gyms: { some: { gymId: gym } } } } }
+    if (currentGymId) {
+        where.equipment = { ...where.equipment, every: { equipment: { gyms: { some: { gymId: currentGymId } } } } }
     }
 
     const results = await prisma.exercise.findMany({
