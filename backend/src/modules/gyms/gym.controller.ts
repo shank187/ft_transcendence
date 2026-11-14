@@ -6,6 +6,7 @@ import {getALLEquip} from "./gym.service"
 import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
+import {selectCurrentGym} from "./gym.service";
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -43,7 +44,7 @@ export async function getGymByIdController(req :AuthenticatedRequest, res:Respon
 
         if (typeof id != "string")
             return res.status(400).json({ error: "Invalid or missing gym ID" });
-        const gym = await getGymById(id);
+        const gym = await getGymById(id, userId);
 
         if (!gym)
             return res.status(404).json({message: "Gym not found"});
@@ -141,12 +142,6 @@ export async function getSubmissionsController(req : AuthenticatedRequest, res:R
     }
 }
 
-
-
-
-
-
-
 export async function uploadGymImageController(req: AuthenticatedRequest, res: Response) {
     // 1. Safety check: Is user logged in?
     if (!req.userId) {
@@ -166,4 +161,27 @@ export async function uploadGymImageController(req: AuthenticatedRequest, res: R
 
     // 4. Send that URL back to the frontend!
     res.status(200).json({ imageUrl });
+}
+
+
+export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+            return res.status(401).json({message: "unauthorized"});
+    const gymId = req.body.gymId;
+
+    if (!gymId || typeof gymId !== "string")
+        return res.status(400).json({ message: "gymId is required" });
+
+    try{
+        await selectCurrentGym(gymId, req.userId);
+        res.status(200).json({ message: "Gym selected successfully" });
+
+    }catch(e : any){
+        if (e.message === "Gym not found")
+            return res.status(404).json({error: "Gym not found"});
+        if (e.message === "Access denied")
+            return res.status(403).json({error: "Access denied"});
+        console.log(e);
+        res.status(500).json({ error: "server error" });
+    }
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import api from "../../auth/axiosInstance";
 import type { Equipment } from "../type/gym";
 import { Check, ChevronLeft, X, Camera} from "lucide-react";
+import GymNavbar from "./gymNavBar";
+
 
 
 
@@ -102,8 +104,14 @@ function AddGym({onClose, onSuccess} : gymProps){
         setSelectedEquip([]);
     }
 
+    
+
     return(
-        <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl">
+        <>
+            <GymNavbar onSearchPage={function(){onClose(false)}}
+                       onAddPage={function() {}} 
+                       currentPage="add"/>
+        <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl border border-[#CCFF00]/30">
             <button 
                 onClick={handleClose} 
                 className="inline-flex items-center gap-1 text-xs font-medium text-[#A3A3A3] hover:text-white mb-4 transition-colors">
@@ -357,6 +365,7 @@ function AddGym({onClose, onSuccess} : gymProps){
                 </div>
             </form>
         </div>
+        </>
     )
 }
 export default AddGym;

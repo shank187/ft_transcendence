@@ -19,7 +19,7 @@ interface CreateGymData {
 
 
 export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
-    let limit : number = 3;
+    let limit : number = 6;
     if (!page)
             page = 1;
         const gymskiped = (page - 1) * limit;
@@ -33,6 +33,9 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         if (typeof verified == "boolean")
             searchCondiions.verified = verified;
         
+        const totalGym = await prisma.gym.count({where : searchCondiions});
+        const totalPage =  Math.ceil(totalGym/limit);
+    
         const gyms = await prisma.gym.findMany({
             where : searchCondiions,
             orderBy : [
@@ -40,7 +43,10 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
                 {id : "asc"}
             ],
             skip : gymskiped,
-            take : limit + 1
+            take : limit + 1,
+            include : {
+                equipment : true,
+            }
         });
         const hasNextPage = gyms.length > limit;
         let data;
@@ -49,12 +55,11 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         }else{
             data = gyms;
         }
-        return {data ,hasNextPage};
+        return {data ,hasNextPage, totalPage};
     }
     
-    
                 
-    export async function getGymById(id :string){
+    export async function getGymById(id :string, userId : string){
         const gym = await prisma.gym.findUnique({
             where : {id : id},
             include :{
@@ -65,7 +70,15 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         });
         if (!gym)
             return null;
-        return gym;
+        let isCurrentGym = false;
+        if (userId){
+            const user = await prisma.user.findUnique({
+                where : {id : userId},
+                select : {currentGymId : true}
+            });
+            isCurrentGym = user?.currentGymId === gym.id;
+        }
+        return {...gym, isCurrentGym};
     }
 
 
@@ -171,5 +184,22 @@ export async function getSubmissions(){
                 }
             }
         }
+    });
+}
+
+
+export async function selectCurrentGym(gymId : string, userId : string){
+    const gym = await prisma.gym.findUnique({
+        where : {id : gymId},
+    });
+    if (!gym)
+        throw new Error("Gym not found");
+
+    if (gym.visibility === "PRIVATE" && gym.createdById !== userId)
+        throw new Error("Access denied");
+        
+    await prisma.user.update({
+        where : {id : userId},
+        data :{currentGymId:gymId}
     });
 }

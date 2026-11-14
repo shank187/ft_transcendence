@@ -12,6 +12,14 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
         if (!adminUser){
             throw new Error("admin user not found");
         }
+
+        await prisma.gym.deleteMany({
+            where: {
+                name: { in: ["R1", "R2", "R3", "R4", "R5"] },
+                city: "khouribga",
+            }
+        });
+        
         for(let gym of gyms){
             const existingGym = await prisma.gym.findFirst({
                 where:{
