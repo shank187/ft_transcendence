@@ -176,7 +176,11 @@ export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Respo
         await selectCurrentGym(gymId, req.userId);
         res.status(200).json({ message: "Gym selected successfully" });
 
-    }catch(e){
+    }catch(e : any){
+        if (e.message === "Gym not found")
+            return res.status(404).json({error: "Gym not found"});
+        if (e.message === "Access denied")
+            return res.status(403).json({error: "Access denied"});
         console.log(e);
         res.status(500).json({ error: "server error" });
     }

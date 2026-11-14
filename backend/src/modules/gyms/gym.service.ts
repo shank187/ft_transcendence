@@ -194,6 +194,9 @@ export async function selectCurrentGym(gymId : string, userId : string){
     });
     if (!gym)
         throw new Error("Gym not found");
+
+    if (gym.visibility === "PRIVATE" && gym.createdById !== userId)
+        throw new Error("Access denied");
         
     await prisma.user.update({
         where : {id : userId},
