@@ -88,12 +88,19 @@ Equivalent current command:
 docker compose up -d --build
 ```
 
+Open the application at **https://localhost:4438**.
+
 Default development ports currently exposed:
 
-- Frontend: `5173`
-- Backend: `3000`
+- Nginx HTTPS: `4438` on the host, forwarded to `443` inside the container
 - PostgreSQL: `5432`
-- Prisma Studio target: `5555`
+- Prisma Studio: `5555` when started with `make db-studio`
+
+Frontend `5173` and backend `3000` are internal container ports reached through Nginx.
+Set `FRONTEND_URL` and `VITE_API_URL` to `https://localhost:4438` and
+`GOOGLE_REDIRECT_URI` to `https://localhost:4438/api/auth/google/callback`.
+In the Google OAuth client settings, register `https://localhost:4438` as an
+authorized JavaScript origin and the same callback URL as an authorized redirect URI.
 
 Ports and public development URLs are configuration, not secrets. Passwords, tokens, private keys, and deployment credentials are secrets.
 

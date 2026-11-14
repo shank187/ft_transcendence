@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || 'https://localhost';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:4438';
 
 let accessToken: string | null = null;
 
