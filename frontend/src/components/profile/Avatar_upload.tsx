@@ -137,17 +137,17 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
         image_src = new URL(user.avatarUrl, api.defaults.baseURL).href;
 
     return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-center">
         <div className="text-lg font-semibold">Profile picture</div>
     
-        <img src={image_src} alt="Profile picture" className="h-32 w-32 rounded-full object-cover" onError={(e)=> {
+        <img src={image_src} alt="Profile picture" className="mx-auto h-32 w-32 rounded-full object-cover" onError={(e)=> {
             if (!e.currentTarget.src.endsWith("/default-avatar.png"))
                 e.currentTarget.src = "/default-avatar.png";
         }}/>
 
         <input id="avatar-file" type="file" accept="image/jpeg,image/png" onChange={hundle_file_change} disabled={is_uploading} className="sr-only"/>
 
-        <label htmlFor="avatar-file" className="bg-app-primary px-4 py-2 rounded-md text-app-canvas">
+        <label htmlFor="avatar-file" className="inline-block cursor-pointer rounded-md border border-app-border px-4 py-2">
             Choose photo
         </label>
         <div className="text-sm text-red-700">{error}</div>
@@ -159,9 +159,14 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
 
 
         <div className="text-sm text-green-700">{success}</div>
-        <div className="space-x-1">
-            <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
-            <Button onClick={delet_avatar}> remove avatar </Button>
+        <div className="flex flex-col gap-3">
+            <Button onClick={handle_click} disabled={is_uploading}>
+                Upload avatar
+            </Button>
+
+            <Button onClick={delet_avatar} variant="outline" className="border">
+                remove avatar
+            </Button>
         </div>
     </div>
 

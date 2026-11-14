@@ -73,7 +73,7 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
     if (!edited_user)
         return <div>{error || "Loading..."}</div>;
     return (
-    <div className="space-y-10">
+    <div className="space-y-6 [&_input]:py-3 [&_select]:py-3">
         <Profile_input_field label="Username" value={edited_user.username} readOnly/>
 
         <Profile_input_field label="Email" type="email" value={edited_user.email} readOnly/>
@@ -82,21 +82,34 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
         
         <Profile_input_field label="Bio" value={edited_user.bio ?? ""} onChange={(value) => { set_euser({ ...edited_user, bio: value}); }}/>
     
-        <Profile_input_field label="Body weight (kg)" type="number" value={edited_user.weightKg?.toString() ?? ""}
-            onChange={(value) => {
-            let weightKg: number | null = null;
-            if (value !== "")
-                weightKg = Number(value);
-                set_euser({...edited_user, weightKg});
-            }}
-        />
-        <Profile_input_field label="Height (cm)" type="number" value={edited_user.heightCm?.toString() ?? ""} onChange={(value) => { let heightCm: number | null = null; if (value !== "") heightCm = Number(value); set_euser({ ...edited_user, heightCm }); }}/>
+        <div className="grid grid-cols-2 gap-4">
+            <Profile_input_field label="Body weight (kg)" type="number" value={edited_user.weightKg?.toString() ?? ""}
+                onChange={(value) => {
+                let weightKg: number | null = null;
+                if (value !== "")
+                    weightKg = Number(value);
+                    set_euser({...edited_user, weightKg});
+                }}
+            />
+            <Profile_input_field label="Height (cm)" type="number" value={edited_user.heightCm?.toString() ?? ""} onChange={(value) => { let heightCm: number | null = null; if (value !== "") heightCm = Number(value); set_euser({ ...edited_user, heightCm }); }}/>
+        </div>
 
-        <Form_select id="experienceLevel" label="Experience level" value={edited_user.experienceLevel ?? ""} options={EXPERIENCE_LEVELS} onChange={(value) => { set_euser({ ...edited_user, experienceLevel: value }); }}/>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <div className="text-sm font-semibold">Experience level</div>
+                <Form_select id="experienceLevel" label="Experience level" value={edited_user.experienceLevel ?? ""} options={EXPERIENCE_LEVELS} onChange={(value) => { set_euser({ ...edited_user, experienceLevel: value }); }}/>
+            </div>
 
-        <Form_select id="primaryGoal" label="Primary goal" value={edited_user.primaryGoal ?? ""} options={TRAINING_GOALS} onChange={(value) => { set_euser({ ...edited_user, primaryGoal: value }); }}/>
+            <div className="space-y-2">
+                <div className="text-sm font-semibold">Primary goal</div>
+                <Form_select id="primaryGoal" label="Primary goal" value={edited_user.primaryGoal ?? ""} options={TRAINING_GOALS} onChange={(value) => { set_euser({ ...edited_user, primaryGoal: value }); }}/>
+            </div>
+        </div>
 
-        <Form_select id="unitSystem" label="Unit system" value={edited_user.unitSystem} options={unitSystems} onChange={(value) => { set_euser({ ...edited_user, unitSystem: value }); }}/>
+        <div className="space-y-2">
+            <div className="text-sm font-semibold">Unit system</div>
+            <Form_select id="unitSystem" label="Unit system" value={edited_user.unitSystem} options={unitSystems} onChange={(value) => { set_euser({ ...edited_user, unitSystem: value }); }}/>
+        </div>
     
         <div className="text-sm text-green-700" >
             {success}

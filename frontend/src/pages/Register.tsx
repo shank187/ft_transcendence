@@ -71,24 +71,26 @@ function Register() {
     }
 
     return (
-        <div>
-            <Button variant="secondary"  className="fixed right-8 top-6" onClick={() => navigate('/login')}>
-                 Log in
-            </Button>
+        <div className="flex min-h-screen flex-col p-4">
+            <div className="mb-6 flex justify-end">
+                <Button variant="secondary" className="border border-app-border" onClick={() => navigate('/login')}>
+                     Log in
+                </Button>
+            </div>
 
-            <div className="mx-auto w-full max-w-xl px-8 py-50">
-                <h1 className="mb-6 text-lg font-semibold text-app-text"> Create account</h1>
+            <div className="m-auto w-full max-w-md rounded-xl border border-app-border p-6 [&_input]:py-3">
+                <h1 className="mb-6 text-xl font-bold"> Create account</h1>
 
                 {registrationId ? (
                     <VerificationForm email={email} initialRegistrationId={registrationId}/>
                 ) : (
-                    <form className="space-y-5" onSubmit={handle_submit}>
+                    <form className="space-y-6" onSubmit={handle_submit}>
                         <Form_input id="username" label="username" type="text" value={username} onChange={set_username}/>
                         <Form_input id="email" label="Email address" type="email" value={email} onChange={set_email}/>
                         <Form_input id="password" label="password" type="password" value={password} onChange={set_password}/>
                         <Form_input id="confirmPassword" label="Confirm password" type="password" value={confirm_password} onChange={set_confirm_password}/>
 
-                        {err_msg && <p>{err_msg}</p>}
+                        {err_msg && <p className="text-sm text-app-danger">{err_msg}</p>}
                         
                         <Button type="submit" className="w-full" disabled={is_submitting}>
                             {is_submitting ? "Creating account..." : "Create account"}

@@ -46,7 +46,7 @@ function Form_select({
                 required={required}
                 disabled={disabled}
             >
-                <option value="" disabled>
+                <option value="" disabled className={select_classes.option}>
                     {label}
                 </option>
                 {options.map((option) => (

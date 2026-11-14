@@ -125,27 +125,28 @@ function Onboarding(){
     }
 
     return (
-        <div className="mx-auto w-full max-w-xl px-5 py-10">
+        <div className="flex min-h-screen flex-col p-4">
+        <div className="m-auto w-full max-w-md rounded-xl border border-app-border p-6 [&_input]:py-3 [&_select]:py-3">
             <p className="mb-6 text-sm text-app-text-muted">Step {step} of 4</p>
             {step === 1 && (
-                <div className="space-y-5">
-                    <h2 className="text-xl font-semibold">Tell us about you</h2>
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Tell us about you</h2>
                     <Form_input id="displayName" label="Display name" type="text" value={form_data.displayName} onChange={(value) => set_form_data({ ...form_data, displayName: value })}/>
                     <Form_input id="bio" label="Short bio (optional)" type="text" value={form_data.bio} onChange={(value) => set_form_data({ ...form_data, bio: value })} required={false}/>
                 </div>
             )}
 
             {step === 2 && (
-                <div className="space-y-5">
-                    <h2 className="text-xl font-semibold">Your training profile</h2>
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Your training profile</h2>
                     <Form_select id="experienceLevel" label="Experience level" value={form_data.experienceLevel} options={EXPERIENCE_LEVELS} onChange={(value) => set_form_data({ ...form_data, experienceLevel: value })}/>
                     <Form_select id="primaryGoal" label="Primary goal" value={form_data.primaryGoal} options={TRAINING_GOALS} onChange={(value) => set_form_data({ ...form_data, primaryGoal: value }) }/>
                 </div>
             )}
 
             {step === 3 && (
-                <div className="space-y-5">
-                    <h2 className="text-xl font-semibold text-app-text"> Optional details </h2>
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold"> Optional details </h2>
                     <p className="text-sm text-app-text-secondary"> You can leave these empty and update them later.</p>
 
                     <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={(value) =>set_form_data({ ...form_data, unitSystem: value })}/>
@@ -154,11 +155,11 @@ function Onboarding(){
             )}
 
             {step === 4 && (
-                <div className="space-y-5">
-                    <h2 className="text-xl font-semibold text-app-text"> Review your details</h2>
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold"> Review your details</h2>
                     <p className="text-sm text-app-text-secondary"> Check your information before continuing.</p>
 
-                    <ul className="space-y-2 text-app-text-secondary">
+                    <ul className="space-y-3  text-sm text-app-text-secondary">
                         <li>Display name: {form_data.displayName}</li>
                         <li>Experience: {form_data.experienceLevel}</li>
                         <li>Goal: {form_data.primaryGoal.replaceAll('_', ' ')}</li>
@@ -171,25 +172,26 @@ function Onboarding(){
                     {err_msg}
                 </p>
             )}
-            <div className="mt-8 flex gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 {step > 1 && (
-                    <Button variant="secondary" onClick={handle_back}>
+                    <Button variant="secondary" className="flex-1 border border-app-border" onClick={handle_back}>
                         Back
                     </Button>
                 )}
 
                 {step < 4 && (
-                    <Button onClick={handle_next}>
+                    <Button className="flex-1" onClick={handle_next}>
                         Next
                     </Button>
                 )}
 
                 {step === 4 && (
-                    <Button onClick={handle_submit} disabled={is_submitting}>
+                    <Button className="flex-1" onClick={handle_submit} disabled={is_submitting}>
                         {buttonText}
                     </Button>
                 )}
             </div>
+        </div>
         </div>
     );
 }
