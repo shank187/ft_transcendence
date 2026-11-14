@@ -6,6 +6,7 @@ import {getALLEquip} from "./gym.service"
 import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
+import { rejectSubmission } from "./gym.service";
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -166,4 +167,49 @@ export async function uploadGymImageController(req: AuthenticatedRequest, res: R
 
     // 4. Send that URL back to the frontend!
     res.status(200).json({ imageUrl });
+}
+
+export async function rejectSubmissionController(
+    req: AuthenticatedRequest,
+    res: Response,
+) {
+    const reviewerId = req.userId;
+    const submissionId = req.params.id;
+    const reason = typeof req.body?.reason === "string"
+        ? req.body.reason.trim()
+        : "";
+
+    if (!reviewerId) {
+        return res.status(401).json({ message: "Sign in first." });
+    }
+
+    if (typeof submissionId !== "string" || !submissionId.trim() || !reason) {
+        return res.status(400).json({ message: "A submission ID and reason are required." });
+    }
+
+    try {
+        const adminRole = await prisma.userRole.findFirst({
+            where: { userId: reviewerId, role: { name: "ADMIN" } },
+        });
+
+        if (!adminRole) {
+            return res.status(403).json({ message: "Admin access required." });
+        }
+
+        const result = await rejectSubmission(submissionId, reviewerId, reason);
+
+        switch (result) {
+            case "rejected":
+                return res.status(200).json({ id: submissionId, status: "REJECTED" });
+            case "not-found":
+                return res.status(404).json({ message: "Submission not found." });
+            case "self-review":
+                return res.status(403).json({ message: "You can’t review your own submission." });
+            case "conflict":
+                return res.status(409).json({ message: "This submission was already reviewed." });
+        }
+    } catch (error) {
+        console.error("Could not reject gym submission", error);
+        return res.status(500).json({ message: "Could not decline the submission." });
+    }
 }

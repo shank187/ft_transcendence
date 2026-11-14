@@ -6,11 +6,10 @@ import {getALLEquipController} from "./gym.controller"
 import {createGymController} from "./gym.controller"
 import {getSubmissionsController} from "./gym.controller";
 
-
 import { upload_gym_image } from "../../middleware/upload_gym";
 import { uploadGymImageController } from "./gym.controller";
 
-
+import { rejectSubmissionController } from "./gym.controller";
 
 const router = Router();
 
@@ -20,7 +19,7 @@ router.get('/search', authenticate, searchGymsController);
 router.get('/equip', authenticate, getALLEquipController);
 router.post('/', authenticate, createGymController);
 router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
-
+router.patch("/submissions/:id/reject", authenticate, rejectSubmissionController);
 
 
 router.get('/:id', authenticate, getGymByIdController);

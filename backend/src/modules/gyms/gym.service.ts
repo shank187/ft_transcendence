@@ -148,7 +148,6 @@ export async function createGym(data : CreateGymData){
     }
 }
 
-
 export async function getSubmissions(){
     return await prisma.gymSubmission.findMany({
         where : {status : "PENDING"},
@@ -173,3 +172,37 @@ export async function getSubmissions(){
         }
     });
 }
+
+export async function rejectSubmission(
+    submissionId: string,
+    reviewerId: string,
+    reason: string,
+): Promise<"rejected" | "not-found" | "self-review" | "conflict"> {
+    const result = await prisma.gymSubmission.updateMany({
+        where: {
+            id: submissionId,
+            status: "PENDING",
+            submitterId: { not: reviewerId },
+        },
+        data: {
+            status: "REJECTED",
+            reviewerId,
+            reviewedAt: new Date(),
+            rejectReason: "OTHER",
+            rejectDetail: reason,
+        },
+    });
+
+    if (result.count === 1) return "rejected";
+
+    const submission = await prisma.gymSubmission.findUnique({
+        where: { id: submissionId },
+        select: { submitterId: true },
+    });
+
+    if (!submission) return "not-found";
+    if (submission.submitterId === reviewerId) return "self-review";
+    return "conflict";
+}
+
+//ff847c59-d6d8-43b1-8012-8299e8240859
