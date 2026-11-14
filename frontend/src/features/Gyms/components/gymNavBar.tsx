@@ -26,6 +26,11 @@ function GymNavbar({onSearchPage, onAddPage, currentPage} : gymProps){
                     <Plus className={`w-3.5 h-3.5 `}/>
                     Add a gym
                 </button>
+
+                <button type="button" 
+                        className="flex items-center gap-2 rounded-full px-4 py-2 text-xs transition-all cursor-pointer">
+                    My Submission
+                </button>
             </div>
         </div>
     )

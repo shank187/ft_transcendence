@@ -31,8 +31,8 @@ function GymCard({gym} : GymCardPara){
 
                 <div className="flex flex-col justify-between p-5 min-w-0 ">
                     <div >
-                        <h3 className="text-xl font-bold text-white truncate">{gym.name}</h3>
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center  justify-between gap-2.5">
+                            <h3 className="text-xl font-bold text-white truncate">{gym.name}</h3>
 
                         </div>
 

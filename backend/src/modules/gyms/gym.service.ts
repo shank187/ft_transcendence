@@ -59,7 +59,7 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
     }
     
                 
-    export async function getGymById(id :string){
+    export async function getGymById(id :string, userId : string){
         const gym = await prisma.gym.findUnique({
             where : {id : id},
             include :{
@@ -70,7 +70,15 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         });
         if (!gym)
             return null;
-        return gym;
+        let isCurrentGym = false;
+        if (userId){
+            const user = await prisma.user.findUnique({
+                where : {id : userId},
+                select : {currentGymId : true}
+            });
+            isCurrentGym = user?.currentGymId === gym.id;
+        }
+        return {...gym, isCurrentGym};
     }
 
 
@@ -179,3 +187,16 @@ export async function getSubmissions(){
     });
 }
 
+
+export async function selectCurrentGym(gymId : string, userId : string){
+    const gym = await prisma.gym.findUnique({
+        where : {id : gymId},
+    });
+    if (!gym)
+        throw new Error("Gym not found");
+        
+    await prisma.user.update({
+        where : {id : userId},
+        data :{currentGymId:gymId}
+    });
+}

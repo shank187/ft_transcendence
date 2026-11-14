@@ -14,7 +14,7 @@ export default function PaginationButton({currentPage, onPageChange, hasNextPage
     });
 
     return (
-        <div className="flex justify-end gap-4 mt-6">
+        <div className="flex justify-center sm:justify-end gap-4 mt-6">
             <button disabled={currentPage<= 1} 
                     onClick={function(){onPageChange(currentPage - 1)}}
                     className="px-1 py-1 bg-[#1E1E1E] rounded hover:bg-gray-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700">
@@ -25,6 +25,7 @@ export default function PaginationButton({currentPage, onPageChange, hasNextPage
                 {page.map(function(num){
                     return (
                         <button type="button"
+                                key={num}
                                 onClick={function(){onPageChange(num)}}
                                 className={`rounded px-2.5 py-1.5 ${currentPage === num ? "bg-[#CCFF00]  text-black font-extrabold" : "bg-[#1E1E1E] text-white"}`}>
                                 {num}
