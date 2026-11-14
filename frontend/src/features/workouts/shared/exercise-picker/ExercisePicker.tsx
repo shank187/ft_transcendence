@@ -224,6 +224,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                                         isSelected={isSelected(exercise.id)}
                                         onToggle={toggleSelected}
                                         exercise={exercise}
+                                        gymName={filters?.gym?.name ?? null}
                                     />
                                 </li>)
                             }

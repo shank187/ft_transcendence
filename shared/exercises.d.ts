@@ -19,6 +19,8 @@ export interface ExerciseItem
     equipment: string[],
     description: string | null,
     imageUrl: string | null,
+    // null when the user has no current gym; false when the gym lacks some of the equipment.
+    availableAtGym: boolean | null,
 }
 
 export interface ExerciseList

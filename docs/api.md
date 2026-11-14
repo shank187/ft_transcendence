@@ -27,7 +27,7 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | GET | `/api/users/me` | Yes | Return current user's `onboardingCompletedAt` |
 | PATCH | `/api/users/onboarding` | Yes | Save onboarding fields |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
-| GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses |
+| GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
 | GET | `/api/equipment` | Yes | Return every equipment item with its category |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
 | POST | `/api/workout-plans` | Yes | Create a custom plan |
@@ -152,7 +152,8 @@ Response `200`:
       "secondaryMuscles": ["Triceps", "Shoulders"],
       "equipment": ["Barbell", "Bench"],
       "description": null,
-      "imageUrl": null
+      "imageUrl": null,
+      "availableAtGym": false
     }
   ],
   "page": 1,
@@ -172,6 +173,7 @@ Response `200`:
 | `items[].equipment` | string[] | Names of the linked equipment; order not guaranteed |
 | `items[].description` | string \| null | |
 | `items[].imageUrl` | string \| null | |
+| `items[].availableAtGym` | boolean \| null | `null` when the user has no current gym. Otherwise `true` when the gym has all of the exercise's equipment (always `true` for an exercise with no equipment), `false` when it lacks at least one. Sent whether or not `gym=true` is set |
 | `page` | number | Requested page |
 | `limit` | number | Requested page size |
 | `total` | number | Exercises matching the filters |
@@ -200,6 +202,8 @@ Status codes:
 | `sort` not `name_asc` or `name_desc` (including empty), or a repeated `sort` key | `Invalid Sort` |
 | `muscle` is not an existing `MuscleGroup.id` | `Invalid Muscle` |
 | `equipment` is not an existing `Equipment.id` | `Invalid Equipment` |
+| `gym` not `true` or `false` (including empty), or a repeated `gym` key | `Invalid Gym` |
+| `gym=true` and the user has no current gym | `No current gym` |
 
 ### `GET /api/exercises/filters`
 

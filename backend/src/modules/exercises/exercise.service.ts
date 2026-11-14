@@ -26,7 +26,7 @@ const filterCurrentGymSelect = {
 
 type ExerciseRowDb = Prisma.ExerciseGetPayload<{ select: typeof exerciseListSelect }>;
 
-function toExerciseItemDto(exercise: ExerciseRowDb): ExerciseItem
+function toExerciseItemDto(exercise: ExerciseRowDb, availableAtGym: boolean | null): ExerciseItem
 {
     return {
         id: exercise.id,
@@ -37,6 +37,7 @@ function toExerciseItemDto(exercise: ExerciseRowDb): ExerciseItem
         equipment: exercise.equipment.map((item) => item.equipment.name),
         description: exercise.description,
         imageUrl: exercise.imageUrl,
+        availableAtGym,
     }
 }
 
@@ -51,13 +52,11 @@ export async function getExercises(query: ExerciseListQuery, userId: string): Pr
         return { ok: false, reason: "MUSCLE_NOT_FOUND" }
     if (equipment && !await prisma.equipment.findUnique({ where: { id: equipment }, select: { id: true } }))
         return { ok: false, reason: "EQUIPMENT_NOT_FOUND" }
-    let currentGymId: string | null = null
-    if (gym) {
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { currentGymId: true } })
-        currentGymId = user?.currentGymId ?? null
-        if (!currentGymId)
-            return { ok: false, reason: "NO_CURRENT_GYM" }
-    }
+    // Read even with the gym filter off: the list marks exercises the gym cannot do.
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { currentGymId: true } })
+    const currentGymId = user?.currentGymId ?? null
+    if (gym && !currentGymId)
+        return { ok: false, reason: "NO_CURRENT_GYM" }
 
     const skip = (page - 1) * limit;
     const where: Prisma.ExerciseWhereInput = {}
@@ -73,7 +72,7 @@ export async function getExercises(query: ExerciseListQuery, userId: string): Pr
     }
     // Spread keeps the equipment filter: both filters live on the same relation.
     // every: all of the exercise's equipment is at the gym (no equipment also matches).
-    if (currentGymId) {
+    if (gym && currentGymId) {
         where.equipment = { ...where.equipment, every: { equipment: { gyms: { some: { gymId: currentGymId } } } } }
     }
 
@@ -83,7 +82,13 @@ export async function getExercises(query: ExerciseListQuery, userId: string): Pr
         take: limit,
         // id breaks ties, so the same row never lands on two pages.
         orderBy: [{ name: sort === "name_desc" ? "desc" : "asc" }, { id: "asc" }],
-        select: exerciseListSelect,
+        select: {
+            ...exerciseListSelect,
+            // Counts the exercise's equipment the gym does not have; 0 means the gym can do it.
+            _count: currentGymId
+                ? { select: { equipment: { where: { equipment: { gyms: { none: { gymId: currentGymId } } } } } } }
+                : false,
+        },
     });
     const total = await prisma.exercise.count({ where })
     const totalPages = Math.ceil(total / limit);
@@ -91,7 +96,8 @@ export async function getExercises(query: ExerciseListQuery, userId: string): Pr
     return {
         ok: true,
         list: {
-            items: results.map(toExerciseItemDto),
+            items: results.map((row) =>
+                toExerciseItemDto(row, currentGymId ? row._count.equipment === 0 : null)),
             page,
             limit,
             total,
