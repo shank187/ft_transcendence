@@ -12,6 +12,7 @@ export type GymSubmission = {
 
 export type GymSubmissionCardProps = {
     submission: GymSubmission;
+    onDecline: (id: string) => void;
 };
 
 const statusStyles = {
@@ -20,7 +21,7 @@ const statusStyles = {
     REJECTED: { label: "Declined", color: "bg-red-400/10 text-red-300" },
 };
 
-export default function GymSubmissionCard({ submission }: GymSubmissionCardProps) {
+export default function GymSubmissionCard({ submission , onDecline }: GymSubmissionCardProps) {
     const photoUrl = submission.photos[0]?.media.url;
     const status = statusStyles[submission.status];
     const location = [submission.address, submission.city].filter(Boolean).join(", ");
@@ -41,7 +42,7 @@ export default function GymSubmissionCard({ submission }: GymSubmissionCardProps
 
             <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h3 className="break-words text-lg font-semibold">
+                    <h3 className="wrap-break-word text-lg font-semibold">
                         {submission.name ?? "Gym correction"}
                     </h3>
 
@@ -51,7 +52,7 @@ export default function GymSubmissionCard({ submission }: GymSubmissionCardProps
                 </div>
 
                 {location && (
-                    <p className="break-words text-sm text-app-text-secondary">
+                    <p className="wrap-break-word text-sm text-app-text-secondary">
                         {location}
                     </p>
                 )}
@@ -60,6 +61,15 @@ export default function GymSubmissionCard({ submission }: GymSubmissionCardProps
                     {submission.kind === "NEW_GYM" ? "New gym" : submission.kind}
                 </p>
             </div>
+            {submission.status === "PENDING" && (
+                <button
+                    type="button"
+                    className="rounded-lg border border-app-danger px-4 py-2 text-sm text-app-danger"
+                    onClick={() => onDecline(submission.id)}
+                >
+                    Decline
+                </button>
+            )}
         </article>
     );
 }
