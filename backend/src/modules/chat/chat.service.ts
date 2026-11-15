@@ -33,18 +33,22 @@ export async function createConversation(user1: string, user2: string) {
     return conversation;
 }
 
-export async function getConversationMessages(conversationId: string, num: number) {
+export async function getConversationMessages(
+    conversationId: string,
+    cursor?: string
+) {
     const messages = await prisma.message.findMany({
-        where: {
-            conversationId: conversationId
-        },
-        orderBy: {
-            createdAt: "desc"
-        },
-        take: num
-    });
+        where: { conversationId },
+        orderBy: [
+            { createdAt: "desc" },
+            { id: "desc" }
+        ],
+        take: 11,
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : undefined
+    })
 
-    return messages;
+    return messages
 }
 
 export async function storeMessage(

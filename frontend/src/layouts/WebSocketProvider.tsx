@@ -57,7 +57,7 @@ export default function WebSocketProvider({
                 };
 
                 connection.send(JSON.stringify(message));
-                // console.log(`${accessToken}`)
+                console.log(`${accessToken}`)
             };
 
             connection.onmessage = async (event) => {
@@ -120,16 +120,26 @@ else if (message.type === "friendship_updated") {
 
         connect();
 
-        return () => {
-            stopped = true;
-            clearTimeout(retryTimer);
+return () => {
+    stopped = true;
+    clearTimeout(retryTimer);
 
-            if (ws) {
-                ws.close();
-                if (wsRef.current === ws)
-                    wsRef.current = null;
-            }
-        };
+    if (ws) {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.close();
+        }
+        else if (ws.readyState === WebSocket.CONNECTING) {
+            ws.addEventListener("open", () => {
+                if (ws)
+                    ws.close();
+            }, { once: true });
+        }
+
+        if (wsRef.current === ws) {
+            wsRef.current = null;
+        }
+    }
+};
     }, [accessToken]);
 
 
