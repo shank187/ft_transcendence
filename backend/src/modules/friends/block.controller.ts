@@ -124,6 +124,8 @@ export const unblockUser = async (req: AuthenticatedRequest, res: Response) => {
                         }
                     }
                 })
+                await notifyFriendshipUpdate(unblockerId, userId)
+                await notifyFriendshipUpdate(userId, unblockerId)
                 return res.status(200).json({ message: "User was unblocked successfully" })
             }
             else

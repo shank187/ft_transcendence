@@ -19,6 +19,7 @@ import AdminRoute from './features/auth/AdminRoute';
 import Admin from './pages/Admin';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Profile from './pages/Profile';
 import EditProfile from "./pages/EditProfile";
 import PlanDetail from './pages/PlanDetail';
 
@@ -51,6 +52,8 @@ function App() {
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<Admin />} />
           </Route>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:username" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

@@ -83,3 +83,8 @@ export type ServerMessage =
     userId: string
 };
 
+export type MessageHistoryResponse = {
+    messages: MessageData[]
+    nextCursor: string | null
+    hasMore: boolean
+}

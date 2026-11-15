@@ -42,12 +42,10 @@ function MainLayout() {
             set_more(false);
         else
             set_more(true);
-        
     }
 
     useEffect(()=> {
         function handle_click(event :MouseEvent){
-
             const navigation = navigation_ref.current;
              if (!navigation)
                 return;
@@ -56,27 +54,19 @@ function MainLayout() {
             if (!navigation.contains(event.target))
                 set_more(false);
         }
-
         document.addEventListener("click", handle_click);
-
     return () => {
          document.removeEventListener("click", handle_click);
     };
-
     }, []);
-
-  return (
+    return (
     <WebSocketProvider>
         <div className="min-h-screen bg-app-canvas md:flex">
             <div className="hidden md:flex  p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2  md:border-app-border md:bg-app-surface">
-
                 {nav_items.map((item)=> (
                     <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
                 ))}
             </div>
-            
-            
-
             <div className="min-w-0 p-4 pb-24 md:flex-1 md:p-8">
                 <Outlet />
             </div>

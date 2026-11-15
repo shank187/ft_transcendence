@@ -1,6 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import type { MessageData, ChatWindowProps } from "./chat.types"
+import type {
+    MessageData,
+    ChatWindowProps,
+    MessageHistoryResponse
+} from "./chat.types"
 import Message from "./Message"
+import { Link } from "react-router-dom"
+
 import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
 import { useWebSocket } from "../../pages/WebSocketContext"
@@ -10,6 +16,9 @@ export default function ChatWindow({
     lastMessage,
     onBack
 }: ChatWindowProps) {
+    const [nextCursor, setNextCursor] = useState<string | null>(null)
+    const [hasMore, setHasMore] = useState(false)
+    const [loadingOlder, setLoadingOlder] = useState(false)
     const { connectionStatus, lastMessage: wsMessage } = useWebSocket()
     const { user } = useAuth()
     const [canMessage, setCanMessage] = useState(false)
@@ -17,6 +26,7 @@ export default function ChatWindow({
     const [msgs, setMsgs] = useState<MessageData[]>([])
     const [msg, setMsg] = useState("")
     const chatBodyRef = useRef<HTMLDivElement>(null)
+    const previousScrollHeight = useRef<number | null>(null)
     const friendshipUpdate =
         wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
     useEffect(() => {
@@ -50,59 +60,74 @@ async function checkPermission() {
         }
     }, [friend?.id, connectionStatus, friendshipUpdate])
 
-    useEffect(() => {
-        if (!friend) {
-            setMsgs([])
-            return
-        }
+useEffect(() => {
+    if (!friend) {
+        setMsgs([])
+        setNextCursor(null)
+        setHasMore(false)
+        return
+    }
 
-        if (connectionStatus !== "connected")
-            return
+    if (connectionStatus !== "connected")
+        return
 
-        let cancelled = false
+    let cancelled = false
 
-        async function getMessageHistory() {
-            try {
-                const response = await api.get<MessageData[]>(
-                    `/api/conversations/${friend!.id}/messages`
-                )
+    async function getMessageHistory() {
+        try {
+            const response = await api.get<MessageHistoryResponse>(
+                `/api/conversations/${friend!.id}/messages`
+            )
 
-                if (cancelled) return
+            if (cancelled) return
 
-                setMsgs(current => {
-                    const messages = new Map<string, MessageData>()
+            setMsgs(current => {
+                const messages = new Map<string, MessageData>()
 
-                    response.data.forEach(message => {
-                        messages.set(message.id, message)
-                    })
-
-                    current.forEach(message => {
-                        messages.set(message.id, message)
-                    })
-
-                    return Array.from(messages.values()).sort(
-                        (a, b) =>
-                            new Date(a.createdAt).getTime() -
-                            new Date(b.createdAt).getTime()
-                    )
+                response.data.messages.forEach(message => {
+                    messages.set(message.id, message)
                 })
-            } catch (error) {
-                if (!cancelled)
-                    console.error("Failed to load messages:", error)
-            }
+
+                current.forEach(message => {
+                    messages.set(message.id, message)
+                })
+
+                return Array.from(messages.values()).sort(
+                    (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
+                )
+            })
+
+            setNextCursor(response.data.nextCursor)
+            setHasMore(response.data.hasMore)
+
+        } catch (error) {
+            if (!cancelled)
+                console.error("Failed to load messages:", error)
         }
+    }
 
-        getMessageHistory()
+    getMessageHistory()
 
-        return () => {
-            cancelled = true
-        }
-    }, [friend?.id, connectionStatus])
+    return () => {
+        cancelled = true
+    }
+}, [friend?.id, connectionStatus])
 
-    useLayoutEffect(() => {
-        if (chatBodyRef.current)
-            chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight
-    }, [msgs])
+useLayoutEffect(() => {
+    const chatBody = chatBodyRef.current
+    if (!chatBody)
+        return
+    if (previousScrollHeight.current !== null) {
+        const difference =
+            chatBody.scrollHeight - previousScrollHeight.current
+        chatBody.scrollTop += difference
+        previousScrollHeight.current = null
+    } else {
+        chatBody.scrollTop = chatBody.scrollHeight
+    }
+}, [msgs])
 
     useEffect(() => {
         if (!lastMessage || lastMessage.type !== "message" || !friend || !user)
@@ -135,17 +160,62 @@ async function checkPermission() {
         })
     }, [lastMessage, friend?.id, user?.id])
 
-    function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
-        event.preventDefault()
+async function loadOlderMessages() {
+    if (!friend || !nextCursor || !hasMore || loadingOlder)
+        return
 
-        if (!friend || !canMessage  || !msg.trim() || connectionStatus !== "connected" || !msg.trim())
-            return
+    setLoadingOlder(true)
 
-        const sent = onSendMessage(friend.id, msg.trim())
+    try {
+        const response = await api.get<MessageHistoryResponse>(
+            `/api/conversations/${friend.id}/messages`,
+            {
+                params: { cursor: nextCursor }
+            }
+        )
+if (chatBodyRef.current)
+    previousScrollHeight.current = chatBodyRef.current.scrollHeight
+        setMsgs(current => {
+            const messages = new Map<string, MessageData>()
 
-        if (sent)
-            setMsg("")
+            response.data.messages.forEach(message => {
+                messages.set(message.id, message)
+            })
+
+            current.forEach(message => {
+                messages.set(message.id, message)
+            })
+
+            return Array.from(messages.values()).sort(
+                (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+            )
+        })
+
+        setNextCursor(response.data.nextCursor)
+        setHasMore(response.data.hasMore)
+
+    } catch (error) {
+        console.error("Failed to load older messages:", error)
+    } finally {
+        setLoadingOlder(false)
     }
+}
+    
+function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const content = msg.trim()
+
+    if (!friend || !canMessage || !content || connectionStatus !== "connected")
+        return
+
+    const sent = onSendMessage(friend.id, content)
+
+    if (sent)
+        setMsg("")
+}
 
     if (!user)
         return <p className="p-6 text-app-text">You need to be logged in.</p>
@@ -170,32 +240,43 @@ async function checkPermission() {
         <section className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-app-surface">
 
             {/* Header */}
-            <header className="flex shrink-0 items-center gap-3 border-b border-app-border px-3 py-3 sm:px-5 sm:py-4">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    aria-label="Back to conversations"
-                    className="shrink-0 rounded-lg px-2 py-1 text-xl text-app-text hover:bg-app-surface-hover md:hidden"
-                >
-                    ←
-                </button>
+                <header className="flex shrink-0 items-center gap-3 border-b border-app-border px-3 py-3 sm:px-5 sm:py-4">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        aria-label="Back to conversations"
+                        className="shrink-0 rounded-lg px-2 py-1 text-xl text-app-text hover:bg-app-surface-hover md:hidden"
+                    >
+                        ←
+                    </button>
+                    <Link to={`/profile/${encodeURIComponent(friend.username)}`} className="flex min-w-0 items-center gap-3">
+                        <img
+                            src={avatar}
+                            alt={friend.username}
+                            className="h-10 w-10 shrink-0 rounded-full border border-app-border object-cover sm:h-12 sm:w-12"
+                            />
+                        <h2 className="min-w-0 truncate font-semibold text-app-text">
+                            {friend.displayName ?? friend.username}
+                        </h2>
+                    </Link>
 
-                <img
-                    src={avatar}
-                    alt={friend.username}
-                    className="h-10 w-10 shrink-0 rounded-full border border-app-border object-cover sm:h-12 sm:w-12"
-                />
-
-                <h2 className="min-w-0 truncate font-semibold text-app-text">
-                    {friend.displayName ?? friend.username}
-                </h2>
-            </header>
+                </header>
 
             {/* Messages */}
             <div
                 ref={chatBodyRef}
                 className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
+                {hasMore && (
+    <button
+        type="button"
+        onClick={loadOlderMessages}
+        disabled={loadingOlder}
+        className="mx-auto shrink-0 rounded-lg border border-app-border px-4 py-2 text-sm text-app-text hover:bg-app-surface-hover disabled:opacity-50"
+    >
+        {loadingOlder ? "Loading..." : "Load older messages"}
+    </button>
+)}
                 {msgs.map(message => (
                     <Message
                         key={message.id}
@@ -211,15 +292,9 @@ async function checkPermission() {
                 className="flex shrink-0 items-center gap-2 border-t border-app-border p-3 sm:gap-3 sm:p-4"
             >
                 <input
-                    disabled={!canMessage || connectionStatus !== "connected"}
+                    disabled={!canMessage}
                     type="text"
-                    placeholder={
-                    connectionStatus !== "connected"
-                        ? "Waiting for connection..."
-                        : !canMessage
-                        ? "Messaging unavailable"
-                        : "Type a message..."
-                    }
+                    placeholder= "Type a message..."
                     aria-label="Message"
                     value={msg}
                     maxLength={500}
