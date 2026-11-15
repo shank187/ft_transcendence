@@ -240,30 +240,27 @@ function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         <section className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-app-surface">
 
             {/* Header */}
-            <Link
-                                        to={`/profile/${encodeURIComponent(friend.username)}`}
->
-            <header className="flex shrink-0 items-center gap-3 border-b border-app-border px-3 py-3 sm:px-5 sm:py-4">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    aria-label="Back to conversations"
-                    className="shrink-0 rounded-lg px-2 py-1 text-xl text-app-text hover:bg-app-surface-hover md:hidden"
+                <header className="flex shrink-0 items-center gap-3 border-b border-app-border px-3 py-3 sm:px-5 sm:py-4">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        aria-label="Back to conversations"
+                        className="shrink-0 rounded-lg px-2 py-1 text-xl text-app-text hover:bg-app-surface-hover md:hidden"
                     >
-                    ←
-                </button>
+                        ←
+                    </button>
+                    <Link to={`/profile/${encodeURIComponent(friend.username)}`} className="flex min-w-0 items-center gap-3">
+                        <img
+                            src={avatar}
+                            alt={friend.username}
+                            className="h-10 w-10 shrink-0 rounded-full border border-app-border object-cover sm:h-12 sm:w-12"
+                            />
+                        <h2 className="min-w-0 truncate font-semibold text-app-text">
+                            {friend.displayName ?? friend.username}
+                        </h2>
+                    </Link>
 
-                <img
-                    src={avatar}
-                    alt={friend.username}
-                    className="h-10 w-10 shrink-0 rounded-full border border-app-border object-cover sm:h-12 sm:w-12"
-                    />
-
-                <h2 className="min-w-0 truncate font-semibold text-app-text">
-                    {friend.displayName ?? friend.username}
-                </h2>
-            </header>
-            </Link>
+                </header>
 
             {/* Messages */}
             <div
