@@ -8,8 +8,8 @@ export default function Admin() {
     // null means we haven't loaded the list yet. [] means the list is empty.
     const [submissions, setSubmissions] = useState<GymSubmission[] | null>(null);
 
-    // Store a message here if the decline request fails.
-    const [declineError, setDeclineError] = useState<string | null>(null);
+    // Store a message here if a review request fails.
+    const [reviewError, setReviewError] = useState<string | null>(null);
 
     async function load_submitted_gyms() {
         try {
@@ -25,7 +25,7 @@ export default function Admin() {
         const reason = window.prompt("Why are you declining this gym?")?.trim();
         if (!reason) return;
 
-        setDeclineError(null);
+        setReviewError(null);
 
         try {
             // The backend saves REJECTED in the database.
@@ -39,7 +39,22 @@ export default function Admin() {
         } catch (error) {
             // The card stays in the list so the admin can see the request failed.
             console.error("Could not decline submission", error);
-            setDeclineError("Could not decline the submission.");
+            setReviewError("Could not decline the submission.");
+        }
+    }
+
+    async function handleAccept(id: string) {
+        setReviewError(null);
+
+        try {
+            // Remove the card only after the backend has committed the approval.
+            await api.patch(`/api/gyms/submissions/${id}/approve`);
+            setSubmissions((current) =>
+                current?.filter((submission) => submission.id !== id) ?? null
+            );
+        } catch (error) {
+            console.error("Could not approve submission", error);
+            setReviewError("Could not approve the submission.");
         }
     }
 
@@ -66,10 +81,10 @@ export default function Admin() {
                     </button>
                 </div>
 
-                {/* Show a message here only when declining fails. */}
-                {declineError && (
+                {/* Show a message here only when a review fails. */}
+                {reviewError && (
                     <p role="alert" className="text-sm text-app-danger">
-                        {declineError}
+                        {reviewError}
                     </p>
                 )}
 
@@ -87,6 +102,7 @@ export default function Admin() {
                                 <GymSubmissionCard
                                     submission={submission}
                                     onDecline={handleDecline}
+                                    onAccept={handleAccept}
                                 />
                             </li>
                         ))}
