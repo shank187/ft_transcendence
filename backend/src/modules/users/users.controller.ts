@@ -87,43 +87,48 @@ export const updateOnboarding = async (req: AuthenticatedRequest, res: Response)
 
 
 export const get_me = async (req: AuthenticatedRequest,res: Response) => {
-    const user = await prisma.user.findUnique({
-        where: { id: req.userId },
-        select: {
-            id: true,
-            username: true,
-            email: true,
-            displayName: true,
-            bio: true,
-            avatarUrl: true,
-            experienceLevel: true,
-            primaryGoal :true,
-            unitSystem :true,
-            weightKg: true,
-            heightCm: true,
-            onboardingCompletedAt: true,
-            passwordHash: true,
-            roles: {
-                select: {
-                    role: {
-                        select: {
-                            name: true
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                displayName: true,
+                bio: true,
+                avatarUrl: true,
+                experienceLevel: true,
+                primaryGoal :true,
+                unitSystem :true,
+                weightKg: true,
+                heightCm: true,
+                onboardingCompletedAt: true,
+                passwordHash: true,
+                roles: {
+                    select: {
+                        role: {
+                            select: {
+                                name: true
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
 
-    if (!user)
-        return res.status(404).json({ message: "User not found." });
-    
-    const { passwordHash, ...other_fields } = user;
-    return res.json({
-        ...other_fields,
-        roles: user.roles.map(entry => entry.role.name),
-        hasPassword: Boolean(passwordHash)
-    });
+        if (!user)
+            return res.status(404).json({ message: "User not found." });
+
+        const { passwordHash, ...other_fields } = user;
+        return res.json({
+            ...other_fields,
+            roles: user.roles.map(entry => entry.role.name),
+            hasPassword: Boolean(passwordHash)
+        });
+    } catch (error) {
+        console.log("error :", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 };
  
 
@@ -283,37 +288,42 @@ export const update_avatar = async (req: AuthenticatedRequest, res: Response) =>
 
 export const delete_avatar  = async(req :AuthenticatedRequest, res:Response)=>
 {
-    const avatar = await prisma.user.findUnique ({
-        where :{id :req.userId},
-        select :{avatarUrl :true}
-    });
+    try {
+        const avatar = await prisma.user.findUnique ({
+            where :{id :req.userId},
+            select :{avatarUrl :true}
+        });
 
-    if (!avatar)
-    return res.status(404).json({ message: "User not found." });
+        if (!avatar)
+            return res.status(404).json({ message: "User not found." });
 
-    if (!avatar.avatarUrl){
-        return res.status(200).json({message: "You already have no avatar.", avatarUrl: null});}
-    
-    if (avatar.avatarUrl.startsWith("/uploads/avatars/"))
-    {
-        const filename = avatar.avatarUrl.split('/').pop();
+        if (!avatar.avatarUrl){
+            return res.status(200).json({message: "You already have no avatar.", avatarUrl: null});}
 
-        if (filename) {
-            try {
-                await unlink("uploads/avatars/" + filename);
-            } catch (error){
-                console.log("error :", error);
-                if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
-                    return res.status(500).json({message: "Could not remove your avatar."});
+        if (avatar.avatarUrl.startsWith("/uploads/avatars/"))
+        {
+            const filename = avatar.avatarUrl.split('/').pop();
+
+            if (filename) {
+                try {
+                    await unlink("uploads/avatars/" + filename);
+                } catch (error){
+                    console.log("error :", error);
+                    if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT")
+                        return res.status(500).json({message: "Could not remove your avatar."});
+                }
             }
         }
-    }
 
-    await prisma.user.update({
-        where: { id: req.userId },
-        data: { avatarUrl: null }
-    });
-    return res.status(200).json({message: "Avatar removed successfully.", avatarUrl: null});
+        await prisma.user.update({
+            where: { id: req.userId },
+            data: { avatarUrl: null }
+        });
+        return res.status(200).json({message: "Avatar removed successfully.", avatarUrl: null});
+    } catch (error) {
+        console.log("error :", error);
+        return res.status(500).json({message: "Could not remove your avatar."});
+    }
 }
 
 export const get_public_profile = async (

@@ -30,11 +30,19 @@ export const validate_profile = (req: Request, res: Response, next: NextFunction
     if (typeof user.unitSystem !== "string" || !UNIT_SYSTEMS.includes(user.unitSystem))
         return res.status(400).json({ message: "Invalid unit system." });
 
-    if (user.weightKg !== null && ( typeof user.weightKg !== "number" || !Number.isFinite(user.weightKg) || user.weightKg < 20 || user.weightKg > 500))
-        return res.status(400).json({ message: "Weight must be between 20 and 500 kg." });
+    if (user.weightKg !== null && (typeof user.weightKg !== "number" || !Number.isFinite(user.weightKg) || user.weightKg < 20 || user.weightKg > 500)) {
+        if (user.unitSystem === "IMPERIAL")
+            return res.status(400).json({message: "Weight must be between approximately 44.1 and 1102.3 lb."});
+        else
+            return res.status(400).json({message: "Weight must be between 20 and 500 kg."});
+    }
 
-    if (user.heightCm !== null && (typeof user.heightCm !== "number" || !Number.isFinite(user.heightCm) || user.heightCm < 20 || user.heightCm > 300))
-        return res.status(400).json({ message: "Height must be between 20 and 300 cm." });
+    if (user.heightCm !== null && (typeof user.heightCm !== "number" || !Number.isFinite(user.heightCm) || user.heightCm < 20 || user.heightCm > 300)) {
+        if (user.unitSystem === "IMPERIAL")
+            return res.status(400).json({message: "Height must be between approximately 7.9 and 118.1 in."});
+        else
+            return res.status(400).json({message: "Height must be between 20 and 300 cm."});
+    }
 
     next();
 };

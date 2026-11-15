@@ -81,35 +81,33 @@ React action
 
 ## Error contract
 
-S1 must finalize one consistent error DTO. Until then, do not invent a second per-feature shape.
-
-Current state (not yet consistent): `authenticate`, users, and workout-plans return `{ "message": "..." }`; auth refresh/logout/session/Google return `{ "error": "..." }`. Clients should not depend on either shape beyond the status code until S1 unifies them.
-
-The intended minimum is:
+API error responses must use this JSON shape:
 
 ```json
 {
-  "error": {
-    "code": "STABLE_MACHINE_CODE",
-    "message": "Safe user-facing message",
-    "details": {}
-  }
+  "message": "Safe user-facing message"
 }
 ```
 
-`details` is optional and must not expose stack traces, SQL, tokens, hashes, or internal secrets.
+Do not expose stack traces, database errors, tokens, hashes or secrets.
+Successful response shapes remain unchanged.
 
-Use intentional status codes:
+HTTP status codes:
 
-- `200` successful read/update
-- `201` resource created
-- `204` successful action with no response body
-- `400` malformed input
-- `401` unauthenticated/invalid session
-- `403` authenticated but forbidden
-- `404` resource not found or intentionally hidden
-- `409` lifecycle/uniqueness conflict
-- `500` unexpected safe server error
+- 200: successful read or update
+- 201: resource created
+- 204: successful action without a response body
+- 400: invalid or malformed input
+- 401: missing, invalid or expired authentication
+- 403: access forbidden
+- 404: resource not found or intentionally hidden
+- 409: uniqueness or lifecycle conflict
+- 413: uploaded file or request body too large
+- 422: request rejected by a business rule
+- 500: unexpected server error
+- 503: required service temporarily unavailable
+
+Keep existing route status codes when normalizing response shapes.
 
 ## Exercise catalog
 

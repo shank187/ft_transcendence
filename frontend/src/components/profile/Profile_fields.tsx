@@ -11,6 +11,30 @@ import {EXPERIENCE_LEVELS, TRAINING_GOALS} from '../../pages/Onboarding'
 
 const unitSystems = ["METRIC", "IMPERIAL"];
 
+function format_weight(weightKg: number | null, unitSystem: string) {
+    if (weightKg === null)
+        return "";
+
+    let weight = weightKg;
+
+    if (unitSystem === "IMPERIAL")
+        weight = weightKg / 0.45359237;
+
+    return Number(weight.toFixed(2)).toString();
+}
+
+function format_height(heightCm: number | null, unitSystem: string) {
+    if (heightCm === null)
+        return "";
+
+    let height = heightCm;
+
+    if (unitSystem === "IMPERIAL")
+        height = heightCm / 2.54;
+
+    return Number(height.toFixed(2)).toString();
+}
+
 
 export interface User {
     id: string;
@@ -41,6 +65,8 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
     const [original_user, set_ouser] = useState<User>(user);
     const [error, set_error] = useState("");
     const [success, set_success] = useState("");
+    const [weight_input, set_weight_input] = useState(format_weight(user.weightKg, user.unitSystem));
+    const [height_input, set_height_input] = useState(format_height(user.heightCm, user.unitSystem));
 
 
     async function handle_click ()
@@ -55,6 +81,12 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
                 set_success("");
                 const response = await api.post<User>('/api/users/update_me', {user: edited_user});
                 set_euser(response.data);
+                set_weight_input(
+                    format_weight(response.data.weightKg, response.data.unitSystem)
+                );
+                set_height_input(
+                    format_height(response.data.heightCm, response.data.unitSystem)
+                );
                 set_ouser(response.data);
                 on_user_updated(response.data);
                 set_success("Profile updated successfully.");
@@ -83,15 +115,44 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
         <Profile_input_field label="Bio" value={edited_user.bio ?? ""} onChange={(value) => { set_euser({ ...edited_user, bio: value}); }}/>
     
         <div className="grid grid-cols-2 gap-4">
-            <Profile_input_field label="Body weight (kg)" type="number" value={edited_user.weightKg?.toString() ?? ""}
+            <Profile_input_field
+                label={edited_user.unitSystem === "IMPERIAL" ? "Body weight (lb)" : "Body weight (kg)"}
+                type="number"
+                value={weight_input}
                 onChange={(value) => {
-                let weightKg: number | null = null;
-                if (value !== "")
-                    weightKg = Number(value);
-                    set_euser({...edited_user, weightKg});
+                    set_weight_input(value);
+
+                    let weightKg: number | null = null;
+
+                    if (value !== "") {
+                        weightKg = Number(value);
+
+                        if (edited_user.unitSystem === "IMPERIAL")
+                            weightKg = weightKg * 0.45359237;
+                    }
+
+                    set_euser({ ...edited_user, weightKg });
                 }}
             />
-            <Profile_input_field label="Height (cm)" type="number" value={edited_user.heightCm?.toString() ?? ""} onChange={(value) => { let heightCm: number | null = null; if (value !== "") heightCm = Number(value); set_euser({ ...edited_user, heightCm }); }}/>
+            <Profile_input_field
+                label={edited_user.unitSystem === "IMPERIAL" ? "Height (in)" : "Height (cm)"}
+                type="number"
+                value={height_input}
+                onChange={(value) => {
+                    set_height_input(value);
+
+                    let heightCm: number | null = null;
+
+                    if (value !== "") {
+                        heightCm = Number(value);
+
+                        if (edited_user.unitSystem === "IMPERIAL")
+                            heightCm = heightCm * 2.54;
+                    }
+
+                    set_euser({ ...edited_user, heightCm });
+                }}
+            />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -108,7 +169,21 @@ export default function Profile_fields({ user, on_user_updated }: ProfileProps)
 
         <div className="space-y-2">
             <div className="text-sm font-semibold">Unit system</div>
-            <Form_select id="unitSystem" label="Unit system" value={edited_user.unitSystem} options={unitSystems} onChange={(value) => { set_euser({ ...edited_user, unitSystem: value }); }}/>
+            <Form_select
+                id="unitSystem"
+                label="Unit system"
+                value={edited_user.unitSystem}
+                options={unitSystems}
+                onChange={(value) => {
+                    set_weight_input(
+                        format_weight(edited_user.weightKg, value)
+                    );
+                    set_height_input(
+                        format_height(edited_user.heightCm, value)
+                    );
+                    set_euser({ ...edited_user, unitSystem: value });
+                }}
+            />
         </div>
     
         <div className="text-sm text-green-700" >
