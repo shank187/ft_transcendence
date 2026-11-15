@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import {sessionSelect, toSummaryDto } from "./workout-session.service";
 
 
-type WorkoutStats = {
+export type WorkoutStats = {
     workouts: number,
     sets: number,
     volumeKg: number,
