@@ -9,7 +9,7 @@ import {getSubmissionsController} from "./gym.controller";
 import { upload_gym_image } from "../../middleware/upload_gym";
 import { uploadGymImageController } from "./gym.controller";
 
-import { rejectSubmissionController } from "./gym.controller";
+import { rejectSubmissionController, approveSubmissionController } from "./gym.controller";
 
 const router = Router();
 
@@ -20,6 +20,8 @@ router.get('/equip', authenticate, getALLEquipController);
 router.post('/', authenticate, createGymController);
 router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
 router.patch("/submissions/:id/reject", authenticate, rejectSubmissionController);
+// Approval uses the same authenticated admin boundary as the existing decline action.
+router.patch("/submissions/:id/approve", authenticate, approveSubmissionController);
 
 
 router.get('/:id', authenticate, getGymByIdController);
