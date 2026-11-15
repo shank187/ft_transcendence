@@ -13,6 +13,7 @@ export type GymSubmission = {
 export type GymSubmissionCardProps = {
     submission: GymSubmission;
     onDecline: (id: string) => void;
+    onAccept: (id: string) => void;
 };
 
 const statusStyles = {
@@ -21,7 +22,7 @@ const statusStyles = {
     REJECTED: { label: "Declined", color: "bg-red-400/10 text-red-300" },
 };
 
-export default function GymSubmissionCard({ submission , onDecline }: GymSubmissionCardProps) {
+export default function GymSubmissionCard({ submission , onDecline, onAccept }: GymSubmissionCardProps) {
     const photoUrl = submission.photos[0]?.media.url;
     const status = statusStyles[submission.status];
     const location = [submission.address, submission.city].filter(Boolean).join(", ");
@@ -62,13 +63,23 @@ export default function GymSubmissionCard({ submission , onDecline }: GymSubmiss
                 </p>
             </div>
             {submission.status === "PENDING" && (
-                <button
-                    type="button"
-                    className="rounded-lg border border-app-danger px-4 py-2 text-sm text-app-danger"
-                    onClick={() => onDecline(submission.id)}
-                >
-                    Decline
-                </button>
+                <div className="flex flex-wrap gap-2">
+                    {/* Review actions are shown only while the submission is still pending. */}
+                    <button
+                        type="button"
+                        className="rounded-lg border border-emerald-500 px-4 py-2 text-sm text-emerald-400"
+                        onClick={() => onAccept(submission.id)}
+                    >
+                        Accept
+                    </button>
+                    <button
+                        type="button"
+                        className="rounded-lg border border-app-danger px-4 py-2 text-sm text-app-danger"
+                        onClick={() => onDecline(submission.id)}
+                    >
+                        Decline
+                    </button>
+                </div>
             )}
         </article>
     );
