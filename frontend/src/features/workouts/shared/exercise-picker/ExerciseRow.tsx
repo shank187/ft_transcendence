@@ -6,9 +6,11 @@ interface ExerciseRowProps {
     exercise: ExerciseItem
     onToggle: (exercise: ExerciseItem, isSelected: boolean) => void
     isSelected: boolean
+    // The user's current gym from the filters response; null when there is none.
+    gymName: string | null
 }
 
-export default function ExerciseRow({ exercise, onToggle, isSelected }: ExerciseRowProps) {
+export default function ExerciseRow({ exercise, onToggle, isSelected, gymName }: ExerciseRowProps) {
     // "Chest · Dumbbells, Bench · Weight + reps"; no equipment means a bodyweight exercise.
     const equipment = exercise.equipment.length > 0 ? exercise.equipment.join(", ") : "Bodyweight"
     const meta = `${exercise.primaryMuscle} · ${equipment} · ${EXERCISE_TYPE_LABEL[exercise.type]}`
@@ -28,6 +30,11 @@ export default function ExerciseRow({ exercise, onToggle, isSelected }: Exercise
             <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm font-medium text-app-text">{exercise.name}</span>
                 <span className="truncate text-xs text-app-text-muted">{meta}</span>
+                {exercise.availableAtGym === false && (
+                    <span className="w-fit rounded-full bg-app-surface-hover px-2 text-xs text-app-text-secondary">
+                        {`Not at ${gymName ?? "your gym"}`}
+                    </span>
+                )}
             </span>
             <span
                 aria-hidden="true"

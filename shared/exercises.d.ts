@@ -19,6 +19,8 @@ export interface ExerciseItem
     equipment: string[],
     description: string | null,
     imageUrl: string | null,
+    // null when the user has no current gym; false when the gym lacks some of the equipment.
+    availableAtGym: boolean | null,
 }
 
 export interface ExerciseList
@@ -41,7 +43,7 @@ export interface ExerciseFilters
 {
     muscles: FilterOption[],
     equipment: FilterOption[],
-}
+    gym: { id: string; name: string } | null}
 
 // The exercise as the day editor and the workout page show it.
 export interface ExerciseSummary

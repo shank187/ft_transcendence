@@ -31,7 +31,7 @@ const sessionExerciseSelect = {
     sets: { orderBy: { setNumber: "asc" }, select: setSelect },
 } satisfies Prisma.WorkoutSessionExerciseSelect;
 
-const sessionSelect = {
+export const sessionSelect = {
     id: true,
     workoutDayId: true,
     status: true,
@@ -80,7 +80,7 @@ function toSessionExerciseDto(exercise: SessionExerciseRowDb, previousBest: numb
 
 // S3 -> S5 contract ("Workout results"): only a finished workout has a summary.
 // Volume counts completed sets that have both a weight and reps.
-function toSummaryDto(session: SessionRowDb): WorkoutSummary | null
+export function toSummaryDto(session: SessionRowDb): WorkoutSummary | null
 {
     if(session.status !== "COMPLETED" || !session.completedAt)
         return null
@@ -194,7 +194,7 @@ async function getPreviousBestByExercise(tx: Prisma.TransactionClient, userId: s
 
 // Every response with a whole workout goes through here, so previousBest costs
 // one query per response, not one per exercise.
-async function buildSessionDto(tx: Prisma.TransactionClient, userId: string, session: SessionRowDb): Promise<WorkoutSession>
+export async function buildSessionDto(tx: Prisma.TransactionClient, userId: string, session: SessionRowDb): Promise<WorkoutSession>
 {
     const exerciseIds = session.exercises.map(exercise => exercise.exercise.id)
     const previousBest = await getPreviousBestByExercise(tx, userId, exerciseIds, session.id)
