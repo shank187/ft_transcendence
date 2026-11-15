@@ -53,25 +53,25 @@ services:
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
       GOOGLE_REDIRECT_URI: "${GOOGLE_REDIRECT_URI:-}"
       FRONTEND_URL: "${FRONTEND_URL:?FRONTEND_URL is required}"
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      EMAIL_FROM: ${EMAIL_FROM}
+      SMTP_HOST: "${SMTP_HOST:?SMTP_HOST is required}"
+      SMTP_PORT: "${SMTP_PORT:?SMTP_PORT is required}"
+      SMTP_USER: "${SMTP_USER:?SMTP_USER is required}"
+      SMTP_PASS: "${SMTP_PASS:?SMTP_PASS is required}"
+      EMAIL_FROM: "${EMAIL_FROM:?EMAIL_FROM is required}"
 
-      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL is required}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}"
       GOOGLE_PLACES_API_KEY: "${GOOGLE_PLACES_API_KEY:-}"
 
       PORT: 3000
 
     ports:
-      - "3000:3000"
       - "5555:5555"
 
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./shared:/shared:ro
 
     depends_on:
       postgres:
@@ -86,11 +86,8 @@ services:
     container_name: transcendence_frontend
     restart: unless-stopped
 
-    ports:
-      - "5173:5173"
-
     environment:
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: https://localhost
 
     volumes:
       - ./frontend:/app
@@ -98,6 +95,21 @@ services:
 
     depends_on:
       - backend
+
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+
+    ports:
+      - "443:443"
+
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs
+
+    depends_on:
+      - backend
+      - frontend
 
 
 volumes:

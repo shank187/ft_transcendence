@@ -19,6 +19,7 @@
     --color-app-danger: #f87171;
 
     /* set types */
+    --color-app-set-heavy: #38bdf8;
     --color-app-set-warmup: #fbbf24;
     --color-app-set-drop: #a78bfa;
     --color-app-set-failure: #fb923c;

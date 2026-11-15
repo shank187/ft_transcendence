@@ -1,24 +1,39 @@
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import type { Gym } from "../data/FakeData";
-import { getGymById } from "../data/FakeData"; 
+import type { Gym } from "../type/gym";
 import LoadingState from '../../../components/states/LoadingState';
 import {Link }from "react-router-dom"
+import api from '../../auth/axiosInstance';
 
 
 function GymDetailsPage() {
     const { id} = useParams();
     const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selected, setSelected] = useState(false);
+
+
+    async function handleSelectgym(){
+        try{
+            await api.patch("/api/gyms/me/current", {gymId : id});
+            setSelected(true);
+
+        }catch(e){
+            console.log(e);
+        }
+    }
+
 
     useEffect(function(){
         async function getGymDetails(){
             setLoading(true);
-            if (!id)return;
+            if (!id)
+                return;
             try {
-                const data = await getGymById(id);
-                if (data)
-                    setGym(data);
+                const req = await api.get(`/api/gyms/${id}`);
+                setGym(req.data);
+                setSelected(Boolean(req.data.isCurrentGym));
+
             } catch (error) {
                 console.log(error);
             }
@@ -28,6 +43,8 @@ function GymDetailsPage() {
         }
         getGymDetails();
     }, [id]);
+
+
     if (loading)
         return <LoadingState message="Loading gym info..." />;
     if (!gym)
@@ -39,6 +56,13 @@ function GymDetailsPage() {
         <div className="flex flex-col w-full max-w-[500px] min-h-screen  text-white border-r border-gray-500 ">
             <div className="flex justify-between  p-4 border-b border-gray-600 bg-[#1c1c1c] rounded-2xl mb-1">
                 <h1 className="text-xl font-medium">{gym.name}</h1>
+                <button type="button"
+                        disabled={selected}
+                        onClick={handleSelectgym}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${selected ? "bg-[#CCFF00] text-black cursor-default" : "bg-[#242424] text-white hover:bg-[#CCFF00] hover:text-black"}`}>
+                            {/* <span>select this gym</span>  */}
+                            {selected ? "selected" : "select this gym"}
+                        </button>
                 <Link to ={`/gyms`}>
                     <svg className="w-6 h-6 text-red-500 border border-gray-700 hover:scale-120" fill="none" viewBox="0 0 24 24" stroke="currentColor ">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -93,16 +117,17 @@ function GymDetailsPage() {
             <div className="h-[300px] mr-3 border-t border-gray-700 p-5">
                 <h2 className="text-lg font-medium mb-4">Available Equipment</h2>
                 <ul className="flex flex-col gap-3 mt-2">
-                    {gym.equipment.map((equi) => (
+                    {gym.equipment?.map((equi) => (
                         <li
-                            key={equi.id}
+                            key={equi.equipmentId}
                             className="flex items-center justify-between gap-3 text-lg mb-2 bg-[#1c1c1c] px-4 py-3 rounded-2xl hover:bg-[#2d2d2d] shadow-sm"
                         >
-                            <span>{equi.name}</span>
-                            {equi.imageUrl ? (
+                            <span>{equi.equipment.name}</span>
+                            <span>{equi.quantity}</span>
+                            {equi.equipment.imageUrl ? (
                                 <img
-                                    src={equi.imageUrl}
-                                    alt={equi.name}
+                                    src={equi.equipment.imageUrl}
+                                    alt={equi.equipment.name}
                                     className="w-12 h-12 rounded-xl object-cover"
                                 />
                             ) : (

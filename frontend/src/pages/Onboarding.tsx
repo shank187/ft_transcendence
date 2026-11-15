@@ -5,6 +5,7 @@ import { useAuth } from '../features/auth/AuthContext';
 import Form_input from '../components/ui/Form_input';
 import Button from '../components/ui/Button';
 import Form_select from "../components/ui/Form_select";
+import { isAxiosError } from 'axios';
 
 export const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
@@ -88,7 +89,9 @@ function Onboarding(){
             navigate('/home', { replace: true });
 
         } catch (error) {
-            set_err_msg("Could not save your profile. Please try again.");
+            set_err_msg(isAxiosError(error)
+                ? error.response?.data?.message || "Could not save your profile. Please try again."
+                : "Could not save your profile. Please try again.");
         } finally {
             set_is_submitting(false);
         }
@@ -103,8 +106,11 @@ function Onboarding(){
 
                 if (response.data.onboardingCompletedAt)
                     navigate('/home', { replace: true });
-            } catch {
-                set_err_msg('Could not check your onboarding status. Please try again.');
+            } catch (error) {
+                if (isAxiosError(error))
+                    set_err_msg(error.response?.data?.message || 'Could not check your onboarding status. Please try again.');
+                else
+                    set_err_msg('Could not check your onboarding status. Please try again.');
             }
         }
 

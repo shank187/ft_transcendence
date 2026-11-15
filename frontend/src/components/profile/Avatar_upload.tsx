@@ -89,8 +89,8 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
             
         }
         catch (error) {
-            if (isAxiosError<{ message: string }>(error))
-                set_error(error.response?.data.message || "Could not upload your avatar.");
+            if (isAxiosError(error))
+                set_error(error.response?.data?.message || "Could not upload your avatar.");
             else
                 set_error("Could not upload your avatar.");
         }
@@ -118,8 +118,8 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
             set_preview("");
             set_success(response.data.message);
         }catch (error) {
-            if (isAxiosError<{ message: string }>(error))
-                set_error(error.response?.data.message || "Could not delete your avatar.");
+            if (isAxiosError(error))
+                set_error(error.response?.data?.message || "Could not delete your avatar.");
             else
                 set_error("Could not delete your avatar.");
         }finally
@@ -159,8 +159,10 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
 
 
         <div className="text-sm text-green-700">{success}</div>
-        <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
-        <Button onClick={delet_avatar}> remove avatar </Button>
+        <div className="space-x-1">
+            <Button onClick={handle_click} disabled={is_uploading} >Upload avatar</Button>
+            <Button onClick={delet_avatar}> remove avatar </Button>
+        </div>
     </div>
 
     );

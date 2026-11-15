@@ -37,6 +37,15 @@ function hash_refresh_token(raw_token: string): string
 export async function create_session(user_id: string): Promise<{ raw_token: string; session: Session }>
 {
 
+    //less than or equal
+    await prisma.session.deleteMany({
+        where: {
+            expiresAt: {
+                lte: new Date()
+            }
+        }
+    });
+
     const raw_token = generate_raw_refresh_token(user_id);
 
 

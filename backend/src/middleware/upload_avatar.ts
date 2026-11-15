@@ -2,6 +2,8 @@ import path from "node:path";
 import multer from "multer";
 import { randomUUID } from "node:crypto";
 
+import type { RequestHandler } from "express";
+
 
 
 
@@ -43,4 +45,34 @@ const upload = multer({
 });
 
 
-export const upload_avatar = upload.single("avatar");
+const uploadSingle = upload.single("avatar");
+
+export const upload_avatar: RequestHandler = (req, res, next) => {
+    uploadSingle(req, res, (error) => {
+        if (!error)
+        {
+            next();
+            return;
+        }
+
+        if (error instanceof multer.MulterError)
+        {
+            if (error.code === "LIMIT_FILE_SIZE")
+            {
+                res.status(413).json({message: "Image must not exceed 2 MB."});
+                return;
+            }
+
+            res.status(400).json({message: "Invalid avatar upload."});
+            return;
+        }
+
+        if (error.message === "Choose a JPG or PNG image.")
+        {
+            res.status(400).json({message: error.message});
+            return;
+        }
+
+        next(error);
+    });
+};

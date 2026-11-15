@@ -35,7 +35,7 @@ export default function Add_admin()
             const response = await api.post('/api/users/add_admin', { email: target_email });
 
             if (!response.data.success) {
-                set_err_msg(response.data.error || "Could not add admin. Please try again.");
+                set_err_msg(response.data.message || "Could not add admin. Please try again.");
                 return;
             }
 
@@ -43,7 +43,7 @@ export default function Add_admin()
             set_email("");
         } catch (error) {
             if (axios.isAxiosError(error))
-                set_err_msg(error.response?.data?.error || error.response?.data?.message || "Could not add admin. Please try again.");
+                set_err_msg(error.response?.data?.message || "Could not add admin. Please try again.");
             else
                 set_err_msg("An unexpected error occurred.");
         } finally {

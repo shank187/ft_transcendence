@@ -4,3 +4,8 @@ dist/
 todo
 .vscode/
 /package-lock.json
+/backend/uploads/**
+!/backend/uploads/avatars/
+!/backend/uploads/avatars/.gitkeep
+
+/nginx/certs/

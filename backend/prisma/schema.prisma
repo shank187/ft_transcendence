@@ -124,7 +124,7 @@ enum GymSubmissionStatus {
 
 enum GymRejectReason {
   ALREADY_LISTED
-  NOT_A_GYM
+  NOT_A_GYM 
   CANT_CONFIRM
   OTHER
 }
@@ -243,6 +243,7 @@ model Session {
 model Gym {
   id          String        @id @default(uuid())
   name        String
+  imageUrl    String?
   description String?
   address     String?
   city        String?

@@ -8,9 +8,6 @@ import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Workouts from './pages/Workouts'
 import GuestRoute from './features/auth/GuestRoute';
-import CreatePlan from './pages/CreatePlan';
-import Edit_profile from "./pages/PrivateProfile";
-import PlanDetail from './pages/PlanDetail';
 import GymsearchPage from './features/Gyms/components/GymsearchPage';
 import GymDetailsPage from './features/Gyms/components/gymDetailsPage';
 import Progress from './pages/Progress';
@@ -23,6 +20,8 @@ import Admin from './pages/Admin';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Profile from './pages/Profile';
+import EditProfile from "./pages/EditProfile";
+import PlanDetail from './pages/PlanDetail';
 
 function App() {
   return (
@@ -44,8 +43,7 @@ function App() {
           <Route path="/gyms" element={<GymsearchPage />} />
           <Route path="/gyms/:id" element={<GymDetailsPage />} />
           <Route path="/workouts" element={<Workouts />} />
-          <Route path="/workouts/new-plan" element={<CreatePlan />} />
-          <Route path="profile/settings" element={<Edit_profile />} />
+          <Route path="profile/settings" element={<EditProfile />} />
           <Route path="/workouts/plans/:planId" element={<PlanDetail />} />
           <Route path="/workouts/plans/:planId/days/:dayId" element={<DayEditor />} />
           <Route path="/workouts/session/:sessionId" element={<WorkoutSession />} />
