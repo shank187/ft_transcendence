@@ -7,6 +7,7 @@ import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
 import { rejectSubmission } from "./gym.service";
+import { approveSubmission } from "./gym.service";
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -211,5 +212,50 @@ export async function rejectSubmissionController(
     } catch (error) {
         console.error("Could not reject gym submission", error);
         return res.status(500).json({ message: "Could not decline the submission." });
+    }
+}
+
+export async function approveSubmissionController(
+    req: AuthenticatedRequest,
+    res: Response,
+) {
+    const reviewerId = req.userId;
+    const submissionId = req.params.id;
+
+    if (!reviewerId) {
+        return res.status(401).json({ message: "Sign in first." });
+    }
+
+    if (typeof submissionId !== "string" || !submissionId.trim()) {
+        return res.status(400).json({ message: "A submission ID is required." });
+    }
+
+    try {
+        // Keep authorization at the controller boundary before changing submission data.
+        const adminRole = await prisma.userRole.findFirst({
+            where: { userId: reviewerId, role: { name: "ADMIN" } },
+        });
+
+        if (!adminRole) {
+            return res.status(403).json({ message: "Admin access required." });
+        }
+
+        const result = await approveSubmission(submissionId, reviewerId);
+
+        switch (result) {
+            case "approved":
+                return res.status(200).json({ id: submissionId, status: "APPROVED" });
+            case "not-found":
+                return res.status(404).json({ message: "Submission not found." });
+            case "self-review":
+                return res.status(403).json({ message: "You can’t review your own submission." });
+            case "conflict":
+                return res.status(409).json({ message: "This submission was already reviewed." });
+            case "unsupported":
+                return res.status(409).json({ message: "This submission type cannot be approved yet." });
+        }
+    } catch (error) {
+        console.error("Could not approve gym submission", error);
+        return res.status(500).json({ message: "Could not approve the submission." });
     }
 }
