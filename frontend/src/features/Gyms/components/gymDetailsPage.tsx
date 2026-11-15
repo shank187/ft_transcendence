@@ -10,6 +10,19 @@ function GymDetailsPage() {
     const { id} = useParams();
     const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selected, setSelected] = useState(false);
+
+
+    async function handleSelectgym(){
+        try{
+            await api.patch("/api/gyms/me/current", {gymId : id});
+            setSelected(true);
+
+        }catch(e){
+            console.log(e);
+        }
+    }
+
 
     useEffect(function(){
         async function getGymDetails(){
@@ -17,11 +30,9 @@ function GymDetailsPage() {
             if (!id)
                 return;
             try {
-                // const data = await getGymById(id);
                 const req = await api.get(`/api/gyms/${id}`);
-                // if (data)
-                    // setGym(data);
                 setGym(req.data);
+                setSelected(Boolean(req.data.isCurrentGym));
 
             } catch (error) {
                 console.log(error);
@@ -32,6 +43,8 @@ function GymDetailsPage() {
         }
         getGymDetails();
     }, [id]);
+
+
     if (loading)
         return <LoadingState message="Loading gym info..." />;
     if (!gym)
@@ -43,6 +56,13 @@ function GymDetailsPage() {
         <div className="flex flex-col w-full max-w-[500px] min-h-screen  text-white border-r border-gray-500 ">
             <div className="flex justify-between  p-4 border-b border-gray-600 bg-[#1c1c1c] rounded-2xl mb-1">
                 <h1 className="text-xl font-medium">{gym.name}</h1>
+                <button type="button"
+                        disabled={selected}
+                        onClick={handleSelectgym}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${selected ? "bg-[#CCFF00] text-black cursor-default" : "bg-[#242424] text-white hover:bg-[#CCFF00] hover:text-black"}`}>
+                            {/* <span>select this gym</span>  */}
+                            {selected ? "selected" : "select this gym"}
+                        </button>
                 <Link to ={`/gyms`}>
                     <svg className="w-6 h-6 text-red-500 border border-gray-700 hover:scale-120" fill="none" viewBox="0 0 24 24" stroke="currentColor ">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

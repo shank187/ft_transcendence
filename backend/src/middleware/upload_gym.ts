@@ -44,3 +44,4 @@ const upload = multer({
 
 
 export const upload_gym_image = upload.single("image");
+

@@ -12,6 +12,7 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
         if (!adminUser){
             throw new Error("admin user not found");
         }
+        
         for(let gym of gyms){
             const existingGym = await prisma.gym.findFirst({
                 where:{

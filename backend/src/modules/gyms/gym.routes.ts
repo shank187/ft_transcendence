@@ -9,7 +9,7 @@ import {getSubmissionsController} from "./gym.controller";
 
 import { upload_gym_image } from "../../middleware/upload_gym";
 import { uploadGymImageController } from "./gym.controller";
-
+import {CurrentGymCOntroller} from "./gym.controller"
 
 
 const router = Router();
@@ -21,7 +21,7 @@ router.get('/equip', authenticate, getALLEquipController);
 router.post('/', authenticate, createGymController);
 router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
 
-
+router.patch('/me/current', authenticate, CurrentGymCOntroller);
 
 router.get('/:id', authenticate, getGymByIdController);
 

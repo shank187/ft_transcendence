@@ -1,3 +1,5 @@
+import { Search} from "lucide-react";
+
 interface searchBarProps{
     searchTerm : string;
     onSearchChange: (text: string)=>void;
@@ -5,10 +7,14 @@ interface searchBarProps{
 
 function SearchBar({ searchTerm, onSearchChange } : searchBarProps){
     return (
-        <div className="w-full max-w-md ">
-            <input type="text" placeholder="search gyms/users by name" value={searchTerm} onChange={function(e){onSearchChange(e.target.value)}}
-            className="w-full px-4 rounded-3xl bg-[#111928] text-[#ffffff] border border-gray-700 py-4"/>
+        <div className="flex items-center gap-1 w-full px-4 py-3 rounded-3xl bg-black border border-[#CCFF00]/70">
+            <Search className="w-5 h-5 text-zinc-500 shrink-0"/>
+            <input type="text" placeholder="search gyms by name"
+                    value={searchTerm} onChange={function(e){onSearchChange(e.target.value)}}
+                    className="w-full text-white placeholder-zinc-500 border-none outline-none focus:outline-none focus:ring-0" />
         </div>
     )
 }
+
+
 export default SearchBar;
