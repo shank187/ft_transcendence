@@ -9,6 +9,8 @@ import api from "../../auth/axiosInstance";
 import PaginationButtons from "./paginationButton";
 import AddGym from "./AddGym";
 
+import GymNavbar from "./gymNavBar";
+
 
 
 function GymsearchPage(){
@@ -19,6 +21,8 @@ function GymsearchPage(){
     const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
+    const [paginPage, setPaginPage] = useState(1);
+
 
     const [isAddGymOpen, setIsAddGymOpen] = useState(false);
     const [bannerMessage, setBannerMessage] = useState<string | null>(null);
@@ -44,10 +48,9 @@ function GymsearchPage(){
                     }
                 });
                 if (ignore === false){
-                    setLoading(false);
-
                     setGymList(res.data.data);
                     setHasNextPage(res.data.hasNextPage);
+                    setPaginPage(res.data.totalPage);
                 }
 
             }
@@ -80,8 +83,13 @@ function GymsearchPage(){
 
 
     return (
-        <div className="min-h-screen text-[#ffffff] p-4">
-            <h1 className="text-xl font-semibold mb-2">find a Gym</h1>
+        
+        <div className="min-h-screen text-[#ffffff]">
+            <GymNavbar onSearchPage={function() { setIsAddGymOpen(false); }}
+                        onAddPage={function() { setIsAddGymOpen(true); }}
+                        currentPage="search"/>
+            <div className="p-4">
+            <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
 
 
             {bannerMessage && (
@@ -95,11 +103,6 @@ function GymsearchPage(){
 
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
-
-                <button onClick={function(){setIsAddGymOpen(true)}} className=" flex gap-2 items-center bg-[#CCFF00] hover:bg-[#d8ff33] text-[#0F0F0F] font-extrabold px-4 py-2.5 rounded-xl transition-all">
-                    <span className="text-xl font-bold">+</span>
-                    <span>Add gym</span>
-                </button>
             </div>
             <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 
@@ -110,7 +113,7 @@ function GymsearchPage(){
                 <div className="text-[#ffffff] text-center mt-4">
                     <p>No gyms found for "{textSearched}".</p>
                 </div>)
-            :(<div>
+            :(<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
                 {GymList.map((gym) =>(
                     <GymCard key={gym.id} gym={gym}/>
                 ))}
@@ -120,10 +123,12 @@ function GymsearchPage(){
             <PaginationButtons 
                 currentPage={page} 
                 onPageChange={setPage}
-                hasNextPage={hasNextPage}/>
+                hasNextPage={hasNextPage}
+                totalPage={paginPage}/>
         </div>
 
         {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
+            </div>
         </div>
     )
 }
