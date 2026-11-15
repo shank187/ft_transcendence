@@ -187,7 +187,7 @@ function Home() {
                         <p role="status" className="text-app-text-secondary">Online status is currently unavailable.</p>
                     ) : (
                         <div className="space-y-3">
-                            <FriendsList friends={onlineFriends} onSelectFriend={() => navigate('/social')} />
+                            <FriendsList friends={onlineFriends}/>
                             <p className="text-sm text-app-text-secondary">Friends online: {onlineFriends.length}</p>
                         </div>
                     )}
