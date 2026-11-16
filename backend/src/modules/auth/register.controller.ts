@@ -10,9 +10,13 @@ export const register = async (req: Request, res: Response) => {
 
 
     await body('username')
-        .isLength({ min: 3, max: 30 })
-        .withMessage('Username must be between 3 and 30 characters.')
-        .run(req);
+    .isString()
+    .withMessage('Username must be text.')
+    .bail()
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters.')
+    .run(req);
 
     await body('email')
         .isEmail()
@@ -37,11 +41,7 @@ export const register = async (req: Request, res: Response) => {
 
     let { username, email, password } = req.body;
 
-    username = username.trim();
     email = email.trim().toLowerCase();
-    
-    if (username.length < 3 || username.length > 30)
-        return res.status(400).json({ message: "Username must be between 3 and 30 characters." });
 
     try {
         const existing_user = await prisma.user.findFirst({

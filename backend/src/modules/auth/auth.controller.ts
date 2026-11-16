@@ -80,14 +80,8 @@ export const logout = async (req: Request, res: Response) => {
         }
 
         res.clearCookie(refresh_cookie_name, {
-            httpOnly: true,// JavaScript in the browser cannot read this cookie.
-            // Helps protect the refresh token from being stolen by frontend JS.
-            //httpOnly = protect cookie from JavaScript
-
-
+            httpOnly: true,
             sameSite: 'strict',
-            // Browser sends this cookie only when requests come from your own site.
-            // Helps protect against CSRF attacks.
         });
 
         res.status(200).json({ message: 'Logged out successfully' });
