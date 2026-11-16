@@ -1,12 +1,13 @@
 import { useId, useState } from "react";
 import { Trophy } from "lucide-react";
 import Button from "../../../components/ui/Button";
-import { validateSet } from "../shared/set-values";
+import { toText, validateSet } from "../shared/set-values";
 import type { FieldKey, SetField } from "../shared/exercise-fields";
-import { toPerformed, toText } from "./workout-session.helpers";
+import { toPerformed } from "./workout-session.helpers";
 import { PLANNED_KEY, type PerformedValues } from "./workout-session.types";
 import type { SetType, WorkoutSessionSet } from "../shared/workouts.types";
 import SetTypeMenu from "../shared/SetTypeMenu";
+import SetValueInput from "../shared/SetValueInput";
 
 export default function SetRowSession(props:{
     set: WorkoutSessionSet,
@@ -94,26 +95,18 @@ export default function SetRowSession(props:{
                 onRemoveSet={props.onRemoveSet}
                 />
                 {props.fields.map((field)=>
-                    <div key={field.key} className="flex w-22 shrink-0 flex-col gap-1">
-                        <label htmlFor={`${id}-${field.key}`} className="sr-only">
-                            {`Set ${props.position} ${field.key}`}
-                        </label>
-                        <input
-                        id={`${id}-${field.key}`}
-                        type="text"
-                        placeholder={toText(props.set[PLANNED_KEY[field.key]]) || "-"}
-                        inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
-                        disabled={saving || done || props.isReadOnly}
-                        aria-invalid={errors[field.key] ? true : undefined}
-                        aria-describedby={errors[field.key] ? `${id}-${field.key}-error` : undefined}
-                        value={text[field.key]}
-                        onChange={(e) => setText(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        className={`h-11 w-full rounded-md border text-center text-sm font-medium placeholder:text-app-text-muted aria-invalid:border-app-danger ${done ? "border-app-primary/40 bg-app-primary/10" : "border-app-border bg-app-canvas"}`}
-                        />
-                        {errors[field.key] &&
-                            <p id={`${id}-${field.key}-error`} className="text-xs text-app-danger">{errors[field.key]}</p>
-                        }
-                    </div>
+                    <SetValueInput
+                    key={field.key}
+                    inputId={`${id}-${field.key}`}
+                    field={field}
+                    labelText={`Set ${props.position} ${field.key}`}
+                    placeholder={toText(props.set[PLANNED_KEY[field.key]]) || "-"}
+                    disabled={saving || done || props.isReadOnly}
+                    done={done}
+                    value={text[field.key]}
+                    error={errors[field.key]}
+                    onChange={(value) => setText(prev => ({ ...prev, [field.key]: value }))}
+                    />
                 )}
                 <Button
                 variant="ghost"

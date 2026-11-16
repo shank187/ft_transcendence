@@ -5,6 +5,12 @@ export function toNumber(value: string): number | null
     return value.trim() === "" ? null : Number(value)
 }
 
+// The other way: inputs hold text, so null shows as "".
+export function toText(value: number | null): string
+{
+    return value !== null ? value.toString() : ""
+}
+
 export function isWholeBetween(value: number, min: number, max: number): boolean
 {
     return Number.isInteger(value) && value >= min && value <= max

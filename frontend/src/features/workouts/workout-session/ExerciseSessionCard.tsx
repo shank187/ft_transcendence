@@ -1,11 +1,12 @@
 import Card from "../../../components/ui/Card";
 import type { PerformedValues } from "./workout-session.types";
 import type { SetType, WorkoutSessionExercise } from "../shared/workouts.types";
-import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel } from "../shared/exercise-fields";
+import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields";
 import SetRowSession from "./SetRowSession";
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits";
 import Button from "../../../components/ui/Button";
-import exercisePlaceholder from "../../../assets/exercise-placeholder.svg";
+import ExerciseCardHeader from "../shared/ExerciseCardHeader";
+import SetColumnsHeader from "../shared/SetColumnsHeader";
 
 export default function ExerciseSessionCard(props:{
     exercise: WorkoutSessionExercise,
@@ -30,39 +31,27 @@ export default function ExerciseSessionCard(props:{
     prSetIds: Set<string>,
 })
 {
-    const exerciseType = EXERCISE_TYPE_LABEL[props.exercise.exerciseSummary.type];
     const fields = EXERCISE_FIELDS[props.exercise.exerciseSummary.type]
     const name = props.exercise.exerciseSummary.name
     return(
         <Card className="p-5">
-            <div className="flex gap-3">
-                <p>{props.position}</p>
-                <img src={props.exercise.exerciseSummary.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-md object-cover" />
-                <div className="min-w-0 flex-1">
-                    <h2>{name}</h2>
-                    <p className="text-app-text-muted">
-                        {props.exercise.exerciseSummary.primaryMuscle} | {exerciseType}
-                    </p>
+            <ExerciseCardHeader
+            position={props.position}
+            exercise={props.exercise.exerciseSummary}
+            aside={!props.isReadOnly &&
+                <div className="flex shrink-0 gap-2">
+                    {!props.isFirst &&
+                        <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} up`} onClick={() => props.onMove(-1)} className="size-11">↑</Button>
+                    }
+                    {!props.isLast &&
+                        <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} down`} onClick={() => props.onMove(1)} className="size-11">↓</Button>
+                    }
                 </div>
-                {!props.isReadOnly &&
-                    <div className="flex shrink-0 gap-2">
-                        {!props.isFirst &&
-                            <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} up`} onClick={() => props.onMove(-1)} className="size-11">↑</Button>
-                        }
-                        {!props.isLast &&
-                            <Button variant="secondary" disabled={props.isMoving} aria-label={`Move ${name} down`} onClick={() => props.onMove(1)} className="size-11">↓</Button>
-                        }
-                    </div>
-                }
-            </div>
+            }
+            />
             {props.moveError && <p role="alert" className="text-app-danger">{props.moveError}</p>}
 
-            <div className="flex gap-2 text-[11px] font-medium tracking-wider text-app-text-muted" aria-hidden="true">
-                <span className="w-11 shrink-0">SET</span>
-                {fields.map(field => (
-                    <span key={field.key} className="w-22 shrink-0">{field.label}</span>
-                ))}
-            </div>
+            <SetColumnsHeader fields={fields} />
             <ol className="flex flex-col gap-3">
                 {props.exercise.sets.map((set, i)=>
                     <SetRowSession

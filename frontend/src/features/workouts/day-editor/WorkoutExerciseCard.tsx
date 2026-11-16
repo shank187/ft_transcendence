@@ -3,11 +3,12 @@ import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import type { DraftExercise } from "./day-editor.types"
 import type { SetType } from "../shared/workouts.types"
-import { EXERCISE_FIELDS, EXERCISE_TYPE_LABEL, setLabel, type FieldKey } from "../shared/exercise-fields"
+import { EXERCISE_FIELDS, setLabel, type FieldKey } from "../shared/exercise-fields"
 import SetRow from "./SetRow"
 import { validateRest } from "./day-editor.draft"
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits"
-import exercisePlaceholder from "../../../assets/exercise-placeholder.svg"
+import ExerciseCardHeader from "../shared/ExerciseCardHeader"
+import SetColumnsHeader from "../shared/SetColumnsHeader"
 
 export default function WorkoutExerciseCard(props: {
     exercise: DraftExercise,
@@ -32,8 +33,6 @@ export default function WorkoutExerciseCard(props: {
 
     const { exercise } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
-    const type = EXERCISE_TYPE_LABEL[exercise.exerciseSummary.type]
-    const primary = exercise.exerciseSummary.primaryMuscle
     const name = exercise.exerciseSummary.name
 
     const restError = validateRest(exercise.restSeconds)
@@ -41,45 +40,36 @@ export default function WorkoutExerciseCard(props: {
     return (
         <Card className="flex gap-2">
             <div className="flex min-w-0 flex-1 flex-col gap-3">
-                <div className="flex items-start gap-3">
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-app-surface-hover text-[13px] font-semibold">{props.position}</div>
-                    {/* alt="" because the name right next to it already says what it is */}
-                    <img src={exercise.exerciseSummary.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-md object-cover" />
-                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <h2 className="font-semibold wrap-break-word">{exercise.exerciseSummary.name}</h2>
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                            <p className="text-[13px] text-app-text-muted">{type} · {primary}</p>
-                            <div className="flex items-center gap-1.5 rounded-full border border-app-border py-0.5 pl-2.5 pr-2 text-xs font-medium text-app-text-muted">
-                                <span aria-hidden="true">Rest</span>
-                                <input
-                                    id={restId}
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder="–"
-                                    className="h-6 w-12 rounded-sm border border-app-border bg-app-canvas text-center text-app-text placeholder:text-app-text-muted aria-invalid:border-app-danger"
-                                    value={exercise.restSeconds}
-                                    aria-invalid = {restError ? true : undefined}
-                                    aria-describedby={restError? restErrorId: undefined}
-                                    onChange={(e)=> {
-                                        props.onChangeRest(exercise.key, e.target.value)
-                                    }}
-                                />
-                                <label htmlFor={restId} className="sr-only">
-                                    {`Rest time for ${name}, in seconds`}
-                                </label>
-                                <span aria-hidden="true">s</span>
-                            </div>
-                        </div>
-                        {restError && <p id={restErrorId} className="text-xs text-app-danger">{restError}</p>}
+                <ExerciseCardHeader
+                position={props.position}
+                exercise={exercise.exerciseSummary}
+                metaExtra={
+                    <div className="flex items-center gap-1.5 rounded-full border border-app-border py-0.5 pl-2.5 pr-2 text-xs font-medium text-app-text-muted">
+                        <span aria-hidden="true">Rest</span>
+                        <input
+                            id={restId}
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="–"
+                            className="h-6 w-12 rounded-sm border border-app-border bg-app-canvas text-center text-app-text placeholder:text-app-text-muted aria-invalid:border-app-danger"
+                            value={exercise.restSeconds}
+                            aria-invalid = {restError ? true : undefined}
+                            aria-describedby={restError? restErrorId: undefined}
+                            onChange={(e)=> {
+                                props.onChangeRest(exercise.key, e.target.value)
+                            }}
+                        />
+                        <label htmlFor={restId} className="sr-only">
+                            {`Rest time for ${name}, in seconds`}
+                        </label>
+                        <span aria-hidden="true">s</span>
                     </div>
-                </div>
+                }
+                >
+                    {restError && <p id={restErrorId} className="text-xs text-app-danger">{restError}</p>}
+                </ExerciseCardHeader>
 
-                <div className="flex gap-2 text-[11px] font-medium tracking-wider text-app-text-muted" aria-hidden="true">
-                    <span className="w-11 shrink-0">SET</span>
-                    {fields.map(field => (
-                        <span key={field.key} className="w-22 shrink-0">{field.label}</span>
-                    ))}
-                </div>
+                <SetColumnsHeader fields={fields} />
 
                 <ol className="flex flex-col gap-3">
                     {exercise.sets.map((set, i) => (

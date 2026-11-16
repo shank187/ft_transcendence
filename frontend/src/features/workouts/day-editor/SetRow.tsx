@@ -4,6 +4,7 @@ import type { SetType } from "../shared/workouts.types"
 import { validateSet } from "../shared/set-values"
 import {type FieldKey, type SetField } from "../shared/exercise-fields"
 import SetTypeMenu from "../shared/SetTypeMenu"
+import SetValueInput from "../shared/SetValueInput"
 
 
 export default function SetRow(props:
@@ -46,25 +47,16 @@ export default function SetRow(props:
             onRemoveSet={removeSet}
             />
             {props.fields.map((field)=>(
-                <div key={field.key} className="flex w-22 shrink-0 flex-col gap-1">
-                    <label htmlFor={`${id}-${field.key}`} className="sr-only">
-                        {`Set ${props.label} ${field.key}`}
-                    </label>
-                    <input
-                    id={`${id}-${field.key}`}
-                    type="text"
-                    placeholder="–"
-                    inputMode={field.key === "weight" || field.key === "distance" ? "decimal" : "numeric"}
-                    className="h-11 w-full rounded-md border border-app-border bg-app-canvas text-center text-sm font-medium placeholder:text-app-text-muted aria-invalid:border-app-danger"
-                    aria-invalid={errors[field.key] ? true : undefined}
-                    aria-describedby={errors[field.key] ? `${id}-${field.key}-error` : undefined}
-                    value={set[field.key]}
-                    onChange={(e)=> props.onFieldChange(props.exKey, set.key, field.key, e.target.value)}
-                    />
-                    {errors[field.key] &&
-                        <p id={`${id}-${field.key}-error`} className="text-xs text-app-danger">{errors[field.key]}</p>
-                    }
-                </div>
+                <SetValueInput
+                key={field.key}
+                inputId={`${id}-${field.key}`}
+                field={field}
+                labelText={`Set ${props.label} ${field.key}`}
+                placeholder="–"
+                value={set[field.key]}
+                error={errors[field.key]}
+                onChange={(value)=> props.onFieldChange(props.exKey, set.key, field.key, value)}
+                />
             ))}
         </div>
     )
