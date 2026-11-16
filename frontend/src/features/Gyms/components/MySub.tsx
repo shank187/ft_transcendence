@@ -64,11 +64,9 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
 
     async function handleDelete(gym: Gym){
 
-        // console.log("👉 CLICKED DELETE FOR:", gym); // 👈 Test log
-        // if (!window.confirm("Are you sure you want to delete this gym?"))
-        //     return;
-        // if (!confirm("Are you sure you want to delete this gym?"))
-            // return
+        if (!window.confirm("Are you sure you want to delete this gym?")) {
+            return;
+        }
         try{
             await api.delete(`/api/gyms/${gym.id}`);
             onSuccess(`${gym.name} gym deleed successfully`);
