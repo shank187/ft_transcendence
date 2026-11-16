@@ -73,6 +73,7 @@ export const upload_avatar: RequestHandler = (req, res, next) => {
             return;
         }
 
-        next(error);
+        console.log("error :", error);
+        res.status(500).json({message: "Could not upload your avatar."});
     });
 };

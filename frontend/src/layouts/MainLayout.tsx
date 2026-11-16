@@ -1,6 +1,9 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import WebSocketProvider from "./WebSocketProvider"
 import { useState, useEffect , useRef} from 'react';
+import { isAxiosError } from 'axios';
+import { useAuth } from '../features/auth/AuthContext';
+import Button from '../components/ui/Button';
 
 const nav_items = [
     { to: '/home', label: 'Home' },
@@ -34,7 +37,32 @@ const more_nav_items = [
 function MainLayout() {
 
     const [more , set_more] = useState(false);
+    const [logout_error, set_logout_error] = useState('');
+    const [is_logging_out, set_is_logging_out] = useState(false);
     const navigation_ref = useRef<HTMLDivElement>(null);
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    async function handle_logout() {
+        if (is_logging_out)
+            return;
+
+        set_logout_error('');
+        set_is_logging_out(true);
+
+        try {
+            await logout();
+            set_more(false);
+            navigate('/login', { replace: true });
+        } catch (error) {
+            if (isAxiosError(error))
+                set_logout_error(error.response?.data?.message || 'Could not log out. Please try again.');
+            else
+                set_logout_error('Could not log out. Please try again.');
+        } finally {
+            set_is_logging_out(false);
+        }
+    }
 
     function add_more()
     {
@@ -62,10 +90,18 @@ function MainLayout() {
     return (
     <WebSocketProvider>
         <div className="min-h-screen bg-app-canvas md:flex">
-            <div className="hidden md:flex  p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2  md:border-app-border md:bg-app-surface">
-                {nav_items.map((item)=> (
-                    <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
-                ))}
+            <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:flex">
+                <nav className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+                    {nav_items.map((item)=> (
+                        <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
+                    ))}
+                </nav>
+                <div className="mt-auto pt-4">
+                    {logout_error && <p role="alert" className="mb-2 text-sm text-app-danger">{logout_error}</p>}
+                    <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
+                        {is_logging_out ? 'Logging out...' : 'Log out'}
+                    </Button>
+                </div>
             </div>
             <div className="min-w-0 p-4 pb-24 md:flex-1 md:p-8">
                 <Outlet />
@@ -83,6 +119,10 @@ function MainLayout() {
                                 {item.label}
                             </Link>
                         ))}
+                        {logout_error && <p role="alert" className="px-3 py-2 text-sm text-app-danger">{logout_error}</p>}
+                        <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
+                            {is_logging_out ? 'Logging out...' : 'Log out'}
+                        </Button>
                     </div>
                 )}
 

@@ -20,10 +20,39 @@ function Onboarding(){
     const [step, set_step] = useState(1);
     const [err_msg, set_err_msg] = useState('');
     const [is_submitting, set_is_submitting] = useState(false);
+    const [weight_input, set_weight_input] = useState('');
 
     const [form_data, set_form_data] = useState({displayName: '', bio: '', experienceLevel: '', primaryGoal: '', unitSystem: 'METRIC', weightKg: ''});
     const { setUser } = useAuth();
     const navigate = useNavigate();
+
+    function handle_weight_change(value: string)
+    {
+        set_weight_input(value);
+
+        let weightKg = value;
+
+        if (value !== '' && form_data.unitSystem === 'IMPERIAL')
+            weightKg = (Number(value) * 0.45359237).toString();
+
+        set_form_data({ ...form_data, weightKg });
+    }
+
+    function handle_unit_change(value: string) {
+        if (form_data.weightKg !== '') {
+            let weight = Number(form_data.weightKg);
+
+            if (Number.isFinite(weight)) {
+                if (value === 'IMPERIAL')
+                    weight = weight / 0.45359237;
+
+                set_weight_input(Number(weight.toFixed(2)).toString());
+            }
+        }
+
+        set_form_data({ ...form_data, unitSystem: value });
+        set_err_msg('');
+    }
 
     function handle_next() {
         set_err_msg('');
@@ -63,10 +92,11 @@ function Onboarding(){
             weightKg = undefined;
         } else {
             weightKg = Number(form_data.weightKg);
-            if (form_data.unitSystem === 'IMPERIAL')
-                weightKg = weightKg * 0.453592;
             if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500) {
-                set_err_msg('Invalid weight value');
+                if (form_data.unitSystem === 'IMPERIAL')
+                    set_err_msg('Weight must be between approximately 44.1 and 1102.3 lb.');
+                else
+                    set_err_msg('Weight must be between 20 and 500 kg.');
                 return;
             }
         }
@@ -149,8 +179,8 @@ function Onboarding(){
                     <h2 className="text-xl font-bold"> Optional details </h2>
                     <p className="text-sm text-app-text-secondary"> You can leave these empty and update them later.</p>
 
-                    <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={(value) =>set_form_data({ ...form_data, unitSystem: value })}/>
-                    <Form_input id="weightKg" label={form_data.unitSystem === 'IMPERIAL' ? 'Current weight (lb)' : 'Current weight (kg)'} type="number" value={form_data.weightKg} onChange={(value) =>set_form_data({ ...form_data, weightKg: value })} required={false}/>
+                    <Form_select id="unitSystem" label="Unit system" value={form_data.unitSystem} options={['METRIC', 'IMPERIAL']} onChange={handle_unit_change}/>
+                    <Form_input id="weightKg" label={form_data.unitSystem === 'IMPERIAL' ? 'Current weight (lb)' : 'Current weight (kg)'} type="number" value={weight_input} onChange={handle_weight_change} required={false}/>
                 </div>
             )}
 
