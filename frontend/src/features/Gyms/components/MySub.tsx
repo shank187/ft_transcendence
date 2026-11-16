@@ -62,7 +62,26 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
         }
     }
 
+    async function handleDelete(gym: Gym){
 
+        // console.log("👉 CLICKED DELETE FOR:", gym); // 👈 Test log
+        // if (!window.confirm("Are you sure you want to delete this gym?"))
+        //     return;
+        // if (!confirm("Are you sure you want to delete this gym?"))
+            // return
+        try{
+            await api.delete(`/api/gyms/${gym.id}`);
+            onSuccess(`${gym.name} gym deleed successfully`);
+            setPrivateList(privateList.filter(function(item){
+                return item.id !== gym.id;
+            }));
+            if (currentGym?.id === gym.id){
+                setCurrentGym(null);
+            }
+        }catch(e){
+            console.log("failed to delete gym",e);
+        }
+    }
 
     return (
         <>
@@ -77,7 +96,7 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
 
                     <div className=" bg-[#181818] rounded-2xl border border-[#CCFF00]/30">
                         {currentGym && (
-                            <div className="flex justify-between  items-center px-4 py-6">
+                            <div className="flex flex-col sm:flex-row justify-between px-4 py-6">
                                 <div className="flex flex-col ">
                                     <div className="flex items-center gap-4">
                                         <h3 className="text-xl font-bold">{currentGym.name}</h3>
@@ -89,18 +108,18 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                     <p className="text-xs  mt-1">Workouts and the exercise picker use this gym.</p>
 
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-2 ">
-                                    <Link 
-                                        to={`/gyms/${currentGym.id}`}
-                                        className="px-2.5 py-4 text-xs font-semibold  border rounded-full text-white hover:text-[#CCFF00]  border-[#2E2E2E] transition-colors text-center">
-                                        View
-                                    </Link>
+                                <div className="flex flex-row w-full items-center justify-start sm:flex-row gap-2 mt-3 ">
                                     <button 
                                         type="button"
                                         onClick={handleReset}
-                                        className="px-4 py-2 rounded-full text-xs font-extrabold bg-[#CCFF00] text-black   border border-[#2E2E2E] hover:scale-102 transition-colors">
+                                        className="px-2.5 py-2 rounded-full text-xs font-extrabold bg-[#CCFF00] text-black   border border-[#2E2E2E] hover:scale-102 transition-colors">
                                         Change gym
                                     </button>
+                                    <Link 
+                                        to={`/gyms/${currentGym.id}`}
+                                        className="px-2.5 py-2 text-xs font-semibold  border rounded-full text-white hover:text-[#CCFF00]  border-[#2E2E2E] transition-colors text-center">
+                                        View
+                                    </Link>
 
                                 </div>
                             </div>
@@ -149,6 +168,7 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                                 Edit
                                             </button>
                                            <button type="button"
+                                                    onClick={function(){handleDelete(gym)}}
                                                     className="rounded-xl bg-red-500/5 hover:bg-red-500/25 border border-app-danger px-4 py-2.5 text-xs font-semibold text-red-400 transition-colors">
                                                 delete
                                             </button>
