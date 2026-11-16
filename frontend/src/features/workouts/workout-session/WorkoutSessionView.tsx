@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import type { PerformedValues } from "./workout-session.types";
 import type { AwardResult, SetType, WorkoutSession } from "../shared/workouts.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
-import { livePrSetIds, orderExercises, updateSet } from "./workout-session.helpers";
+import { livePrSetIds, orderExercises, updateExercise, updateSet } from "./workout-session.helpers";
 import LoadingState from "../../../components/states/LoadingState";
 import NotFoundState from "../../../components/states/NotFoundState";
 import ErrorState from "../../../components/states/ErrorState";
@@ -98,10 +98,8 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 ...prev,
                 session: {
                     ...prev.session,
-                    exercises: prev.session.exercises.map(e => e.id !== exerciseId ? e : {
-                        ...e,
-                        sets: e.sets.filter(set => set.id !== setId),
-                    }),
+                    exercises: updateExercise(prev.session.exercises, exerciseId, e =>
+                        ({ ...e, sets: e.sets.filter(set => set.id !== setId) })),
                 },
             })
         } catch (err) {
@@ -217,10 +215,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 ...prev,
                 session:{
                     ...prev.session,
-                    exercises: prev.session.exercises.map((e)=>(e.id !== exId ? e :{
-                        ...e,
-                        sets : [...e.sets, added]
-                    }))
+                    exercises: updateExercise(prev.session.exercises, exId, e => ({ ...e, sets: [...e.sets, added] }))
                 }
             })
         }catch(err){

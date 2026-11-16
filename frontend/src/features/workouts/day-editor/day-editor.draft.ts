@@ -2,7 +2,7 @@ import type { ExerciseItem } from "../shared/exercise-picker/exercise.types";
 import type { DayExercise, DraftExercise, DraftSet, SaveDayBody } from "./day-editor.types";
 import type { SetType } from "../shared/workouts.types";
 import { EXERCISE_FIELDS, type FieldKey } from "../shared/exercise-fields";
-import { isPlainNumber, isWholeBetween, toNumber, validateSet } from "../shared/set-values";
+import { isPlainNumber, isWholeBetween, toNumber, toText, validateSet } from "../shared/set-values";
 
 
 export function moveExercise(draft: DraftExercise[], key: string, direction: 1 | -1) : DraftExercise[]
@@ -40,83 +40,58 @@ function newDraftSet(): DraftSet {
     }
 }
 
+// The only places that copy the nested arrays, same as updateSet in the workout:
+// the changed exercise and set get new objects, every other one keeps its reference.
+function updateDraftExercise(draft: DraftExercise[], exKey: string, change: (exercise: DraftExercise) => DraftExercise): DraftExercise[]
+{
+    return draft.map(e => e.key !== exKey ? e : change(e))
+}
 
+function updateDraftSet(draft: DraftExercise[], exKey: string, setKey: string, change: (set: DraftSet) => DraftSet): DraftExercise[]
+{
+    return updateDraftExercise(draft, exKey, e => ({ ...e, sets: e.sets.map(s => s.key !== setKey ? s : change(s)) }))
+}
 
 export function addDraftSet(draft: DraftExercise[], key: string): DraftExercise[]
 {
-    const index = draft.findIndex(e=>e.key === key)
-    if(index === -1)
-        return draft
-    const newSet = newDraftSet()
-    const next = draft.map<DraftExercise>((e, i)=>(i === index? {...e, sets:[...e.sets, newSet]}: e))
-    return next
+    return updateDraftExercise(draft, key, e => ({ ...e, sets: [...e.sets, newDraftSet()] }))
 }
 
 export function removeDraftSet(draft: DraftExercise[], exKey: string, setKey: string): DraftExercise[]
 {
-    const exIndex = draft.findIndex(e => e.key === exKey)
-    if (exIndex === -1)
-        return draft
-    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
-    if (setIndex === -1)
-        return draft
-    return draft.map((e, i) =>(i === exIndex? {...e, sets: e.sets.filter((_, i) =>(i !== setIndex))}  :e))
+    return updateDraftExercise(draft, exKey, e => ({ ...e, sets: e.sets.filter(s => s.key !== setKey) }))
 }
 
 export function updateSetField(draft: DraftExercise[], exKey: string, setKey: string, field: FieldKey, value: string): DraftExercise[]
 {
-    const exIndex = draft.findIndex(e => e.key === exKey)
-    if (exIndex === -1)
-        return draft
-    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
-    if (setIndex === -1)
-        return draft
-    return draft.map((e, i) => (i === exIndex
-        ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, [field]: value} : s))}
-        : e))
+    return updateDraftSet(draft, exKey, setKey, s => ({ ...s, [field]: value }))
 }
 
 export function updateSetType(draft: DraftExercise[], exKey: string, setKey: string, setType: SetType): DraftExercise[]
 {
-    const exIndex = draft.findIndex(e => e.key === exKey)
-    if (exIndex === -1)
-        return draft
-    const setIndex = draft[exIndex].sets.findIndex(s => s.key === setKey)
-    if (setIndex === -1)
-        return draft
-    return draft.map((e, i) => (i === exIndex
-        ? {...e, sets: e.sets.map((s, j) => (j === setIndex ? {...s, setType} : s))}
-        : e))
+    return updateDraftSet(draft, exKey, setKey, s => ({ ...s, setType }))
 }
 
-export function updateRest(draft: DraftExercise[], exKey: string, value: string): DraftExercise[]{
-    const exIndex = draft.findIndex(e =>e.key === exKey)
-    if(exIndex === -1)
-            return draft
-    return draft.map((exercise, i) => (i === exIndex)?{...exercise, restSeconds: value}:exercise)
+export function updateRest(draft: DraftExercise[], exKey: string, value: string): DraftExercise[]
+{
+    return updateDraftExercise(draft, exKey, e => ({ ...e, restSeconds: value }))
 }
-
 
 export function toDraft(exercises: DayExercise[]): DraftExercise[]
 {
-    return( exercises.map((exercise)=>(
-        {
-            key: exercise.id,
-            restSeconds: exercise.restSeconds !== null ? exercise.restSeconds?.toString() : "",
-            exerciseSummary: exercise.exerciseSummary,
-            sets: exercise.sets.map<DraftSet>((set)=>(
-                {
-                    key: set.id,
-                    setType: set.setType,
-                    weight: set.targetWeight!== null ? set.targetWeight.toString() : "",
-                    reps: set.targetReps !== null ? set.targetReps.toString() : "",
-                    duration: set.targetDuration !== null ? set.targetDuration.toString() : "",
-                    distance: set.targetDistance!== null ? set.targetDistance.toString() : "",
-                }
-            ))
-
-        }
-    )))
+    return exercises.map(exercise => ({
+        key: exercise.id,
+        restSeconds: toText(exercise.restSeconds),
+        exerciseSummary: exercise.exerciseSummary,
+        sets: exercise.sets.map<DraftSet>(set => ({
+            key: set.id,
+            setType: set.setType,
+            weight: toText(set.targetWeight),
+            reps: toText(set.targetReps),
+            duration: toText(set.targetDuration),
+            distance: toText(set.targetDistance),
+        })),
+    }))
 }
 
 // Each added row gets a new key: the same exercise can be added twice.
