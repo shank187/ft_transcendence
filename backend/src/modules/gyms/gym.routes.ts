@@ -11,6 +11,8 @@ import { upload_gym_image } from "../../middleware/upload_gym";
 import { uploadGymImageController } from "./gym.controller";
 import {CurrentGymCOntroller} from "./gym.controller"
 
+import {getNameController} from "./gym.controller"
+
 
 const router = Router();
 
@@ -23,6 +25,8 @@ router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageContr
 
 router.patch('/me/current', authenticate, CurrentGymCOntroller);
 
+
+router.get('/name',authenticate, getNameController);
 router.get('/:id', authenticate, getGymByIdController);
 
 export default router;

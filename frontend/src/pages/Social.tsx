@@ -1,12 +1,14 @@
 
 import ChatWindow from "../features/chat/ChatWindow"
 import FriendsList from "../features/chat/FriendsList"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import type { FriendData, ClientMessage } from "../features/chat/chat.types"
 import { useWebSocket } from "./WebSocketContext"
 import api from "../features/auth/axiosInstance"
 import { ConversationsList } from "../features/chat/ConversationsList"
 import { useSearchParams } from "react-router-dom"
+import SearchBar from "../features/Gyms/components/SearchBar";
+
 function Social() {
     const { wsRef, lastMessage: wsMessage, onlineUserIds } = useWebSocket()
 
@@ -14,6 +16,10 @@ function Social() {
     const [friends, setFriends] = useState<FriendData[]>([])
     const [searchParams] = useSearchParams()
     const targetUserId = searchParams.get("userId")
+    
+    const [name, setName] = useState("");
+    const [listUser, setListName] = useState<FriendData[] | []>([]);
+
     useEffect(() => {
         if (!targetUserId)
             return
@@ -70,8 +76,29 @@ function Social() {
             }
         }
 
+
         getFriends()
     }, [])
+
+    useEffect(function(){
+        if (!name.trim()){
+            setListName([]);
+            return;
+        }
+
+        async function fetchName(){
+            try{
+                const result = await api.get("/api/gyms/name", {params :{name : name.trim()}});
+                // setName(result.data);
+                setListName(result.data);
+
+            }catch(e){
+                console.log(e);
+            }
+        }
+        fetchName();
+    },[name]);
+
 
     const onlineFriends = friends.filter(friend =>
         onlineUserIds.includes(friend.id)
@@ -104,7 +131,29 @@ function Social() {
                     md:bg-transparent
                 `}
             >
+                <div>
+                    <SearchBar searchTerm={name} onSearchChange={setName} />
+                </div>
+                <div>
+                    {listUser && (
+                        <div>
+                            {listUser.map(function(user){
+                                return <div key={user.id} className="flex items-center gap-2">
+                                    <div>
+                                        <img src={user.avatarUrl} alt={user.avatarUrl} />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <span>{user.displayName}</span>
+                                        <span>{user.username}</span>
+                                    </div>
+                                </div>
+                            })
+                            }
+                        </div>
+                    )}
+                </div>
                 {/* Online friends */}
+
                 <div
                     className="
                         shrink-0 p-4

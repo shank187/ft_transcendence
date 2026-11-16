@@ -25,7 +25,7 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         const gymskiped = (page - 1) * limit;
         
         const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC"};
-        
+
         if (textSearched)
             searchCondiions.name = {contains: textSearched, mode: "insensitive"};
         if (city)
@@ -203,5 +203,17 @@ export async function selectCurrentGym(gymId : string, userId : string){
     await prisma.user.update({
         where : {id : userId},
         data :{currentGymId:gymId}
+    });
+}
+
+
+export async function getName(searchedname : string){
+    const nameSearched :Prisma.UserWhereInput = {};
+    if (searchedname)
+        nameSearched.username = {contains: searchedname, mode : "insensitive"}
+
+    return await prisma.user.findMany({
+        where : nameSearched,
+        orderBy : {username :"asc"}
     });
 }
