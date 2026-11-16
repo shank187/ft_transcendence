@@ -18,13 +18,15 @@ export function formatMessageDate(createdAt: string) {
     if (date.toDateString() === yesterday.toDateString())
         return `Yesterday, ${time}`
 
-    const formattedDate = date.toLocaleDateString("en-US", {
+    const options: Intl.DateTimeFormatOptions = {
         month: "short",
-        day: "numeric",
-        ...(date.getFullYear() !== today.getFullYear() && {
-            year: "numeric" as const
-        })
-    })
+        day: "numeric"
+    }
+
+    if (date.getFullYear() !== today.getFullYear())
+        options.year = "numeric"
+
+    const formattedDate = date.toLocaleDateString("en-US", options)
 
     return `${formattedDate}, ${time}`
 }

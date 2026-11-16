@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
 
     environment:
-      VITE_API_URL: https://localhost
+      VITE_API_URL: "${VITE_API_URL:?VITE_API_URL is required}"
 
     volumes:
       - ./frontend:/app
@@ -101,7 +101,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "443:443"
+      - "4438:443"
 
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

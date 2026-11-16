@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "../../middleware/authenticate";
 import { Response } from "express";
 import { getFriendsForUser, areUsersFriends } from "./friends.service";
+import { prisma } from "../../lib/prisma"
 
 export const getFriends = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId
@@ -57,9 +58,51 @@ export const canMessageUser = async (req: AuthenticatedRequest, res: Response) =
 }
 
 
-export const getPendingRequests = async (req: AuthenticatedRequest, res: Response) => {
 
+export const getPendingRequests = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
+    const userId = req.userId
+
+    if (!userId)
+        return res.status(401).json({ message: "Unauthorized" })
+
+    try {
+        const pendingList = await prisma.friendship.findMany({
+            where: {
+                addresseeId: userId,
+                status: "PENDING"
+            },
+            orderBy: {
+                createdAt: "desc"
+            },
+            select: {
+                requester: {
+                    select: {
+                        id: true,
+                        username: true,
+                        displayName: true,
+                        avatarUrl: true,
+                        lastSeenAt: true
+                    }
+                }
+            }
+        })
+
+        const usersList = pendingList.map(
+            friendship => friendship.requester
+        )
+
+        return res.status(200).json(usersList)
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            message: "Internal server error"
+        })
+    }
 }
+
 
 export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) => {
 

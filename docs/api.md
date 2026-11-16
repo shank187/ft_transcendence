@@ -27,7 +27,7 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | GET | `/api/users/me` | Yes | Return current user's `onboardingCompletedAt` |
 | PATCH | `/api/users/onboarding` | Yes | Save onboarding fields |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
-| GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses |
+| GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
 | GET | `/api/equipment` | Yes | Return every equipment item with its category |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
 | POST | `/api/workout-plans` | Yes | Create a custom plan |
@@ -81,35 +81,33 @@ React action
 
 ## Error contract
 
-S1 must finalize one consistent error DTO. Until then, do not invent a second per-feature shape.
-
-Current state (not yet consistent): `authenticate`, users, and workout-plans return `{ "message": "..." }`; auth refresh/logout/session/Google return `{ "error": "..." }`. Clients should not depend on either shape beyond the status code until S1 unifies them.
-
-The intended minimum is:
+API error responses must use this JSON shape:
 
 ```json
 {
-  "error": {
-    "code": "STABLE_MACHINE_CODE",
-    "message": "Safe user-facing message",
-    "details": {}
-  }
+  "message": "Safe user-facing message"
 }
 ```
 
-`details` is optional and must not expose stack traces, SQL, tokens, hashes, or internal secrets.
+Do not expose stack traces, database errors, tokens, hashes or secrets.
+Successful response shapes remain unchanged.
 
-Use intentional status codes:
+HTTP status codes:
 
-- `200` successful read/update
-- `201` resource created
-- `204` successful action with no response body
-- `400` malformed input
-- `401` unauthenticated/invalid session
-- `403` authenticated but forbidden
-- `404` resource not found or intentionally hidden
-- `409` lifecycle/uniqueness conflict
-- `500` unexpected safe server error
+- 200: successful read or update
+- 201: resource created
+- 204: successful action without a response body
+- 400: invalid or malformed input
+- 401: missing, invalid or expired authentication
+- 403: access forbidden
+- 404: resource not found or intentionally hidden
+- 409: uniqueness or lifecycle conflict
+- 413: uploaded file or request body too large
+- 422: request rejected by a business rule
+- 500: unexpected server error
+- 503: required service temporarily unavailable
+
+Keep existing route status codes when normalizing response shapes.
 
 ## Exercise catalog
 
@@ -132,6 +130,7 @@ Query parameters, all optional:
 | `search` | text | none | Trimmed; case-insensitive "contains" match on `name`. Empty or whitespace-only means no filter |
 | `muscle` | `MuscleGroup.id` | none | Matches the **primary** muscle only; secondary muscles are ignored. Trimmed; empty means no filter |
 | `equipment` | `Equipment.id` | none | Matches exercises linked to this equipment. Trimmed; empty means no filter |
+| `gym` | `true` \| `false` | `false` | `true` keeps exercises whose equipment is all at the user's current gym (exercises with no equipment always match). The server reads the gym from the user; no gym id is sent. `400 { "message": "No current gym" }` when the user has none |
 | `sort` | `name_asc` \| `name_desc` | `name_asc` | Exactly one of the two values; unlike the filters, empty is not accepted |
 
 Filters combine with AND. Pagination applies to the filtered result, and `total` counts the filtered rows. A `page` past `totalPages` returns `200` with an empty `items` array.
@@ -151,7 +150,8 @@ Response `200`:
       "secondaryMuscles": ["Triceps", "Shoulders"],
       "equipment": ["Barbell", "Bench"],
       "description": null,
-      "imageUrl": null
+      "imageUrl": null,
+      "availableAtGym": false
     }
   ],
   "page": 1,
@@ -171,6 +171,7 @@ Response `200`:
 | `items[].equipment` | string[] | Names of the linked equipment; order not guaranteed |
 | `items[].description` | string \| null | |
 | `items[].imageUrl` | string \| null | |
+| `items[].availableAtGym` | boolean \| null | `null` when the user has no current gym. Otherwise `true` when the gym has all of the exercise's equipment (always `true` for an exercise with no equipment), `false` when it lacks at least one. Sent whether or not `gym=true` is set |
 | `page` | number | Requested page |
 | `limit` | number | Requested page size |
 | `total` | number | Exercises matching the filters |
@@ -199,10 +200,12 @@ Status codes:
 | `sort` not `name_asc` or `name_desc` (including empty), or a repeated `sort` key | `Invalid Sort` |
 | `muscle` is not an existing `MuscleGroup.id` | `Invalid Muscle` |
 | `equipment` is not an existing `Equipment.id` | `Invalid Equipment` |
+| `gym` not `true` or `false` (including empty), or a repeated `gym` key | `Invalid Gym` |
+| `gym=true` and the user has no current gym | `No current gym` |
 
 ### `GET /api/exercises/filters`
 
-Returns the options for the catalog's muscle and equipment filters.
+Returns the options for the catalog's muscle and equipment filters, and the user's current gym.
 
 - **Auth:** required (Bearer access token).
 - **Request:** no path, query, or body parameters.
@@ -218,11 +221,12 @@ Response `200`:
   ],
   "equipment": [
     { "id": "6f5e4d3c-2b1a-4c9d-8e7f-a0b1c2d3e4f5", "name": "Barbell" }
-  ]
+  ],
+  "gym": { "id": "3c2b1a0f-9e8d-4c7b-a6f5-e4d3c2b1a0f9", "name": "City Gym" }
 }
 ```
 
-The `id` values are the ones `GET /api/exercises` accepts in `muscle` and `equipment`.
+The `id` values are the ones `GET /api/exercises` accepts in `muscle` and `equipment`. `gym` is `null` when the user has no current gym; the picker then disables its gym filter.
 
 Status codes:
 
