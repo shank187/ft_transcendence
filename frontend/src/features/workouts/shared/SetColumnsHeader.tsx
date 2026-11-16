@@ -1,6 +1,5 @@
 import type { SetField } from "./exercise-fields"
 
-// The column titles above the set rows: SET, then one per value box (KG, REPS...).
 // Hidden from screen readers: each input has its own label.
 export default function SetColumnsHeader(props: { fields: SetField[] })
 {

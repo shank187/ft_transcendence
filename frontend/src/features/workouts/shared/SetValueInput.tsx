@@ -1,7 +1,5 @@
 import type { SetField } from "./exercise-fields"
 
-// One value box of a set row (weight, reps, time or distance), with its error under it.
-// Used by the day editor rows and the workout rows.
 export default function SetValueInput(props: {
     inputId: string
     field: SetField
@@ -10,7 +8,7 @@ export default function SetValueInput(props: {
     error?: string
     placeholder: string
     disabled?: boolean
-    // A ticked set in the workout: the box is tinted.
+    // A ticked set: the box is tinted.
     done?: boolean
     onChange: (value: string) => void
 })

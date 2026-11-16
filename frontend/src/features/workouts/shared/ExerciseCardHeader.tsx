@@ -3,8 +3,6 @@ import type { ExerciseSummary } from "./workouts.types"
 import { EXERCISE_TYPE_LABEL } from "./exercise-fields"
 import exercisePlaceholder from "../../../assets/exercise-placeholder.svg"
 
-// The top of an exercise card in the day editor and in the workout:
-// position, image, name, then "type · muscle".
 export default function ExerciseCardHeader(props: {
     position: number
     exercise: ExerciseSummary
