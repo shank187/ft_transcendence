@@ -27,22 +27,19 @@ The project deliberately freezes scope around a reliable 14-point validation tar
 
 Implementation status must be taken from GitHub/Trello. A feature listed in the frozen target is not automatically implemented.
 
-## Current implementation checkpoint — 30 September 2026
+## Current implementation checkpoint — 16 November 2026
 
-Verified on `main` at `177c75a`, plus `feature/workout-plans-get` (pending merge):
+What exists on `main` at `49cb343` (routes and pages in the code, not a claim that each module is validated):
 
-- React/Vite/TypeScript frontend and Express/TypeScript backend
-- PostgreSQL through Prisma
-- Docker Compose development topology
-- Registration, login, Google OAuth, refresh/logout/session-check infrastructure, and onboarding route
-- Protected frontend layout with `/home`, `/workouts`, and placeholder `/workouts/new-plan`
-- `/workouts` lists the user's own plans with loading/error/retry/empty states
-- Authenticated `GET /api/workout-plans` returning owned plans only (branch `feature/workout-plans-get`)
-- Authenticated, paginated exercise catalog API (catalog UI exists but is not currently routed)
-- Shared `Button`, `Card`, and loading/error/empty state foundations
-- Workout planning/execution schema foundation
+- React/Vite/TypeScript frontend, Express/TypeScript backend, PostgreSQL through Prisma, Docker Compose
+- Auth: email/password with email code, Google OAuth, refresh/logout/session check, onboarding
+- Profile: own profile, settings, avatar, public profile, Privacy and Terms pages
+- Gyms: search, details, current gym, gym submission and admin review
+- Workouts (S3): plans, days, day editor, exercise picker (search, filters, sort, gym filter, pagination), active workout, finish with PRs and XP
+- Progress: summary and leaderboard
+- Social: friends, requests, blocking, conversations and WebSocket chat
 
-Current Slice 3 gate: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan behind `/workouts/new-plan`. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
+The full endpoint list is in [`docs/api.md`](docs/api.md).
 
 ## Technical stack
 
@@ -69,12 +66,10 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 ```bash
 git clone https://github.com/shank187/ft_transcendence.git
 cd ft_transcendence
-make setup
+cp .env.example .env
 ```
 
-Fill every required value with local credentials. Never commit `.env` or real secrets.
-
-> Repository gap at this checkpoint: the safe automated environment bootstrap and complete Compose JWT injection are assigned to S1/shared infrastructure. Until that work merges, verify the effective Compose configuration before relying on `make`.
+Fill every required value with local credentials. Never commit `.env` or real secrets. Compose refuses to start while a required value (database, JWT secrets, SMTP, URLs) is missing.
 
 ### Start
 
@@ -125,8 +120,11 @@ Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.e
 
 - [`docs/architecture.md`](docs/architecture.md) — system boundaries, slices, request flow, and contracts
 - [`docs/api.md`](docs/api.md) — implemented endpoints and API conventions
+- [`docs/contracts.md`](docs/contracts.md) — what S2, S3 and S5 rely on from each other
+- [`docs/database-relationships.md`](docs/database-relationships.md) — focused schema diagrams and delete rules
 - [`docs/database.md`](docs/database.md) — current schema mental model and historical-data rules
 - [`docs/development.md`](docs/development.md) — branch, review, verification, and environment workflow
+- [`docs/pr-guide.md`](docs/pr-guide.md) — PR shape, naming, and the required PR description
 - [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — frozen product, 14-point module plan, and cutoffs
 - [`docs/UPGRADE.md`](docs/UPGRADE.md) — October 2026 dependency upgrade: what changed, what to run after pulling, what is deferred
 
@@ -331,14 +329,13 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 
 ## Individual contributions
 
-Keep this section evidence-based and update it from merged commits/PRs before evaluation. At this checkpoint, Aymane’s verified work includes the workout schema foundation, exercise-catalog vertical slice/pagination, shared UI contributions, architecture/context documentation, and Technical Lead coordination. Add every teammate’s verified merged work without inflating or transferring ownership.
+Keep this section evidence-based and update it from merged commits/PRs before evaluation. Aymane’s S3 part is drafted in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md): workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, contracts, and Technical Lead coordination. Add every teammate’s verified merged work without inflating or transferring ownership.
 
 ## Known gaps at this checkpoint
 
-- Workout plan create/detail/update/delete, days/exercises/sets, and all session APIs/UI are not yet implemented; only the owned-plan list read exists.
-- Error response bodies are inconsistent (`{ message }` vs `{ error }`) until S1 finalizes the shared error DTO.
-- Exercise search/filter and complete recovery hardening remain pending.
-- Safe `.env` bootstrap, JWT Compose injection, and CI/Gitleaks remain S1/shared tasks.
+- Error response bodies: every module returns `{ message }` except some gyms errors (`{ error }`), until S1 finalizes the shared error DTO.
+- S3: there is no list of past workouts (a finished workout opens only from its link), no rest timer during a workout, and an exercise can't be removed from a workout in progress (its sets can).
+- CI/Gitleaks is not set up (no `.github/workflows`).
 - Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
 
 This list is a dated checkpoint, not a permanent project status.

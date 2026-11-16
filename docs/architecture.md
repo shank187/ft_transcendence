@@ -55,19 +55,16 @@ Frozen top-level navigation:
 Home · Gyms · Workouts · Progress · Social · Profile
 ```
 
-Frozen workout routes:
+Workout routes on `main` (`frontend/src/App.tsx`):
 
 ```text
-/workouts
-/workouts/exercises
-/workouts/exercises/:id
-/workouts/plans
-/workouts/plans/new
-/workouts/plans/:id
-/workouts/session/:id
+/workouts                                  plan list, start an empty workout
+/workouts/plans/:planId                    plan detail: days, rename, delete, start from a day
+/workouts/plans/:planId/days/:dayId        day editor
+/workouts/session/:sessionId               active or finished workout
 ```
 
-These are target routes; check `frontend/src/App.tsx` before claiming implementation. At the 30 September checkpoint, the protected layout registers `/home`, `/workouts` (the user's plan list, backed by `GET /api/workout-plans`), and `/workouts/new-plan` (placeholder page). The temporary `/exercises` route was removed; `frontend/src/pages/Exercises.tsx` and the catalog still exist but are not routed until the catalog re-enters the frozen `/workouts/exercises` path or the plan exercise picker. `/workouts/new-plan` is the working create-plan route and replaces the earlier `/workouts/plans/new` proposal above; keep it unless there is a concrete reason to change it.
+Plans are created from a dialog on `/workouts`, so there is no `/workouts/plans/new` page. The exercise catalog has no page of its own: it opens as the exercise picker drawer in the day editor and in the workout.
 
 ## Frontend structure and styling
 
@@ -75,8 +72,8 @@ These are target routes; check `frontend/src/App.tsx` before claiming implementa
 frontend/src/
   pages/            route-level components; thin, usually render one feature component
   features/<name>/  one folder per feature: <name>.api.ts, <name>.types.ts, feature components
-  components/ui/    shared primitives (Button, Card, Form_input, Form_select, Or_divider)
-  components/states/ shared LoadingState / ErrorState / EmptyState
+  components/ui/    shared primitives (Button, Card, Dialog, DropdownMenu, FilterSelect, Form_input, Form_select, Or_divider)
+  components/states/ shared LoadingState / ErrorState / EmptyState / NotFoundState
   layouts/          MainLayout: authenticated shell (nav + <Outlet />)
   styles/globals.css design tokens (@theme) and global resets
 ```
@@ -98,6 +95,8 @@ Controllers handle HTTP details. Services own meaningful business and lifecycle 
 
 ## Cross-slice contracts
 
+The exact functions, routes and rules between S2, S3 and S5 are in [contracts.md](contracts.md).
+
 ### Identity
 
 S1 authenticates the request and supplies server-derived `req.userId`. Every user-owned mutation validates ownership on the backend.
@@ -108,7 +107,7 @@ S2 owns canonical equipment used by gyms. S3 references the same `Equipment.id`;
 
 ### Completed workout data
 
-S3 owns performed sessions/sets and workout history as source data. S5 consumes completed data for summaries, XP, achievements, and leaderboard. S5 must not create a competing workout-history store.
+S3 owns performed sessions/sets and workout history as source data. S5 consumes completed data for summaries, XP, achievements, and leaderboard. S5 must not create a competing workout-history store. S3 calls S5's `award()` inside the finish transaction, and gives S5 `getWorkoutStats` for weekly numbers.
 
 ### Real time
 
