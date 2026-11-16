@@ -31,8 +31,12 @@ export const validate_onboarding = (req: AuthenticatedRequest, res: Response, ne
     if (typeof unitSystem !== "string" || !UNIT_SYSTEMS.includes(unitSystem))
         return res.status(400).json({ message: "Invalid unit system." });
 
-    if (weightKg !== null && weightKg !== undefined && (typeof weightKg !== "number" || !Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500))
-        return res.status(400).json({ message: "Weight must be between 20 and 500 kg." });
+    if (weightKg !== null && weightKg !== undefined && (typeof weightKg !== "number" || !Number.isFinite(weightKg) || weightKg < 20 || weightKg > 500)) {
+        if (unitSystem === "IMPERIAL")
+            return res.status(400).json({ message: "Weight must be between approximately 44.1 and 1102.3 lb." });
+        else
+            return res.status(400).json({ message: "Weight must be between 20 and 500 kg." });
+    }
 
     if (heightCm !== null && heightCm !== undefined && (typeof heightCm !== "number" || !Number.isFinite(heightCm) || heightCm < 20 || heightCm > 300))
         return res.status(400).json({ message: "Height must be between 20 and 300 cm." });
