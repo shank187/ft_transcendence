@@ -90,7 +90,6 @@ useEffect(() => {
     }
             {/* Friends and conversations */}
             <aside
-
                 className={`
                     ${selectedFriend ? "hidden" : "flex"}
                     min-h-0 w-full flex-col gap-0
@@ -100,9 +99,6 @@ useEffect(() => {
                     md:bg-transparent
                 `}
             >
-                <div>
-                    hh
-                </div>
                 {/* Online friends */}
                 <div
                     className="
