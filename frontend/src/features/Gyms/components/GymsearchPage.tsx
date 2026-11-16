@@ -10,6 +10,8 @@ import PaginationButtons from "./paginationButton";
 import AddGym from "./AddGym";
 
 import GymNavbar from "./gymNavBar";
+import MySub from "./MySub";
+import { Check, X } from "lucide-react";
 
 
 
@@ -23,9 +25,9 @@ function GymsearchPage(){
     const [hasNextPage, setHasNextPage] = useState(false);
     const [paginPage, setPaginPage] = useState(1);
 
-
-    const [isAddGymOpen, setIsAddGymOpen] = useState(false);
     const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<"search" | "add" | "submission">("search");
+
 
     useEffect (function(){
         setPage(1);
@@ -77,27 +79,32 @@ function GymsearchPage(){
         }
     },[bannerMessage]);
 
-    if (isAddGymOpen){
-        return <AddGym  onClose={setIsAddGymOpen} onSuccess={function(msg){setBannerMessage(msg); }}/>
+    if (activeTab == "add"){
+        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage}/>
+    }
+    if (activeTab == "submission"){
+        return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage}/>
     }
 
 
     return (
         
         <div className="min-h-screen text-[#ffffff]">
-            <GymNavbar onSearchPage={function() { setIsAddGymOpen(false); }}
-                        onAddPage={function() { setIsAddGymOpen(true); }}
-                        currentPage="search"/>
+            <GymNavbar currentTab={activeTab} onTabChange={setActiveTab}/>
+                    
             <div className="p-4">
             <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
 
 
+
+
             {bannerMessage && (
-                <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0e2716] border border-emerald-500/40 p-4 text-white text-xs transition-all">
+                <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#1A1A1A]/95  border border-[#CCFF00]/40 shadow-2xl text-xs text-white transition-all">
                     <span>{bannerMessage}</span>
                     <button onClick={function(){setBannerMessage(null)}}
-                            className="text-red-400 hover:text-white font-bold px-2 py-1"
-                            >X</button>
+                            className="text-red-400 hover:text-white font-bold px-2 py-1">
+                                <X/>
+                            </button>
                 </div>
             )} 
 

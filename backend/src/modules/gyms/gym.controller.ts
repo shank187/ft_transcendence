@@ -7,7 +7,10 @@ import {createGym} from "./gym.service";
 import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
 import {selectCurrentGym} from "./gym.service";
-import { error } from "node:console";
+import {getCurrentGym} from "./gym.service";
+import {resetCurrent} from "./gym.service"
+import {getPrivate} from "./gym.service"
+
 
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
@@ -170,7 +173,12 @@ export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Respo
             return res.status(401).json({message: "unauthorized"});
     const gymId = req.body.gymId;
 
-    if (!gymId || typeof gymId !== "string")
+
+    if (gymId === null){
+        await resetCurrent(req.userId);
+        return res.status(200).json({message: "Gym reset successfully"});
+    }
+    if (typeof gymId !== "string")
         return res.status(400).json({ message: "gymId is required" });
 
     try{
@@ -186,5 +194,33 @@ export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Respo
             return res.status(422).json({error : "Cannot select an unverified gym"});
         console.log(e);
         res.status(500).json({ error: "server error" });
+    }
+}
+
+
+export async function getCurrentGymCOntroller(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+
+    const userId = req.userId;
+    try{
+        const currentGym = await getCurrentGym(userId);
+        res.status(200).json(currentGym)
+    }catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});
+    }
+}
+export async function getPrivateController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+
+    const userId = req.userId;
+    try{
+        const privateList  = await getPrivate(userId);
+        res.status(200).json(privateList);
+    }catch(e){
+        console.log(e);
+        res.status(500).json({e: "server error"});   
     }
 }

@@ -8,11 +8,12 @@ import GymNavbar from "./gymNavBar";
 
 
 interface gymProps{
-    onClose : (bool : boolean)=>void;
+    onTabChange:(tab : "search" | "add" | "submission")=>void;
     onSuccess : (msg : string)=>void;
 }
 
-function AddGym({onClose, onSuccess} : gymProps){
+function AddGym({onTabChange, onSuccess} : gymProps){
+
     const [name, setName] = useState("");
     const [city, setCity] = useState("");
     const [address, setAddress] = useState("");
@@ -39,7 +40,7 @@ function AddGym({onClose, onSuccess} : gymProps){
     }, []);
 
     function handleClose(){
-        onClose(false);
+        onTabChange("search");
     }
     async function handleSubmit(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
@@ -108,9 +109,7 @@ function AddGym({onClose, onSuccess} : gymProps){
 
     return(
         <>
-            <GymNavbar onSearchPage={function(){onClose(false)}}
-                       onAddPage={function() {}} 
-                       currentPage="add"/>
+            <GymNavbar currentTab="add" onTabChange={onTabChange}/>
         <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl border border-[#CCFF00]/30">
             <button 
                 onClick={handleClose} 

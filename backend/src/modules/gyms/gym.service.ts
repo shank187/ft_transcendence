@@ -205,3 +205,32 @@ export async function selectCurrentGym(gymId : string, userId : string){
         data :{currentGymId:gymId}
     });
 }
+
+
+export async function getCurrentGym(userId : string){
+    const user  = await prisma.user.findUnique({
+        where : {id : userId},
+        select : {currentGym : true}
+    });
+    if (!user?.currentGym)
+        return null;
+    return user.currentGym;
+}
+
+
+export async function resetCurrent(userId : string){
+    await prisma.user.update({
+        where : {id :userId},
+        data : {currentGymId : null}
+    });
+}
+
+
+export async function getPrivate(userId : string){
+    const list =  prisma.gym.findMany({
+        where : {visibility : "PRIVATE", createdById : userId},
+        orderBy : {createdAt : "desc"}
+    });
+
+    return list;
+}

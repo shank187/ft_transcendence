@@ -19,6 +19,7 @@ export interface Gym{
     phone?: string | null;
     website?: string | null;
     verified?: boolean;   
+    visibility?: "PUBLIC" | "PRIVATE";
     equipment: GymEquipmentItem[];
     
 }
