@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react"
-import type {PlanDay, PlanDetail} from "../shared/workouts.types"
+import { useEffect, useReducer, useState } from "react"
 import { getPlanDetails } from "../shared/get-plan-details"
 import { MAX_DAYS_PER_PLAN } from "../shared/limits"
 import LoadingState from "../../../components/states/LoadingState"
@@ -15,12 +14,11 @@ import DeleteDayDialog from "./DeleteDayDialog"
 import NotFoundState from "../../../components/states/NotFoundState"
 import { Link } from "react-router-dom"
 import { buttonClasses } from "../../../components/ui/button-classes"
+import { planReducer } from "./plan-details.reducer"
 
 export default function PlanDetailView(props: {planId: string})
 {
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string|null>(null)
-    const [plan, setPlan] = useState<PlanDetail|null>(null)
+    const [state, dispatch] = useReducer(planReducer, { status: "loading" })
     const [reloadCount, setReloadCount] = useState(0)
 
     const [addDayForm, setAddDayVisibility] = useState(false)
@@ -38,32 +36,8 @@ export default function PlanDetailView(props: {planId: string})
         setdeletingDayId(null)
     }
 
-    const addDayToPlan = (createdDay: PlanDay) => {
-        setPlan(previous =>
-                previous
-                ? {...previous, days: [...previous.days, createdDay]}
-                :previous
-        )
-    }
-    const renameDayInPlan = (renamedDay: PlanDay) => {
-        setPlan(previous => previous
-            ? { ...previous, days: previous.days.map(d => d.id === renamedDay.id ? renamedDay : d) }
-            : previous)
-    }
-    const replacePlanDays = (remainingDays: PlanDay[]) => {
-        setPlan(previous => previous 
-            ?{...previous, days: remainingDays}
-            : previous )
-    }
-    const renamePlanInPage = (renamedPlan: PlanDetail) => {
-        setPlan(previous => previous
-            ? { ...previous, name: renamedPlan.name, description: renamedPlan.description }
-            : previous)
-    }
-
     const reloadPlan = () => {
-        setError(null)
-        setLoading(true)
+        dispatch({ type: "reloading" })
         setReloadCount(count => count + 1)
     }
 
@@ -75,23 +49,21 @@ export default function PlanDetailView(props: {planId: string})
             try{
                 const result = await getPlanDetails(props.planId)
                 if (ignore) return
-                setPlan(result)
+                dispatch(result ? { type: "loaded", plan: result } : { type: "notFound" })
             }catch(err){
                 if (ignore) return
-                setError(err instanceof(Error) ? err.message : "Failed to load page, try again.")
-            }finally{
-                if (!ignore) setLoading(false)
+                dispatch({ type: "loadFailed", message: err instanceof(Error) ? err.message : "Failed to load page, try again." })
             }
         }
         void loadPlan()
         return () => { ignore = true }
     },[props.planId, reloadCount])
 
-    if(loading) return <LoadingState message="Loading plan detail..."/>
-    if(error)
+    if(state.status === "loading") return <LoadingState message="Loading plan detail..."/>
+    if(state.status === "error")
         return(
             <ErrorState
-            message={error}
+            message={state.message}
             action={<Button
                     onClick={reloadPlan}
                     >
@@ -99,7 +71,7 @@ export default function PlanDetailView(props: {planId: string})
                 </Button>}
             />
         )
-    if(!plan)
+    if(state.status === "notFound")
         return(
             <NotFoundState
             title="Plan not found."
@@ -113,6 +85,7 @@ export default function PlanDetailView(props: {planId: string})
             />
         )
 
+    const { plan } = state
     const renamingDay = plan.days.find(d => d.id === renamingDayId)
     const deletingDay = plan.days.find(d => d.id === deletingDayId)
 
@@ -122,7 +95,7 @@ export default function PlanDetailView(props: {planId: string})
             planId={props.planId}
             name={plan.name}
             description={plan.description}
-            onRenamed={renamePlanInPage}
+            onRenamed={renamed => dispatch({ type: "planRenamed", plan: renamed })}
             />
             {plan.days.length === 0 && !addDayForm && (
                 <EmptyState
@@ -172,7 +145,7 @@ export default function PlanDetailView(props: {planId: string})
                 <AddDayForm
                     planId={props.planId}
                     dayCount={plan.days.length}
-                    onAdded={addDayToPlan}
+                    onAdded={day => dispatch({ type: "dayAdded", day })}
                     onClose={() => setAddDayVisibility(false)}
                 />
             }
@@ -190,7 +163,7 @@ export default function PlanDetailView(props: {planId: string})
                     planId={props.planId}
                     day={renamingDay}
                     onClose={closeRename}
-                    onRenamed={renameDayInPlan}
+                    onRenamed={day => dispatch({ type: "dayRenamed", day })}
                 />
             )}
             {deletingDay && (
@@ -198,7 +171,7 @@ export default function PlanDetailView(props: {planId: string})
                     planId={props.planId}
                     day={deletingDay}
                     onClose={closeDayDelete}
-                    onDeleted={replacePlanDays}
+                    onDeleted={days => dispatch({ type: "daysReplaced", days })}
                 />
             )}
         </div>
