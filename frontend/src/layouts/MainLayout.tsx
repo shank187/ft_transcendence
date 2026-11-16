@@ -90,7 +90,7 @@ function MainLayout() {
     return (
     <WebSocketProvider>
         <div className="min-h-screen bg-app-canvas md:flex">
-            <div className="hidden md:sticky md:top-0 md:flex md:h-screen p-4 md:w-56 md:shrink-0 md:flex-col md:gap-2 md:border-app-border md:bg-app-surface">
+            <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:flex">
                 <nav className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
                     {nav_items.map((item)=> (
                         <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
