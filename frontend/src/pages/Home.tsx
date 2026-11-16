@@ -15,7 +15,7 @@ import type { FriendData } from '../features/chat/chat.types';
 import { useWebSocket } from './WebSocketContext';
 
 function Home() {
-    const { user, setUser, logout } = useAuth();
+    const { user, setUser } = useAuth();
     const { onlineUserIds, lastMessage, connectionStatus } = useWebSocket();
     const navigate = useNavigate();
 
@@ -26,7 +26,6 @@ function Home() {
     const [workouts_error, set_workouts_error] = useState('');
     const [progress_error, set_progress_error] = useState('');
     const [friends_error, set_friends_error] = useState('');
-    const [logout_error, set_logout_error] = useState('');
     const friendshipUpdate = lastMessage?.type === 'friendship_updated' ? lastMessage : null;
 
     useEffect(() => {
@@ -91,33 +90,15 @@ function Home() {
         loadFriends();
     }, [friendshipUpdate]);
 
-    async function handleLogout() {
-        try {
-            set_logout_error('');
-            await logout();
-            navigate('/login');
-        } catch (error) {
-            if (isAxiosError(error))
-                set_logout_error(error.response?.data?.message || 'Could not log out. Please try again.');
-            else
-                set_logout_error('Could not log out. Please try again.');
-        }
-    }
-
     const onlineFriends = (friends || []).filter(friend => onlineUserIds.includes(friend.id));
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <h1 className="min-w-0 text-2xl font-bold sm:text-3xl">
-                    Welcome back, {user?.displayName}
-                </h1>
-
-                <Button variant="secondary" className="self-start" onClick={handleLogout}>Log out</Button>
-            </div>
+            <h1 className="min-w-0 text-2xl font-bold sm:text-3xl">
+                Welcome back, {user?.displayName}
+            </h1>
 
             {profile_error && <p role="alert" className="text-sm text-app-danger">{profile_error}</p>}
-            {logout_error && <p role="alert" className="text-sm text-app-danger">{logout_error}</p>}
 
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card className="min-w-0 space-y-6 border border-app-border">
