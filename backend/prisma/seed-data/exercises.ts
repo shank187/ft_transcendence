@@ -27,32 +27,30 @@ const exerciseRow = z.strictObject({
     aliases: z.array(z.string()),
 });
 
-export type ExerciseSeed = z.infer<typeof exerciseRow>;
-
-function nameAt(index: unknown): string
-{
-    const row = typeof index === "number" ? (data as { name?: unknown }[])[index] : undefined;
-    return typeof row?.name === "string" ? row.name : `row ${String(index)}`;
-}
+type ExerciseSeed = z.infer<typeof exerciseRow>;
 
 // Checks the whole file before anything is written.
 function parseExercises(): ExerciseSeed[]
 {
-    const parsed = z.array(exerciseRow).safeParse(data);
-    if (!parsed.success) {
-        const issue = parsed.error.issues[0];
-        const [index, ...field] = issue.path;
-        throw new Error(`exercises.json: "${nameAt(index)}", field "${field.join(".") || "(row)"}": ${issue.message}`);
-    }
+    const exercises = data.map((raw, index) => {
+        const parsed = exerciseRow.safeParse(raw);
+        if (!parsed.success) {
+            const issue = parsed.error.issues[0];
+            const field = issue.path.join(".") || "(row)";
+            const name = typeof raw.name === "string" ? raw.name : `row ${index + 1}`;
+            throw new Error(`exercises.json: "${name}", field "${field}": ${issue.message}`);
+        }
+        return parsed.data;
+    });
     const seen = new Set<string>();
-    for (const exercise of parsed.data) {
+    for (const exercise of exercises) {
         if (seen.has(exercise.name))
             throw new Error(`exercises.json: "${exercise.name}", field "name": used twice`);
         seen.add(exercise.name);
         if (exercise.secondaryMuscles.includes(exercise.primaryMuscle))
             throw new Error(`exercises.json: "${exercise.name}", field "secondaryMuscles": repeats the primary muscle`);
     }
-    return parsed.data;
+    return exercises;
 }
 
 // Safe to run again: every exercise is upserted by name and its links are rebuilt from the file.

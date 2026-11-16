@@ -89,3 +89,40 @@ export const getFriendsId = async (userId: string) => {
     })
     return friendIds
 }
+
+export async function getRelationshipStatus(
+    userId: string,
+    targetId: string
+) {
+    if (userId === targetId)
+        return "SELF"
+
+    const friendship = await prisma.friendship.findFirst({
+        where: {
+            OR: [
+                { requesterId: userId, addresseeId: targetId },
+                { requesterId: targetId, addresseeId: userId }
+            ]
+        }
+    })
+
+    if (!friendship)
+        return "NONE"
+
+    if (friendship.status === "ACCEPTED")
+        return "FRIENDS"
+
+    if (friendship.status === "PENDING") {
+        return friendship.requesterId === userId
+            ? "REQUEST_SENT"
+            : "REQUEST_RECEIVED"
+    }
+
+    if (friendship.status === "BLOCKED") {
+        return friendship.blockedById === userId
+            ? "BLOCKED_BY_ME"
+            : "BLOCKED_BY_THEM"
+    }
+
+    return "NONE"
+}

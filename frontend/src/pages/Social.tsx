@@ -6,35 +6,46 @@ import type { FriendData, ClientMessage } from "../features/chat/chat.types"
 import { useWebSocket } from "./WebSocketContext"
 import api from "../features/auth/axiosInstance"
 import { ConversationsList } from "../features/chat/ConversationsList"
-
+import { useSearchParams } from "react-router-dom"
 function Social() {
     const { wsRef, lastMessage: wsMessage, onlineUserIds } = useWebSocket()
 
     const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(null)
     const [friends, setFriends] = useState<FriendData[]>([])
-useEffect(() => {
-    if (wsMessage?.type !== "friendship_updated")
-        return
+    const [searchParams] = useSearchParams()
+    const targetUserId = searchParams.get("userId")
+    useEffect(() => {
+        if (!targetUserId)
+            return
+        const targetFriend = friends.find(
+            friend => friend.id === targetUserId
+        )
 
-    async function refreshFriends() {
-        try {
-            const response = await api.get<FriendData[]>("/api/friends")
-            setFriends(response.data)
-        } catch (error) {
-            console.error("Failed to refresh friends:", error)
+        if (targetFriend)
+            setSelectedFriend(targetFriend)
+    }, [targetUserId, friends])
+    useEffect(() => {
+        if (wsMessage?.type !== "friendship_updated")
+            return
+
+        async function  refreshFriends() {
+            try {
+                const response = await api.get<FriendData[]>("/api/friends")
+                setFriends(response.data)
+            } catch (error) {
+                console.error("Failed to refresh friends:", error)
+            }
         }
-    }
+        refreshFriends()
+    }, [wsMessage])
 
-    refreshFriends()
-}, [wsMessage])
     function sendMessage(RecipientId: string, content: string): boolean {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
             return false
-        
-            const message: ClientMessage = {
+        const message: ClientMessage = {
             type: "message",
             to: RecipientId,
-            content: content
+            content
         }
 
         try {
@@ -48,8 +59,6 @@ useEffect(() => {
     function handleBack() {
         setSelectedFriend(null)
     }
-
-
 
     useEffect(() => {
         async function getFriends() {

@@ -73,23 +73,54 @@ export async function getConversationsList(req: AuthenticatedRequest, res: Respo
 
 
 
-export const getMessageHistory = async (req: AuthenticatedRequest, res: Response)  => {
+export const getMessageHistory = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
     const userId = req.userId
     const { target } = req.params
-    
+    const { cursor } = req.query
+
     if (!userId)
         return res.status(401).json({ message: "Unauthorized" })
+
     if (typeof target !== "string" || target === userId)
-        return res.status(400).json({ message: "Invalid user ID" });
+        return res.status(400).json({ message: "Invalid user ID" })
+
+    if (cursor !== undefined && typeof cursor !== "string")
+        return res.status(400).json({ message: "Invalid cursor" })
+
     try {
         const conversation = await findConversation(userId, target)
+
         if (!conversation)
-            return res.status(200).json([]);
-        const messageHistory = await getConversationMessages(conversation.id, 50)
-        const history = messageHistory.reverse()
-        return res.status(200).json(history)
+            return res.status(200).json({
+                messages: [],
+                nextCursor: null,
+                hasMore: false
+            })
+
+        const messageHistory = await getConversationMessages(
+            conversation.id,
+            cursor
+        )
+
+        const hasMore = messageHistory.length > 10
+
+        const messages = messageHistory.slice(0, 10)
+
+        const nextCursor = hasMore ? messages[messages.length - 1].id : null
+
+        messages.reverse()
+
+        return res.status(200).json({
+            messages,
+            nextCursor,
+            hasMore
+        })
+
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" })
     }
 }

@@ -13,6 +13,6 @@ export const select_classes = {
         profile: "",
     },
     option:
-        "bg-white text-black",
+        "bg-app-surface text-app-text",
     label: "sr-only",
 };

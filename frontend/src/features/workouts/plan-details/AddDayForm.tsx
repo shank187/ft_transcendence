@@ -1,0 +1,68 @@
+import React, { useState } from "react"
+import type { PlanDay } from "../shared/workouts.types"
+import { createWorkoutDay } from "./plan-details.api"
+import Form_input from "../../../components/ui/Form_input"
+import Button from "../../../components/ui/Button"
+import { CONTROL_CHARACTER, DAY_NAME_MAX, MAX_DAYS_PER_PLAN, VISIBLE_CHARACTER } from "../shared/limits"
+
+export default function AddDayForm(props: {
+    planId: string
+    dayCount: number
+    onAdded: (day: PlanDay) => void
+    onClose: () => void
+})
+{
+    const [dayname, setDayName] = useState("")
+    const [nameError, setErrorForm] = useState<string | null>(null)
+    const [submitting, setSubmitting] = useState(false)
+
+    const submitDay =  async (e: React.FormEvent<HTMLFormElement>) =>{
+        e.preventDefault();
+        if(submitting) return
+        const name = dayname.trim()
+        setErrorForm(null)
+        if (!VISIBLE_CHARACTER.test(name)) { setErrorForm("Day name is required."); return }
+        if ([...name].length > DAY_NAME_MAX) { setErrorForm(`Day name can't be more than ${DAY_NAME_MAX} characters.`); return }
+        if (CONTROL_CHARACTER.test(name)) { setErrorForm("Day name can't contain line breaks or tabs."); return }
+        if (props.dayCount >= MAX_DAYS_PER_PLAN) {
+            setErrorForm(`A plan can have at most ${MAX_DAYS_PER_PLAN} days.`)
+            return
+        }
+        setSubmitting(true)
+        try{
+            const createdDay = await createWorkoutDay(props.planId, name);
+            props.onAdded(createdDay)
+            props.onClose()
+        }catch(err)
+        {
+            setErrorForm(err instanceof Error ? err.message : "Could not add the day. Please try again.")
+        }finally{
+            setSubmitting(false)
+        }
+    }
+
+    // same as Cancel, which is hidden while submitting
+    const cancelOnEscape = (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Escape" && !submitting) props.onClose()
+    }
+
+    return (
+        <form onSubmit={submitDay} onKeyDown={cancelOnEscape} noValidate>
+            <Form_input
+                id="day-name"
+                label="Enter a day name."
+                value = {dayname}
+                onChange={setDayName}
+                type="text"
+            />
+            {nameError && (<p className="text-sm text-app-danger">{nameError}</p>)}
+            <Button
+            type="submit"
+            disabled = {submitting}
+            >
+                Save
+            </Button>
+            {!submitting && (<Button variant="secondary"  onClick={props.onClose}>Cancel</Button>)}
+        </form>
+    )
+}

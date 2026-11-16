@@ -119,8 +119,6 @@ export const EQUIPMENT = [
     { name: "Air Walker", category: "CARDIO" }
 ] as const;
 
-export type EquipmentName = typeof EQUIPMENT[number]["name"];
-
 // Upsert so databases seeded before categories existed get them too.
 export async function seedEquipment(prisma: PrismaClient) {
     for (const { name, category } of EQUIPMENT) {
