@@ -1,17 +1,22 @@
 import type { ExerciseType } from "./exercise-picker/exercise.types"
 import type { SetType } from "./workouts.types"
+import { FIELDS, type FieldKey } from "./set-values"
 
-export type FieldKey = "weight" | "reps" | "duration" | "distance"
 export interface SetField { key: FieldKey; label: string }
 
+function column(key: FieldKey, label = FIELDS[key].label): SetField
+{
+    return { key, label }
+}
+
 export const EXERCISE_FIELDS: Record<ExerciseType, SetField[]> = {
-    WEIGHT_REPS:         [{ key: "weight", label: "KG" },  { key: "reps", label: "REPS" }],
-    BODYWEIGHT_REPS:     [{ key: "reps", label: "REPS" }],
-    WEIGHTED_BODYWEIGHT: [{ key: "weight", label: "+KG" }, { key: "reps", label: "REPS" }],
-    ASSISTED_BODYWEIGHT: [{ key: "weight", label: "−KG" }, { key: "reps", label: "REPS" }],
-    DURATION:            [{ key: "duration", label: "SEC" }],
-    WEIGHT_DURATION:     [{ key: "weight", label: "KG" },  { key: "duration", label: "SEC" }],
-    DISTANCE_DURATION:   [{ key: "distance", label: "M" }, { key: "duration", label: "SEC" }],
+    WEIGHT_REPS:         [column("weight"), column("reps")],
+    BODYWEIGHT_REPS:     [column("reps")],
+    WEIGHTED_BODYWEIGHT: [column("weight", "+KG"), column("reps")],
+    ASSISTED_BODYWEIGHT: [column("weight", "−KG"), column("reps")],
+    DURATION:            [column("duration")],
+    WEIGHT_DURATION:     [column("weight"), column("duration")],
+    DISTANCE_DURATION:   [column("distance"), column("duration")],
 }
 
 export const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {

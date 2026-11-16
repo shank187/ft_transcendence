@@ -1,11 +1,10 @@
-import { useId } from "react"
+import { useId, type Dispatch } from "react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import type { DraftExercise } from "./day-editor.types"
-import type { SetType } from "../shared/workouts.types"
-import { EXERCISE_FIELDS, setLabel, type FieldKey } from "../shared/exercise-fields"
+import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields"
 import SetRow from "./SetRow"
-import { validateRest } from "./day-editor.draft"
+import { validateRest, type DraftAction } from "./day-editor.draft"
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits"
 import ExerciseCardHeader from "../shared/ExerciseCardHeader"
 import SetColumnsHeader from "../shared/SetColumnsHeader"
@@ -13,13 +12,7 @@ import SetColumnsHeader from "../shared/SetColumnsHeader"
 export default function WorkoutExerciseCard(props: {
     exercise: DraftExercise,
     position: number ,
-    onRemove: (key : DraftExercise["key"]) => void
-    onMove: (key : DraftExercise["key"], direction: -1|1) => void
-    onAddSet: (key: string) => void
-    onRemoveSet: (exKey: string, setKey: string) => void
-    onFieldChange: (exKey: string, setkey: string, field: FieldKey, value: string) => void
-    onChangeRest: (exKey: string, value: string)=> void
-    onSetTypeChange: (exKey: string, setKey: string, setType: SetType) => void
+    dispatch: Dispatch<DraftAction>
     openSetMenu: string | null
     setOpenSetMenu: (setKey: string | null) => void
     isFirst: boolean
@@ -31,7 +24,7 @@ export default function WorkoutExerciseCard(props: {
     const restId = `${id}-rest`
     const restErrorId = `${id}-rest-error`
 
-    const { exercise } = props
+    const { exercise, dispatch } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
     const name = exercise.exerciseSummary.name
 
@@ -56,7 +49,7 @@ export default function WorkoutExerciseCard(props: {
                             aria-invalid = {restError ? true : undefined}
                             aria-describedby={restError? restErrorId: undefined}
                             onChange={(e)=> {
-                                props.onChangeRest(exercise.key, e.target.value)
+                                dispatch({ type: "restChanged", exKey: exercise.key, value: e.target.value })
                             }}
                         />
                         <label htmlFor={restId} className="sr-only">
@@ -76,9 +69,7 @@ export default function WorkoutExerciseCard(props: {
                         <li key={set.key}>
                             <SetRow
                             exKey={exercise.key}
-                            onRemoveSet={props.onRemoveSet}
-                            onFieldChange={props.onFieldChange}
-                            onSetTypeChange={props.onSetTypeChange}
+                            dispatch={dispatch}
                             isMenuOpen={props.openSetMenu === set.key}
                             setOpenSetMenu={props.setOpenSetMenu}
                             set={set}
@@ -90,7 +81,7 @@ export default function WorkoutExerciseCard(props: {
                 </ol>
                 <div>
                     {exercise.sets.length < MAX_SETS_PER_EXERCISE
-                        ? <Button variant="ghost" onClick={()=> props.onAddSet(exercise.key)} className="min-h-11">+ Add set</Button>
+                        ? <Button variant="ghost" onClick={()=> dispatch({ type: "setAdded", exKey: exercise.key })} className="min-h-11">+ Add set</Button>
                         : <p className="text-sm text-app-text-secondary">{`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`}</p>
                     }
                 </div>
@@ -98,10 +89,10 @@ export default function WorkoutExerciseCard(props: {
 
             <div className="flex shrink-0 flex-col justify-between gap-3 border-l border-app-border pl-2">
                 <div className="flex flex-col overflow-hidden rounded-md border border-app-border">
-                    <Button variant="ghost" disabled={props.isFirst} aria-label={`Move ${name} up`} title={`Move ${name} up`} onClick={() => props.onMove(exercise.key, -1)} className="size-11 text-lg">↑</Button>
-                    <Button variant="ghost" disabled={props.isLast} aria-label={`Move ${name} down`} title={`Move ${name} down`} onClick={() => props.onMove(exercise.key, 1)} className="size-11 border-t border-app-border text-lg">↓</Button>
+                    <Button variant="ghost" disabled={props.isFirst} aria-label={`Move ${name} up`} title={`Move ${name} up`} onClick={() => dispatch({ type: "exerciseMoved", exKey: exercise.key, direction: -1 })} className="size-11 text-lg">↑</Button>
+                    <Button variant="ghost" disabled={props.isLast} aria-label={`Move ${name} down`} title={`Move ${name} down`} onClick={() => dispatch({ type: "exerciseMoved", exKey: exercise.key, direction: 1 })} className="size-11 border-t border-app-border text-lg">↓</Button>
                 </div>
-                <Button variant="ghost" aria-label={`Remove ${name}`} title={`Remove ${name}`} onClick={() => props.onRemove(exercise.key)} className="size-11 border border-app-border hover:text-app-danger">
+                <Button variant="ghost" aria-label={`Remove ${name}`} title={`Remove ${name}`} onClick={() => dispatch({ type: "exerciseRemoved", exKey: exercise.key })} className="size-11 border border-app-border hover:text-app-danger">
                     <svg aria-hidden="true" className="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
                     </svg>

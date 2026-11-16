@@ -1,98 +1,73 @@
 import { useId, useState } from "react";
 import { Trophy } from "lucide-react";
 import Button from "../../../components/ui/Button";
-import { toText, validateSet } from "../shared/set-values";
-import type { FieldKey, SetField } from "../shared/exercise-fields";
-import { toPerformed } from "./workout-session.helpers";
-import { PLANNED_KEY, type PerformedValues } from "./workout-session.types";
-import type { SetType, WorkoutSessionSet } from "../shared/workouts.types";
+import { FIELDS, mapFields, validateSet, type FieldKey } from "../shared/set-values";
+import type { SetField } from "../shared/exercise-fields";
+import type { WorkoutSessionSet } from "../shared/workouts.types";
 import SetTypeMenu from "../shared/SetTypeMenu";
 import SetValueInput from "../shared/SetValueInput";
+import { useWorkoutSession } from "./WorkoutSessionContext";
 
 export default function SetRowSession(props:{
-    set: WorkoutSessionSet,
+    exerciseId: string
+    set: WorkoutSessionSet
     position: number
-    fields: SetField[],
-    isReadOnly:boolean,
     label: string
-    isMenuOpen: boolean
-    isMenuBusy: boolean
-    isPr: boolean
-    toggleSetMenu: () => void,
-    onComplete: (setId: string, values: PerformedValues) => Promise<void>
-    onUncomplete: () => Promise<void>
-    onChangeSetType: (setType: SetType) => void
-    onRemoveSet: () => void
-    menuError: string | null
+    fields: SetField[]
 })
 {
+    const { set, exerciseId } = props
+    const { isReadOnly, prSetIds, completeSet, uncompleteSet, openSetMenuId, toggleSetMenu, changeSetType, removeSet, setMenu } = useWorkoutSession()
     const id = useId()
 
     // The text stays in the row while typing; the page only gets numbers on tick.
-    const [text, setText] = useState<Record<FieldKey, string>>(() => ({
-        weight: toText(props.set.weight),
-        reps: toText(props.set.reps),
-        duration: toText(props.set.duration),
-        distance: toText(props.set.distance),
-    }))
+    const [text, setText] = useState<Record<FieldKey, string>>(() => mapFields(key => FIELDS[key].format(set[key])))
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [saveError, setSaveError] = useState<string | null>(null)
 
     const errors = validateSet(text, props.fields)
     const hasErrors = Object.keys(errors).length > 0
-    const done = props.set.completedAt !== null
-    const menuId = `${id}-set-menu`
+    const done = set.completedAt !== null
+    const plannedText = (key: FieldKey) => FIELDS[key].format(set[FIELDS[key].planned])
+    const menuError = setMenu.error?.id === set.id ? setMenu.error.message : null
 
-    async function handleUntick()
+    async function save(request: () => Promise<void>)
     {
         setSaving(true)
-        setError(null)
+        setSaveError(null)
         try {
-            await props.onUncomplete()
+            await request()
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to save set.")
+            setSaveError(err instanceof Error ? err.message : "Failed to save set.")
         } finally {
             setSaving(false)
         }
     }
 
-    async function handleTick()
+    function handleTick()
     {
-        if (props.fields.some(field => text[field.key].trim() === "" && props.set[PLANNED_KEY[field.key]] === null)) {
-            setError("Enter the empty values first.")
+        if (props.fields.some(({ key }) => text[key].trim() === "" && set[FIELDS[key].planned] === null)) {
+            setSaveError("Enter the empty values first.")
             return
         }
-        
-        const plannedForwarding ={
-            distance: text.distance.trim() || toText(props.set[PLANNED_KEY["distance"]]), 
-            reps: text.reps.trim() || toText(props.set[PLANNED_KEY["reps"]]) ,
-            weight: text.weight.trim() || toText(props.set[PLANNED_KEY["weight"]]) ,
-            duration: text.duration.trim() || toText(props.set[PLANNED_KEY["duration"]]) ,
-        }
-        setText(plannedForwarding)
-        setSaving(true)
-        setError(null)
-        try {
-            await props.onComplete(props.set.id, toPerformed(plannedForwarding))
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to save set.")
-        } finally {
-            setSaving(false)
-        }
+        // An empty box takes the planned value.
+        const filled = mapFields(key => text[key].trim() || plannedText(key))
+        setText(filled)
+        void save(() => completeSet(exerciseId, set.id, mapFields(key => FIELDS[key].parse(filled[key]))))
     }
 
     return(
         <li className="flex flex-col gap-1">
             <div className="flex items-start gap-2">
                 <SetTypeMenu
-                id={menuId}
+                id={`${id}-set-menu`}
                 label={props.label}
-                currentSetType={props.set.setType}
-                isOpen={props.isMenuOpen}
-                disabled={props.isReadOnly || props.isMenuBusy}
-                toggleSetMenu={props.toggleSetMenu}
-                onChangeSetType={props.onChangeSetType}
-                onRemoveSet={props.onRemoveSet}
+                currentSetType={set.setType}
+                isOpen={openSetMenuId === set.id}
+                disabled={isReadOnly || setMenu.busyId === set.id}
+                toggleSetMenu={() => toggleSetMenu(set.id)}
+                onChangeSetType={(setType) => changeSetType(exerciseId, set.id, setType)}
+                onRemoveSet={() => removeSet(exerciseId, set.id)}
                 />
                 {props.fields.map((field)=>
                     <SetValueInput
@@ -100,8 +75,8 @@ export default function SetRowSession(props:{
                     inputId={`${id}-${field.key}`}
                     field={field}
                     labelText={`Set ${props.position} ${field.key}`}
-                    placeholder={toText(props.set[PLANNED_KEY[field.key]]) || "-"}
-                    disabled={saving || done || props.isReadOnly}
+                    placeholder={plannedText(field.key) || "-"}
+                    disabled={saving || done || isReadOnly}
                     done={done}
                     value={text[field.key]}
                     error={errors[field.key]}
@@ -112,21 +87,21 @@ export default function SetRowSession(props:{
                 variant="ghost"
                 aria-label={done ? `Mark set ${props.position} not done` : `Complete set ${props.position}`}
                 aria-pressed={done}
-                disabled={saving || (!done && hasErrors) || props.isReadOnly}
-                onClick={() => void (done ? handleUntick() : handleTick())}
+                disabled={saving || (!done && hasErrors) || isReadOnly}
+                onClick={() => done ? void save(() => uncompleteSet(exerciseId, set.id)) : handleTick()}
                 className="size-11 shrink-0 border border-app-border aria-pressed:border-app-primary aria-pressed:bg-app-primary aria-pressed:text-app-canvas"
                 >
                     {saving ? "…" : "✓"}
                 </Button>
             </div>
-            {props.isPr &&
+            {prSetIds.has(set.id) &&
                 <p className="flex items-center gap-1 text-xs font-semibold text-app-primary">
                     <Trophy aria-hidden="true" className="size-4" />
                     PR
                 </p>
             }
-            {error && <p role="alert" className="text-xs text-app-danger">{error}</p>}
-            {props.menuError && <p role="alert" className="text-xs text-app-danger">{props.menuError}</p>}
+            {saveError && <p role="alert" className="text-xs text-app-danger">{saveError}</p>}
+            {menuError && <p role="alert" className="text-xs text-app-danger">{menuError}</p>}
         </li>
     )
 }

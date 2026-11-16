@@ -1,11 +1,11 @@
-import {useId} from "react"
+import { useId, type Dispatch } from "react"
 import type { DraftSet } from "./day-editor.types"
 import type { SetType } from "../shared/workouts.types"
 import { validateSet } from "../shared/set-values"
-import {type FieldKey, type SetField } from "../shared/exercise-fields"
+import type { SetField } from "../shared/exercise-fields"
 import SetTypeMenu from "../shared/SetTypeMenu"
 import SetValueInput from "../shared/SetValueInput"
-
+import type { DraftAction } from "./day-editor.draft"
 
 export default function SetRow(props:
     {
@@ -13,26 +13,24 @@ export default function SetRow(props:
         set: DraftSet
         fields: SetField[]
         exKey: string,
+        dispatch: Dispatch<DraftAction>
         isMenuOpen: boolean
         setOpenSetMenu: (setKey: string | null) => void
-        onRemoveSet: (exKey: string, setkey: string) => void
-        onFieldChange: (exKey: string, setkey: string, field: FieldKey, value: string) => void
-        onSetTypeChange: (exKey: string, setKey: string, setType: SetType) => void
     })
 {
-    const {set, isMenuOpen, setOpenSetMenu} = props
+    const {set, isMenuOpen, setOpenSetMenu, exKey, dispatch} = props
     const id = useId()
     const errors = validateSet(set, props.fields)
     const menuId = `${id}-set-menu`
 
     const chooseType = (setType: SetType) => {
-        props.onSetTypeChange(props.exKey, set.key, setType)
+        dispatch({ type: "setTypeChanged", exKey, setKey: set.key, setType })
         setOpenSetMenu(null)
     }
 
     const removeSet = () => {
         setOpenSetMenu(null)
-        props.onRemoveSet(props.exKey, set.key)
+        dispatch({ type: "setRemoved", exKey, setKey: set.key })
     }
 
     return(
@@ -55,7 +53,7 @@ export default function SetRow(props:
                 placeholder="–"
                 value={set[field.key]}
                 error={errors[field.key]}
-                onChange={(value)=> props.onFieldChange(props.exKey, set.key, field.key, value)}
+                onChange={(value)=> dispatch({ type: "setFieldChanged", exKey, setKey: set.key, field: field.key, value })}
                 />
             ))}
         </div>
