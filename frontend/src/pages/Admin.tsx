@@ -58,7 +58,6 @@ export default function Admin() {
 
     async function handleAccept(id: string) {
         setReviewError(null);
-
         try {
             // Remove the card only after the backend has committed the approval.
             await api.patch(`/api/gyms/submissions/${id}/approve`);
