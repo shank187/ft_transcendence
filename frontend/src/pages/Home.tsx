@@ -10,7 +10,7 @@ import { getWorkouts } from '../features/workouts/plans/plans.api';
 import type { WorkoutPlan } from '../features/workouts/plans/plans.types';
 import { getProgressSummary } from '../features/progress/progress.api';
 import type { ProgressSummary } from '../features/progress/progress.types';
-import FriendsList from '../features/chat/FriendsList';
+import { FriendsListHome } from '../features/chat/FriendsList';
 import type { FriendData } from '../features/chat/chat.types';
 import { useWebSocket } from './WebSocketContext';
 
@@ -168,7 +168,7 @@ function Home() {
                         <p role="status" className="text-app-text-secondary">Online status is currently unavailable.</p>
                     ) : (
                         <div className="space-y-3">
-                            <FriendsList friends={onlineFriends}/>
+                            <FriendsListHome friends={onlineFriends}/>
                             <p className="text-sm text-app-text-secondary">Friends online: {onlineFriends.length}</p>
                         </div>
                     )}
