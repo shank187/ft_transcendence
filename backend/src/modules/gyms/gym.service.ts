@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
-
-
+import type { GymRejectReason } from "@prisma/client";
 
 interface CreateGymData {
     userID: string;
@@ -169,7 +168,8 @@ export async function getSubmissions(){
             submitter : {
                 select : {
                     id : true,
-                    email :true,
+                    username :true,
+                    displayName: true,
                 },
             },
             equipment : {
@@ -189,8 +189,9 @@ export async function getSubmissions(){
 export async function rejectSubmission(
     submissionId: string,
     reviewerId: string,
-    reason: string,
-): Promise<"rejected" | "not-found" | "self-review" | "conflict"> {
+    reason: GymRejectReason,
+    detail: string | null,
+): Promise<"REJECTED" | "not-found" | "self-review" | "conflict"> {
     const result = await prisma.gymSubmission.updateMany({
         where: {
             id: submissionId,
@@ -201,12 +202,12 @@ export async function rejectSubmission(
             status: "REJECTED",
             reviewerId,
             reviewedAt: new Date(),
-            rejectReason: "OTHER",
-            rejectDetail: reason,
+            rejectReason: reason,
+            rejectDetail: detail,
         },
     });
 
-    if (result.count === 1) return "rejected";
+    if (result.count === 1) return "REJECTED";
 
     const submission = await prisma.gymSubmission.findUnique({
         where: { id: submissionId },
@@ -222,6 +223,91 @@ export async function approveSubmission(
     submissionId: string,
     reviewerId: string,
 ): Promise<"approved" | "not-found" | "self-review" | "conflict" | "unsupported"> {
+    
+    try {
+        // Create the public gym and finalize the submission together so a partial approval is impossible.
+        return await prisma.$transaction(async (tx) => {
+            const submission = await tx.gymSubmission.findUnique({
+                where: { id: submissionId },
+                include: {
+                    equipment: true,
+                    photos: {
+                        include: {
+                            media: {
+                                select: { url: true },
+                            },
+                        },
+                        orderBy: { position: "asc" },
+                        take: 1,
+                    },
+                },
+            });
+
+            if (!submission) return "not-found";
+            if (submission.submitterId === reviewerId) return "self-review";
+            if (submission.status !== "PENDING") return "conflict";
+            if (submission.kind !== "NEW_GYM" || !submission.name) return "unsupported";
+
+            // The first submitted photo becomes the gym's primary image.
+            const gym = await tx.gym.create({
+                data: {
+                    name: submission.name,
+                    imageUrl: submission.photos[0]?.media.url,
+                    city: submission.city,
+                    address: submission.address,
+                    description: submission.note,
+                    source: "MEMBER",
+                    createdById: submission.submitterId,
+                    verified: true,
+                    visibility: "PUBLIC",
+                    verifiedAt: new Date(),
+                    equipment: {
+                        create: submission.equipment.map(({ equipmentId }) => ({
+                            equipmentId,
+                        })),
+                    },
+                },
+            });
+
+            const result = await tx.gymSubmission.updateMany({
+                where: {
+                    id: submissionId,
+                    status: "PENDING",
+                    submitterId: { not: reviewerId },
+                },
+                data: {
+                    status: "APPROVED",
+                    reviewerId,
+                    reviewedAt: new Date(),
+                    gymId: gym.id,
+                },
+            });
+
+            if (result.count !== 1) {
+                // This protects against another admin reviewing the same submission concurrently.
+                throw new Error("SUBMISSION_CONFLICT");
+            }
+
+            return "approved";
+        }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    } catch (error) {
+        // A concurrent review can cause a serializable transaction to retry/fail.
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
+            || error instanceof Error && error.message === "SUBMISSION_CONFLICT"
+        ) {
+            return "conflict";
+        }
+        throw error;
+    }
+}
+
+//ff847c59-d6d8-43b1-8012-8299e8240859
+export async function approveSubmission(
+    submissionId: string,
+    reviewerId: string,
+): Promise<"approved" | "not-found" | "self-review" | "conflict" | "unsupported"> {
+    
     try {
         // Create the public gym and finalize the submission together so a partial approval is impossible.
         return await prisma.$transaction(async (tx) => {

@@ -359,7 +359,7 @@ model GymSubmission {
   seenOn           DateTime?           @db.Date
   baseGymUpdatedAt DateTime? // gym.updatedAt when the form opened; approve returns 409 if it changed
   reviewerId       String?
-  reviewedAt       DateTime?
+  reviewedAt       DateTime? // use this function
   rejectReason     GymRejectReason?
   rejectDetail     String?
   createdAt        DateTime            @default(now())

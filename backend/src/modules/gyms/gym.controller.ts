@@ -12,6 +12,8 @@ import {
     selectCurrentGym,
 } from "./gym.service";
 
+import { GymRejectReason } from "@prisma/client"
+
 export async function searchGymsController(
     req: AuthenticatedRequest,
     res: Response,
@@ -196,10 +198,8 @@ export async function rejectSubmissionController(
 ) {
     const reviewerId = req.userId;
     const submissionId = req.params.id;
-    const reason = typeof req.body?.reason === "string"
-        ? req.body.reason.trim()
-        : "";
-
+    const reason = Object.values(GymRejectReason).find((value) => value === req.body?.reason,);
+    const detail = typeof req.body?.detail === "string" ? req.body.detail.trim() || null: null;
     if (!reviewerId) {
         return res.status(401).json({ message: "Sign in first." });
     }
@@ -217,10 +217,10 @@ export async function rejectSubmissionController(
             return res.status(403).json({ message: "Admin access required." });
         }
 
-        const result = await rejectSubmission(submissionId, reviewerId, reason);
+        const result = await rejectSubmission(submissionId, reviewerId, reason, detail);
 
         switch (result) {
-            case "rejected":
+            case "REJECTED":
                 return res.status(200).json({ id: submissionId, status: "REJECTED" });
             case "not-found":
                 return res.status(404).json({ message: "Submission not found." });

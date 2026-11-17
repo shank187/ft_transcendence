@@ -1,15 +1,23 @@
 import { useState } from "react";
 import Add_admin from "../components/auth/Add_admin";
+import Dialog from "../components/ui/Dialog";
+import Form_select from "../components/ui/Form_select";
 import api from "../features/auth/axiosInstance";
 import GymSubmissionCard from "../features/Gyms/components/GymSubmissionsCard";
 import type { GymSubmission } from "../features/Gyms/components/GymSubmissionsCard";
 
 export default function Admin() {
-    // null means we haven't loaded the list yet. [] means the list is empty.
+    // null means the list hasn't been loaded yet. [] means the list is empty.
     const [submissions, setSubmissions] = useState<GymSubmission[] | null>(null);
-
-    // Store a message here if a review request fails.
     const [reviewError, setReviewError] = useState<string | null>(null);
+
+    // null means the Decline dialog is closed.
+    const [decline, setDecline] = useState<{
+        id: string;
+        reason: string;
+        detail: string;
+    } | null>(null);
+    const [savingDecline, setSavingDecline] = useState(false);
 
     async function load_submitted_gyms() {
         try {
@@ -20,26 +28,31 @@ export default function Admin() {
         }
     }
 
-    async function handleDecline(id: string) {
-        // Stop if the admin cancels or enters only spaces.
-        const reason = window.prompt("Why are you declining this gym?")?.trim();
-        if (!reason) return;
+    function handleDecline(id: string) {
+        setReviewError(null);
+        setDecline({ id, reason: "", detail: "" });
+    }
 
+    async function confirmDecline() {
+        if (!decline?.reason || savingDecline) return;
+
+        const { id, reason, detail } = decline;
+        setSavingDecline(true);
         setReviewError(null);
 
         try {
-            // The backend saves REJECTED in the database.
-            await api.patch(`/api/gyms/submissions/${id}/reject`, { reason });
+            await api.patch(`/api/gyms/submissions/${id}/reject`, { reason, detail });
 
-            // After the save succeeds, keep every card except the one we declined.
-            // React gives us the latest list through the `current` argument.
+            // Remove the card after the backend saves the rejection.
             setSubmissions((current) =>
                 current?.filter((submission) => submission.id !== id) ?? null
             );
+            setDecline(null);
         } catch (error) {
-            // The card stays in the list so the admin can see the request failed.
             console.error("Could not decline submission", error);
             setReviewError("Could not decline the submission.");
+        } finally {
+            setSavingDecline(false);
         }
     }
 
@@ -81,8 +94,7 @@ export default function Admin() {
                     </button>
                 </div>
 
-                {/* Show a message here only when a review fails. */}
-                {reviewError && (
+                {reviewError && !decline && (
                     <p role="alert" className="text-sm text-app-danger">
                         {reviewError}
                     </p>
@@ -98,7 +110,6 @@ export default function Admin() {
                     <ul className="space-y-3">
                         {submissions.map((submission) => (
                             <li key={submission.id}>
-                                {/* Give each card the function to call on Decline. */}
                                 <GymSubmissionCard
                                     submission={submission}
                                     onDecline={handleDecline}
@@ -109,6 +120,54 @@ export default function Admin() {
                     </ul>
                 )}
             </section>
+
+            {decline && (
+                <Dialog
+                    title="Decline gym submission"
+                    isWorking={savingDecline}
+                    onClose={() => {
+                        setDecline(null);
+                        setReviewError(null);
+                    }}
+                    showClose
+                >
+                    <Form_select
+                        id="decline-reason"
+                        label="Select a reason"
+                        value={decline.reason}
+                        options={["ALREADY_LISTED", "NOT_A_GYM", "CANT_CONFIRM", "OTHER"]}
+                        onChange={(reason) => setDecline({ ...decline, reason })}
+                        disabled={savingDecline}
+                    />
+
+                    <label className="flex flex-col gap-1">
+                        Additional detail (optional)
+                        <textarea
+                            className="rounded-lg border border-app-border p-2"
+                            value={decline.detail}
+                            onChange={(event) =>
+                                setDecline({ ...decline, detail: event.target.value })
+                            }
+                            disabled={savingDecline}
+                        />
+                    </label>
+
+                    {reviewError && (
+                        <p role="alert" className="text-sm text-app-danger">
+                            {reviewError}
+                        </p>
+                    )}
+
+                    <button
+                        type="button"
+                        className="rounded-lg border border-app-border px-4 py-2 disabled:opacity-50"
+                        onClick={confirmDecline}
+                        disabled={!decline.reason || savingDecline}
+                    >
+                        {savingDecline ? "Saving…" : "Confirm decline"}
+                    </button>
+                </Dialog>
+            )}
         </main>
     );
 }
