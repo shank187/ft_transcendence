@@ -207,13 +207,45 @@ export async function selectCurrentGym(gymId : string, userId : string){
 }
 
 
-export async function getName(searchedname : string){
-    const nameSearched :Prisma.UserWhereInput = {};
-    if (searchedname)
-        nameSearched.username = {contains: searchedname, mode : "insensitive"}
 
-    return await prisma.user.findMany({
-        where : nameSearched,
-        orderBy : {username :"asc"}
-    });
+export async function getName(
+    searchedName: string,
+    userId: string,
+    cursor?: string
+) {
+
+    return prisma.user.findMany({
+        where: {
+    id: {
+        not: userId
+    },
+    OR: [
+        {
+            username: {
+                contains: searchedName,
+                mode: "insensitive"
+            }
+        },
+        {
+            displayName: {
+                contains: searchedName,
+                mode: "insensitive"
+            }
+        }
+    ]
+        },
+        select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true
+        },
+        orderBy: [
+            { username: "asc" },
+            { id: "asc" }
+        ],
+        take: 2,
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : undefined
+    })
 }
