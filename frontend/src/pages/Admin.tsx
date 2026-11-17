@@ -11,6 +11,9 @@ export default function Admin() {
     const [submissions, setSubmissions] = useState<GymSubmission[] | null>(null);
     const [reviewError, setReviewError] = useState<string | null>(null);
 
+    const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+    const [loadError, setLoadError] = useState(false);
+
     // null means the Decline dialog is closed.
     const [decline, setDecline] = useState<{
         id: string;
@@ -20,11 +23,17 @@ export default function Admin() {
     const [savingDecline, setSavingDecline] = useState(false);
 
     async function load_submitted_gyms() {
+        setLoadingSubmissions(true);
+
         try {
             const { data } = await api.get<GymSubmission[]>("/api/gyms/submissions");
             setSubmissions(data);
+            setLoadError(false);
         } catch (error) {
             console.error("Could not load gym submissions", error);
+            setLoadError(true);
+        } finally {
+            setLoadingSubmissions(false);
         }
     }
 
@@ -87,10 +96,24 @@ export default function Admin() {
                     <button
                         type="button"
                         onClick={load_submitted_gyms}
-                        className="rounded-lg border border-app-border px-4 py-2 text-sm font-medium hover:bg-app-surface"
+                        disabled={loadingSubmissions}
+                        className="rounded-lg border border-app-border px-4 py-2 text-sm font-medium hover:bg-app-surface disabled:opacity-50"
                     >
-                        {submissions === null ? "Load submissions" : "Refresh"}
+                        {loadingSubmissions
+                            ? "Loading…"
+                            : loadError
+                                ? "Retry"
+                                : submissions === null
+                                    ? "Load submissions"
+                                    : "Refresh"}
                     </button>
+                    {loadError && (
+                        <p role="alert" className="text-sm text-app-danger">
+                            {submissions === null
+                                ? "Could not load submissions."
+                                : "Could not refresh submissions. The queue may be out of date."}
+                        </p>
+                    )}
                 </div>
 
                 {reviewError && !decline && (

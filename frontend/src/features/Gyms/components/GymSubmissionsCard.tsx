@@ -8,6 +8,8 @@ export type GymSubmission = {
     address: string | null;
     status: "PENDING" | "APPROVED" | "REJECTED";
     photos: { media: { url: string } }[];
+    note: string | null;
+    equipment: { equipment: { name: string } }[];
 };
 
 export type GymSubmissionCardProps = {
@@ -26,8 +28,10 @@ export default function GymSubmissionCard({ submission , onDecline, onAccept }: 
     const photoUrl = submission.photos[0]?.media.url;
     const status = statusStyles[submission.status];
     const location = [submission.address, submission.city].filter(Boolean).join(", ");
+    const equipmentNames = submission.equipment.map(({ equipment }) => equipment.name).join(", ");
 
     return (
+        
         <article className="grid gap-4 rounded-xl border border-app-border bg-app-surface p-4 md:grid-cols-[12rem_minmax(0,1fr)]">
             {photoUrl ? (
                 <img
@@ -64,7 +68,18 @@ export default function GymSubmissionCard({ submission , onDecline, onAccept }: 
             </div>
             {submission.status === "PENDING" && (
                 <div className="flex flex-wrap gap-2">
-                    {/* Review actions are shown only while the submission is still pending. */}
+                    <dl className="space-y-2 text-sm">
+                        <div>
+                            <dt className="font-semibold">Submitted equipment</dt>
+                            <dd>{equipmentNames || "No equipment submitted"}</dd>
+                        </div>
+                        <div>
+                            <dt className="font-semibold">Submission note</dt>
+                            <dd className="whitespace-pre-wrap">
+                                {submission.note?.trim() ? submission.note : "No note submitted"}
+                            </dd>
+                        </div>
+                    </dl>
                     <button
                         type="button"
                         className="rounded-lg border border-emerald-500 px-4 py-2 text-sm text-emerald-400"
