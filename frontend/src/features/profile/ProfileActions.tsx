@@ -14,7 +14,6 @@ export default function ProfileActions({
     onUpdate
 }: ProfileActionsProps) {
     const [loading, setLoading] = useState(false)
-
     async function handleAction(
         method: "post" | "delete",
         endpoint: string
@@ -37,7 +36,26 @@ export default function ProfileActions({
             setLoading(false)
         }
     }
+function handleBlockUser(userId: string) {
+    const isConfirmed = window.confirm(
+        "Are you sure you want to block this user?"
+    )
 
+    if (!isConfirmed)
+        return
+
+    void handleAction("post", `/api/friends/${userId}/block`)
+}
+function handleRemoveFriend(userId: string) {
+    const isConfirmed = window.confirm(
+        "Are you sure you want to remove this friend?"
+    )
+
+    if (!isConfirmed)
+        return
+
+    void handleAction("delete", `/api/friends/${userId}/delete`)
+}
     const userId = profile.id
 
     const buttonClass =
@@ -111,9 +129,7 @@ export default function ProfileActions({
                 <>
                     <button
                         disabled={loading}
-                        onClick={() =>
-                            handleAction("delete", `/api/friends/${userId}/delete`)
-                        }
+                        onClick={() => (handleRemoveFriend(userId))}
                         className={buttonClass}
                     >
                         Remove Friend
@@ -144,9 +160,7 @@ export default function ProfileActions({
                 profile.relationship !== "BLOCKED_BY_THEM" && (
                     <button
                         disabled={loading}
-                        onClick={() =>
-                            handleAction("post", `/api/friends/${userId}/block`)
-                        }
+                        onClick={() => {handleBlockUser(userId)}}
                         className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
                     >
                         Block
