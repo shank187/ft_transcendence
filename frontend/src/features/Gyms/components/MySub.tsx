@@ -90,6 +90,8 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                 <div>
                     <h2 className="text-xs font-extrabold text-[#8E8E8E] mb-2">SELECTED GYM</h2>
 
+                    {/* //////////////////////////////////////// */}
+
                     <div className=" bg-[#181818] rounded-2xl border border-[#CCFF00]/30">
                         {currentGym && (
                             <div className="flex justify-between  items-center px-4 py-6">
@@ -127,11 +129,13 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                         )}
                     </div>
 
+                    {/* //////////////////////////////////////// */}
+
                     <div className="flex gap-3 mt-12 items-center font-bold p-4">
                         <h2 className="text-2xl font-extrabold text-white mb-2">Private gyms</h2>
                         <span className="text-xs text-[#9E9E9E]">{privateList.length} only you see these</span>
-
                     </div>
+
                     <div className="rounded-2xl space-y-5">
                     {privateList.length === 0 ? (
                         <div className="px-4 py-6 text-xs text-center ext-[#9E9E9E]">
@@ -178,6 +182,11 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                     <div className="flex gap-3 mt-12 items-center font-bold p-4">
                         <h2 className="text-2xl font-extrabold text-white mb-2">Contributions</h2>
                         <span className="text-xs text-[#9E9E9E]">New gyms, equipment and changes you sent us to verify</span>
+
+                    </div>
+
+                    <div className="bg-[#181818] rounded-2xl border border-[#CCFF00]/30">
+                    
 
                     </div>
                         

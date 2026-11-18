@@ -13,12 +13,15 @@ import { uploadGymImageController } from "./gym.controller";
 import {CurrentGymCOntroller} from "./gym.controller";
 import {getPrivateController} from "./gym.controller";
 import {RMPrivateGymController} from "./gym.controller"
+import {getUserSubmissionsController} from "./gym.controller"
 
 
 const router = Router();
 
 
 router.get('/submissions', authenticate, getSubmissionsController);
+router.get('/me/submissions', authenticate, getUserSubmissionsController);
+
 router.get('/search', authenticate, searchGymsController);
 router.get('/equip', authenticate, getALLEquipController);
 router.post('/', authenticate, createGymController);

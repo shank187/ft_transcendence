@@ -187,6 +187,22 @@ export async function getSubmissions(){
     });
 }
 
+export async function getUserSubmissions(userId : string){
+    const submissions = await prisma.gymSubmission.findMany({
+        where : {submitterId : userId},
+        orderBy : {createdAt : "desc"},
+        include : {
+            submitter : {
+                select : {
+                    email : true,
+                    username : true,
+                }
+            }
+        }
+    });
+    return submissions;
+}
+
 
 export async function selectCurrentGym(gymId : string, userId : string){
     const gym = await prisma.gym.findUnique({

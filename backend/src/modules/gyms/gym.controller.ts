@@ -11,6 +11,7 @@ import {getCurrentGym} from "./gym.service";
 import {resetCurrent} from "./gym.service"
 import {getPrivate} from "./gym.service"
 import {RMPrivateGym} from "./gym.service";
+import {getUserSubmissions} from "./gym.service";
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -123,9 +124,7 @@ export async function getSubmissionsController(req : AuthenticatedRequest, res:R
     if (!req.userId)
         return res.status(401).json({message :  "unauthorized"});
 
-
     try{
-
         const isAdmin = await prisma.userRole.findFirst({
             where : {
                 userId : req.userId,
@@ -244,6 +243,22 @@ export async function RMPrivateGymController(req : AuthenticatedRequest, res : R
             return res.status(403).json({error : "access denied"});
 
 
+        console.log(e);
+        res.status(500).json({error : "server error"});
+    }
+}
+
+
+export async function getUserSubmissionsController(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+
+    const userId = req.userId;
+
+    try{
+        const gymList = await getUserSubmissions(userId);
+        res.status(200).json(gymList);
+    }catch(e){
         console.log(e);
         res.status(500).json({error : "server error"});
     }
