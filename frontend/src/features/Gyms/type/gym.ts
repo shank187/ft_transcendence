@@ -24,3 +24,30 @@ export interface Gym{
     
 }
 
+export type GymSubmissionStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type GymRejectReason = "ALREADY_LISTED" | "NOT_A_GYM" | "CANT_CONFIRM" | "OTHER";
+
+export interface GymSubmission {
+    id: string;
+    status: GymSubmissionStatus;
+    submitterId: string;
+    gymId?: string | null;
+    privateCopyId?: string | null;
+    name?: string | null;
+    city?: string | null;
+    address?: string | null;
+    closed: boolean;
+    note?: string | null;
+    seenOn?: string | null;
+    reviewerId?: string | null;
+    reviewedAt?: string | null;
+    rejectReason?: GymRejectReason | null;
+    rejectDetail?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    submitter?: {
+        email: string;
+        username: string;
+    };
+}
+

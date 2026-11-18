@@ -11,7 +11,7 @@ import AddGym from "./AddGym";
 
 import GymNavbar from "./gymNavBar";
 import MySub from "./MySub";
-import { Check, X } from "lucide-react";
+import { X } from "lucide-react";
 
 
 
