@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import api from "../auth/axiosInstance"
 import type { PublicProfile } from "./profile.types"
-
+import Dialog from "../../components/ui/Dialog"
 type ProfileActionsProps = {
     profile: PublicProfile
     onUpdate: () => Promise<void>
@@ -14,6 +14,8 @@ export default function ProfileActions({
     onUpdate
 }: ProfileActionsProps) {
     const [loading, setLoading] = useState(false)
+const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(null)
+
     async function handleAction(
         method: "post" | "delete",
         endpoint: string
@@ -36,26 +38,6 @@ export default function ProfileActions({
             setLoading(false)
         }
     }
-function handleBlockUser(userId: string) {
-    const isConfirmed = window.confirm(
-        "Are you sure you want to block this user?"
-    )
-
-    if (!isConfirmed)
-        return
-
-    void handleAction("post", `/api/friends/${userId}/block`)
-}
-function handleRemoveFriend(userId: string) {
-    const isConfirmed = window.confirm(
-        "Are you sure you want to remove this friend?"
-    )
-
-    if (!isConfirmed)
-        return
-
-    void handleAction("delete", `/api/friends/${userId}/delete`)
-}
     const userId = profile.id
 
     const buttonClass =
@@ -125,24 +107,7 @@ function handleRemoveFriend(userId: string) {
                 </>
             )}
 
-            {profile.relationship === "FRIENDS" && (
-                <>
-                    <button
-                        disabled={loading}
-                        onClick={() => (handleRemoveFriend(userId))}
-                        className={buttonClass}
-                    >
-                        Remove Friend
-                    </button>
 
-                    <Link
-                        to={`/social?userId=${profile.id}`}
-                        className={greenButtonClass}
-                    >
-                        Message
-                    </Link>
-                </>
-            )}
 
             {profile.relationship === "BLOCKED_BY_ME" && (
                 <button
@@ -150,22 +115,95 @@ function handleRemoveFriend(userId: string) {
                     onClick={() =>
                         handleAction("post", `/api/friends/${userId}/unblock`)
                     }
-                    className={buttonClass}
+                        className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
                 >
                     Unblock
                 </button>
             )}
+            {profile.relationship === "FRIENDS" && (
+                <>
+                                    <Link
+                        to={`/social?userId=${profile.id}`}
+                        className={greenButtonClass}
+                    >
+                        Message
+                    </Link>
+                    <button
+                        disabled={loading}
+                        onClick={() => (setConfirmAction("remove"))}
+                        className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
+                    >
+                        Remove Friend
+                    </button>
 
+
+                </>
+            )}
             {profile.relationship !== "BLOCKED_BY_ME" &&
                 profile.relationship !== "BLOCKED_BY_THEM" && (
                     <button
                         disabled={loading}
-                        onClick={() => {handleBlockUser(userId)}}
+                        onClick={() => {setConfirmAction("block")}}
                         className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
                     >
-                        Block
+                        Block user
                     </button>
                 )}
+
+            {confirmAction && (
+    <Dialog
+        title={confirmAction === "block" ? "Block User" : "Remove Friend"}
+        isWorking={loading}
+        onClose={() => setConfirmAction(null)}
+        showClose
+    >
+        <p className="text-sm text-app-text-secondary">
+            {confirmAction === "block"
+                ? "Are you sure you want to block this user?"
+                : "Are you sure you want to remove this friend?"
+            }
+        </p>
+
+        <div className="flex justify-end gap-3">
+            <button
+                type="button"
+                disabled={loading}
+                onClick={() => setConfirmAction(null)}
+                className="rounded-lg border border-app-border px-4 py-2"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                disabled={loading}
+                onClick={async () => {
+                    if (confirmAction === "block") {
+                        await handleAction(
+                            "post",
+                            `/api/friends/${userId}/block`
+                        )
+                    } else {
+                        await handleAction(
+                            "delete",
+                            `/api/friends/${userId}/delete`
+                        )
+                    }
+
+                    setConfirmAction(null)
+                }}
+                className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
+            >
+                {loading
+                    ? "Processing..."
+                    : confirmAction === "block"
+                        ? "Block user"
+                        : "Remove friend"
+                }
+            </button>
+        </div>
+    </Dialog>
+)}
         </div>
     )
 }
