@@ -139,11 +139,6 @@ export default function Profile() {
 
                     {/* Action buttons */}
                     <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start sm:gap-2">
-                        <ProfileActions
-                            profile={profile}
-                            onUpdate={refreshProfile}
-                        />
-
                         <button
                             type="button"
                             onClick={() => setShowFriends(true)}
@@ -151,6 +146,13 @@ export default function Profile() {
                         >
                             Show Friends
                         </button>
+                        
+                        <ProfileActions
+                            profile={profile}
+                            onUpdate={refreshProfile}
+                        />
+
+
 
                         {profile.id === user?.id && (
                             <button
