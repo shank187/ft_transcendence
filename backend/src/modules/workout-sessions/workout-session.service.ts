@@ -647,7 +647,7 @@ export async function moveSessionExercise(userId: string, sessionId: string, exe
         })
     }catch(error){
         // Another move or add changed this workout's order at the same time.
-        if(isUniqueViolation(error))
+        if(isUniqueViolation(error) || isWriteConflict(error))
             return { ok: false, reason: "CONFLICT" }
         throw error
     }
