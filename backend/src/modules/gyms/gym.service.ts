@@ -229,8 +229,26 @@ export async function resetCurrent(userId : string){
 export async function getPrivate(userId : string){
     const list =  prisma.gym.findMany({
         where : {visibility : "PRIVATE", createdById : userId},
+        include : {
+            equipment  : true
+        },
         orderBy : {createdAt : "desc"}
     });
 
     return list;
+}
+
+export async function RMPrivateGym(gymId : string, userId : string){
+    const gym = await prisma.gym.findUnique({
+        where : {id : gymId}
+    });
+    if (!gym)
+        throw new Error("gym not found");
+
+    if (gym.visibility !== "PRIVATE" || gym.createdById !== userId)
+        throw new Error("access denied");
+
+    await prisma.gym.delete({
+        where : {id : gymId}
+    });
 }

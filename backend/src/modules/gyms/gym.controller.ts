@@ -10,8 +10,7 @@ import {selectCurrentGym} from "./gym.service";
 import {getCurrentGym} from "./gym.service";
 import {resetCurrent} from "./gym.service"
 import {getPrivate} from "./gym.service"
-
-
+import {RMPrivateGym} from "./gym.service";
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -222,5 +221,30 @@ export async function getPrivateController(req : AuthenticatedRequest, res:Respo
     }catch(e){
         console.log(e);
         res.status(500).json({e: "server error"});   
+    }
+}
+
+
+export async function RMPrivateGymController(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+    
+    const userId = req.userId;
+    const gymId = req.params.id;
+
+    if (typeof gymId !== "string")
+        return res.status(400).jsonp({error: "Invalid gym ID"});
+    try{
+        await RMPrivateGym(gymId, userId);
+        res.status(200).json({message : "Gym deleted successfully"});
+    }catch(e : any){
+        if (e.message === "gym not found")
+            return res.status(404).json({error : "gym not found"});
+        if (e.message === "access denied")
+            return res.status(403).json({error : "access denied"});
+
+
+        console.log(e);
+        res.status(500).json({error : "server error"});
     }
 }

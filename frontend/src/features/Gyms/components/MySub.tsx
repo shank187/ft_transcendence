@@ -4,9 +4,7 @@ import GymNavbar from "./gymNavBar";
 import type { Gym } from "../type/gym";
 import { Link } from "react-router-dom";
 
-
-
-
+import EditGym from "./editGym"
 
 interface submissionProps{
     onTabChange : (tab :"search" | "add" | "submission") =>void; 
@@ -22,7 +20,10 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
     const [privateList, setPrivateList] = useState<Gym[]>([]);
     const [submittedList, setSubmittedList] = useState<Gym | null>(null);
 
+    const [selectedGym, setSelectedGym] = useState<Gym | null>(null);
 
+
+    
     useEffect(function(){
         async function getCurrentGym(){
             try{
@@ -39,15 +40,15 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
         getCurrentGym();
     },[]);
 
-    useEffect(function(){
-        async function getPrivate(){
-            try{
-                const res = await api.get("/api/gyms/private");
-                setPrivateList(res.data);
-            }catch(e){
-                console.log(e);
-            }
+    async function getPrivate(){
+        try{
+            const res = await api.get("/api/gyms/private");
+            setPrivateList(res.data);
+        }catch(e){
+            console.log(e);
         }
+    }
+    useEffect(function(){
         getPrivate();
     },[]);
 
@@ -62,8 +63,22 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
         }
     }
 
-
-
+    async function handleDelete(gym: Gym){
+        if (!confirm("Are you sure you want to delete this gym?"))
+            return;
+        try{
+            await api.delete(`/api/gyms/${gym.id}`);
+            onSuccess(`${gym.name} gym deleed successfully`);
+            setPrivateList(privateList.filter(function(item){
+                return item.id !== gym.id;
+            }));
+            if (currentGym?.id === gym.id){
+                setCurrentGym(null);
+            }
+        }catch(e){
+            console.log("failed to delete gym",e);
+        }
+    }
     return (
         <>
             <GymNavbar currentTab="submission" onTabChange={onTabChange}/>
@@ -145,10 +160,12 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                                 View
                                             </Link>
                                             <button type="button"
+                                                    onClick={function(){setSelectedGym(gym)}}
                                                     className="rounded-xl bg-[#141414] hover:bg-[#222222] border border-[#333333] px-4 py-2.5 text-xs font-semibold text-white transition-colors">
                                                 Edit
                                             </button>
                                            <button type="button"
+                                                    onClick={function(){handleDelete(gym)}}
                                                     className="rounded-xl bg-red-500/5 hover:bg-red-500/25 border border-app-danger px-4 py-2.5 text-xs font-semibold text-red-400 transition-colors">
                                                 delete
                                             </button>
@@ -166,6 +183,21 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                         
                 </div>
             </div>
+            {selectedGym && (
+                <div>
+                    <EditGym
+                        gym={selectedGym}
+                        onClose={function(){setSelectedGym(null)}}
+                        onSuccess={onSuccess}
+                        refrech={function(){
+                            setSelectedGym(null);
+                            getPrivate();
+
+                        }}/>
+                </div>
+            )
+            }
+
         </>
     )
 }

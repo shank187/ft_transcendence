@@ -12,6 +12,7 @@ import { upload_gym_image } from "../../middleware/upload_gym";
 import { uploadGymImageController } from "./gym.controller";
 import {CurrentGymCOntroller} from "./gym.controller";
 import {getPrivateController} from "./gym.controller";
+import {RMPrivateGymController} from "./gym.controller"
 
 
 const router = Router();
@@ -27,6 +28,7 @@ router.patch('/me/current', authenticate, CurrentGymCOntroller);
 router.get('/me/current', authenticate, getCurrentGymCOntroller);
 router.get('/private', authenticate, getPrivateController);
 
+router.delete('/:id', authenticate, RMPrivateGymController);
 router.get('/:id', authenticate, getGymByIdController);
 
 export default router;
