@@ -38,7 +38,6 @@ const dayDetailSelect = {
         select: {
             id: true,
             order: true,
-            restSeconds: true,
             exercise: { select: exerciseSummarySelect },
             sets: {
                 orderBy: { setNumber: "asc" },
@@ -122,7 +121,6 @@ function toDayExerciseDto(exercise: DayExerciseRowDb): DayExercise
     return {
         id: exercise.id,
         order: exercise.order,
-        restSeconds: exercise.restSeconds,
         exerciseSummary: toExerciseSummaryDto(exercise.exercise),
         sets: exercise.sets.map(toPlannedSetDto),
     }
@@ -339,7 +337,6 @@ export async function replaceWorkoutDay(userId: string, planId: string, dayId: s
                     workoutDay:{connect:{id: dayId}},
                     exercise: {connect:{ id: item.exerciseId}},
                     order: index + 1,
-                    restSeconds: item.restSeconds,
                     sets:{
                         createMany:{
                             data: item.sets.map((set, setIndex)=>({...set,setNumber: setIndex + 1}))

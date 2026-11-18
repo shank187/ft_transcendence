@@ -56,9 +56,11 @@ Shared          Media, Notification*, ApiKey*
 Planning (reusable intent)                 Execution (history)
 WorkoutPlan                                WorkoutSession  (userId, status, startedAt, completedAt)
   └─ WorkoutDay      (dayOrder)              └─ WorkoutSessionExercise  (order, restSeconds, supersetGroup)
-       └─ WorkoutExercise (order)                 └─ WorkoutSet  (planned* snapshot + performed values)
+       └─ WorkoutExercise (order, restSeconds)    └─ WorkoutSet  (planned* snapshot + performed values)
             └─ WorkoutExerciseSet (target*)
 ```
+
+`restSeconds` on `WorkoutExercise` and `WorkoutSessionExercise` (unused since 18 Nov: rest removed from S3).
 
 Enforced by the Prisma schema / PostgreSQL:
 

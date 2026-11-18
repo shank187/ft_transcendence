@@ -4,7 +4,7 @@
 
 - **Plans**: create, rename and delete workout plans (up to 3 per user), each with a name and an optional description.
 - **Days**: add, rename and delete days in a plan (up to 7 per plan).
-- **Day editor**: pick the exercises of a day, reorder them, set the rest time, and add sets with a set type and targets (weight, reps, time or distance, depending on the exercise type). Up to 20 exercises per day and 20 sets per exercise. Save sends the whole day at once.
+- **Day editor**: pick the exercises of a day, reorder them, and add sets with a set type and targets (weight, reps, time or distance, depending on the exercise type). Up to 20 exercises per day and 20 sets per exercise. Save sends the whole day at once.
 - **Exercise picker**: search exercises by name, filter by primary muscle, by equipment and by what the current gym has, sort by name (A–Z or Z–A), and load the list page by page. Each exercise shows whether the current gym can do it.
 - **Active workout**: start an empty workout or start from a plan day (the day is copied, so later plan edits do not change it). One workout in progress at a time. Add exercises and sets, enter values, tick sets, reorder exercises, delete sets. A ticked set that beats the earlier best of its exercise is marked as a PR while you train. Discard deletes the workout.
 - **Finish**: needs at least one ticked set. Shows a summary (duration, sets, volume, exercises), marks personal records (best estimated one-rep max per exercise), and gives XP through the S5 award function. Finishing twice does not give XP twice.
@@ -24,6 +24,5 @@ Aymane (shank187): S3 owner and Tech Lead. Schema lane, the contracts between S2
 - Week boundaries are computed by the caller: `getWorkoutStats` takes a `from` and a `to` and does not know about weeks or time zones.
 - Units are shown as stored: weight in kg. There is no unit setting.
 - No list of past workouts: a finished workout opens only from its link.
-- No rest timer during a workout: the rest time is saved in the plan and copied into the workout, but nothing counts it down.
 - An exercise can't be removed from a workout in progress; its sets can.
 - Two workout starts sent at the same moment: one is saved, and the other gets `409` without the running workout's id (a later start gets the id).

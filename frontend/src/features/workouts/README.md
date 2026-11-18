@@ -37,7 +37,7 @@ The day editor works the same way without the API step: a click dispatches a `Dr
 ### day-editor/ — `/workouts/plans/:planId/days/:dayId`
 - `DayEditorView.tsx`: loads the day, holds the draft (`useReducer(draftReducer)`), Save, Discard, the leave dialog.
 - `day-editor.draft.ts`: the draft and every change to it (`DraftAction`, `draftReducer`), validation, and the save body.
-- `WorkoutExerciseCard.tsx`: one exercise of the day: rest, sets, move, remove.
+- `WorkoutExerciseCard.tsx`: one exercise of the day: sets, move, remove.
 - `SetRow.tsx`: one planned set: type menu and target boxes.
 - `day-editor.api.ts`: load and save the day.
 - `day-editor.types.ts`: `DraftExercise` and `DraftSet` (text while typing), plus the shared day types.

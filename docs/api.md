@@ -329,14 +329,13 @@ Every limit is checked on both sides with the same message: the frontend for fas
 | Set time | whole seconds 1–86400 | `durationValue` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
 | Set distance | more than 0, at most 1000000, 1 decimal | `distanceValue` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
 | Set type | `NORMAL`, `HEAVY`, `WARMUP`, `DROP`, `FAILURE` | `setTypeValue` | `SET_TYPES` | `400` "Invalid set type." |
-| Rest (day editor) | whole seconds 0–3600, `null` = no timer | `restSecondsValue` | `validateRest` | `400` "Rest must be between 0 and 3600 seconds." |
 | Exercise search | at most 100 characters, trimmed, no control characters | `exercise.schema.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
 | Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
 | Names (plan, day) | at least one visible character (letter, number, punctuation or symbol; emoji are fine) | `VISIBLE_CHARACTER` refine | `VISIBLE_CHARACTER` | `400` "Plan name is required." / "Day name is required." |
 | Ids in the URL (`:planId`, `:dayId`, `:sessionId`, `:exerciseId`, `:setId`) | UUID | `idParam` (`z.uuid()`) in the controllers | — | `404` with the route's normal message, e.g. "Plan not found." |
 | `exerciseIds` items, `muscle`, `equipment` | UUID | `addExercisesBody`, `exercise.schema.ts` | — | `400` "Exercise not found." / "Invalid Muscle" / "Invalid Equipment" |
 
-Backend files: a rule more than one module uses (ids, text rules, exercises per day and workout, sets per exercise, set types, set values, rest) is in `backend/src/lib/validation.ts`; a rule only one module uses stays in its schema: plans and days in `backend/src/modules/workouts/workout.schema.ts`, workout bodies in `backend/src/modules/workout-sessions/workout-session.schema.ts`, search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
+Backend files: a rule more than one module uses (ids, text rules, exercises per day and workout, sets per exercise, set types, set values) is in `backend/src/lib/validation.ts`; a rule only one module uses stays in its schema: plans and days in `backend/src/modules/workouts/workout.schema.ts`, workout bodies in `backend/src/modules/workout-sessions/workout-session.schema.ts`, search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
 
 Lengths count characters, not UTF-16 units: an emoji counts as one on both sides (`[...text].length` on the frontend, zod on the backend). Text is stored as typed, not HTML-escaped: React escapes it when it renders and Prisma sends every value as a query parameter, so `<script>` in a name is plain text. Control characters are rejected because PostgreSQL refuses NUL in text (it used to give a 500) and none belong in a one-line name.
 
@@ -552,7 +551,6 @@ Response `200`:
     {
       "id": "b2c3d4e5-0000-4000-8000-000000000001",
       "order": 1,
-      "restSeconds": 90,
       "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
       "sets": [
         { "id": "d4e5f6a7-0000-4000-8000-000000000001", "setNumber": 1, "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
@@ -568,7 +566,6 @@ Response `200`:
 | `planId`, `planName` | string | The parent `WorkoutPlan` |
 | `exercises[].id` | string (UUID) | `WorkoutExercise.id` |
 | `exercises[].order` | number | 1..n inside the day |
-| `exercises[].restSeconds` | number \| null | `null` = no rest timer |
 | `exercises[].exerciseSummary` | object | `id`, `name`, `type` (`ExerciseType`), `primaryMuscle` (muscle group name), `imageUrl` |
 | `exercises[].sets[]` | `PlannedSet` | `id`, `setNumber`, `setType`, `targetWeight`, `targetReps`, `targetDuration`, `targetDistance` (targets nullable) |
 
@@ -647,7 +644,6 @@ Replaces all of a day's planned exercises and sets with the body: the day editor
   "exercises": [
     {
       "exerciseId": "c3d4e5f6-0000-4000-8000-000000000001",
-      "restSeconds": 90,
       "sets": [
         { "setType": "WARMUP", "targetWeight": 40, "targetReps": 8, "targetDuration": null, "targetDistance": null },
         { "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
@@ -661,7 +657,6 @@ Replaces all of a day's planned exercises and sets with the body: the day editor
 |---|---|---|
 | `exercises` | array | at most 20 (`MAX_EXERCISES`) |
 | `exercises[].exerciseId` | string (UUID) | must exist in the exercise catalog |
-| `exercises[].restSeconds` | integer \| null | 0–3600; `null` = no rest timer |
 | `exercises[].sets` | array | at most 20 per exercise (`MAX_SETS_PER_EXERCISE`) |
 | `sets[].setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `sets[].targetWeight`, `targetReps`, `targetDuration`, `targetDistance` | number \| null | same limits as a workout set (see Limits); `null` = no target, never `0` |
@@ -701,7 +696,7 @@ Rules shared by every route below:
 Starts a workout, empty or from one of the user's plan days.
 
 - **Body:** `{}` for an empty workout, or `{ "dayId": "<uuid>" }` to start from that day.
-- **From a day:** the day's exercises and sets are copied in one transaction. `order`, `restSeconds`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
+- **From a day:** the day's exercises and sets are copied in one transaction. `order`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
 - **One active workout:** a user with a workout `IN_PROGRESS` gets `409` with that workout's id, so the client can offer to resume or discard it.
 - **Daily limit:** at most 5 workouts started in the last 24 hours (`MAX_WORKOUTS_PER_DAY` in `workout-session.schema.ts`). Discarded workouts no longer count: discarding deletes the session (`DELETE /api/workout-sessions/:sessionId`).
 - **Starts at the same moment:** the checks and the insert run in one `Serializable` transaction. When two starts overlap, PostgreSQL rolls one back, and that request answers `409` without an id. Tested with 10 starts sent together: one workout saved, nine `409`.
@@ -746,7 +741,6 @@ Response `200`:
       "id": "f6a7b8c9-0000-4000-8000-000000000001",
       "order": 1,
       "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
-      "restSeconds": null,
       "previousBest": 72.5,
       "sets": [
         { "id": "a7b8c9d0-0000-4000-8000-000000000001", "setType": "NORMAL", "setNumber": 1, "plannedWeight": null, "plannedReps": null, "plannedDuration": null, "plannedDistance": null, "weight": 60, "reps": 8, "duration": null, "distance": null, "completedAt": "2026-11-08T17:05:40.000Z" }

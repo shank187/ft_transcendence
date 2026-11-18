@@ -2,14 +2,13 @@ import type { ExerciseItem } from "../shared/exercise-picker/exercise.types";
 import type { DayExercise, DraftExercise, DraftSet, SaveDayBody, SetTargets } from "./day-editor.types";
 import type { SetType } from "../shared/workouts.types";
 import { EXERCISE_FIELDS } from "../shared/exercise-fields";
-import { FIELD_KEYS, FIELDS, isPlainNumber, isWholeBetween, mapFields, toNumber, toText, validateSet, type FieldKey } from "../shared/set-values";
+import { FIELD_KEYS, FIELDS, mapFields, validateSet, type FieldKey } from "../shared/set-values";
 
 export type DraftAction =
     | { type: "reset", exercises: DayExercise[] }
     | { type: "exercisesAdded", selected: ExerciseItem[] }
     | { type: "exerciseMoved", exKey: string, direction: 1 | -1 }
     | { type: "exerciseRemoved", exKey: string }
-    | { type: "restChanged", exKey: string, value: string }
     | { type: "setAdded", exKey: string }
     | { type: "setRemoved", exKey: string, setKey: string }
     | { type: "setFieldChanged", exKey: string, setKey: string, field: FieldKey, value: string }
@@ -26,8 +25,6 @@ export function draftReducer(draft: DraftExercise[], action: DraftAction): Draft
             return moveExercise(draft, action.exKey, action.direction)
         case "exerciseRemoved":
             return draft.filter(e => e.key !== action.exKey)
-        case "restChanged":
-            return updateDraftExercise(draft, action.exKey, e => ({ ...e, restSeconds: action.value }))
         case "setAdded":
             return updateDraftExercise(draft, action.exKey, e => ({ ...e, sets: [...e.sets, newDraftSet()] }))
         case "setRemoved":
@@ -73,7 +70,6 @@ export function toDraft(exercises: DayExercise[]): DraftExercise[]
 {
     return exercises.map(exercise => ({
         key: exercise.id,
-        restSeconds: toText(exercise.restSeconds),
         exerciseSummary: exercise.exerciseSummary,
         sets: exercise.sets.map<DraftSet>(set => ({
             key: set.id,
@@ -88,25 +84,15 @@ function appendExercises(draft: DraftExercise[], selected: ExerciseItem[]): Draf
 {
     const added = selected.map<DraftExercise>((e)=>({
         key: crypto.randomUUID(),
-        restSeconds: "",
         exerciseSummary: { id: e.id, name: e.name, type: e.type, primaryMuscle: e.primaryMuscle, imageUrl: e.imageUrl },
         sets: [newDraftSet()],
     }))
     return [...draft, ...added]
 }
 
-// Same rule and message as restSecondsValue in backend/src/lib/validation.ts.
-export function validateRest(value: string): string | null
-{
-    const result = toNumber(value)
-    if(result !== null && (!isPlainNumber(value) || !isWholeBetween(result, 0, 3600)))
-        return "Rest must be between 0 and 3600 seconds."
-    return null
-}
-
 export function isDraftValid(draft: DraftExercise[]): boolean
 {
-    return draft.every(e => validateRest(e.restSeconds) === null && e.sets.every(s =>
+    return draft.every(e => e.sets.every(s =>
         Object.keys(validateSet(s, EXERCISE_FIELDS[e.exerciseSummary.type])).length === 0))
 }
 
@@ -123,7 +109,6 @@ export function toSaveBody(draft: DraftExercise[]): SaveDayBody
     return {
         exercises: draft.map(e => ({
             exerciseId: e.exerciseSummary.id,
-            restSeconds: toNumber(e.restSeconds),
             sets: e.sets.map(toTargets),
         })),
     }

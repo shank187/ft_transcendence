@@ -55,7 +55,6 @@ export interface DayExercise
 {
     id: string,
     order: number,
-    restSeconds: number | null,
     exerciseSummary: ExerciseSummary,
     sets: PlannedSet[],
 }
@@ -79,7 +78,7 @@ export type SetTargets = Pick<PlannedSet,
 // setNumber j + 1. The client never sends order, setNumber or row ids.
 export interface SaveDayBody
 {
-    exercises: { exerciseId: string, restSeconds: number | null, sets: SetTargets[] }[],
+    exercises: { exerciseId: string, sets: SetTargets[] }[],
 }
 
 export interface WorkoutSessionSet
@@ -103,7 +102,6 @@ export interface WorkoutSessionExercise
     id: string,
     order: number,
     exerciseSummary: ExerciseSummary,
-    restSeconds: number | null,
     // Best estimated one-rep max from earlier finished workouts.
     // null when there is none or the exercise type is not eligible.
     previousBest: number | null,

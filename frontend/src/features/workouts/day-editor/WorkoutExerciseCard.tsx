@@ -1,10 +1,10 @@
-import { useId, type Dispatch } from "react"
+import type { Dispatch } from "react"
 import Button from "../../../components/ui/Button"
 import Card from "../../../components/ui/Card"
 import type { DraftExercise } from "./day-editor.types"
 import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields"
 import SetRow from "./SetRow"
-import { validateRest, type DraftAction } from "./day-editor.draft"
+import type { DraftAction } from "./day-editor.draft"
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits"
 import ExerciseCardHeader from "../shared/ExerciseCardHeader"
 import SetColumnsHeader from "../shared/SetColumnsHeader"
@@ -19,16 +19,9 @@ export default function WorkoutExerciseCard(props: {
     isLast: boolean
 }
 ) {
-    const id = useId()
-
-    const restId = `${id}-rest`
-    const restErrorId = `${id}-rest-error`
-
     const { exercise, dispatch } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
     const name = exercise.exerciseSummary.name
-
-    const restError = validateRest(exercise.restSeconds)
 
     return (
         <Card className="flex gap-2">
@@ -36,31 +29,7 @@ export default function WorkoutExerciseCard(props: {
                 <ExerciseCardHeader
                 position={props.position}
                 exercise={exercise.exerciseSummary}
-                metaExtra={
-                    <div className="flex items-center gap-1.5 rounded-full border border-app-border py-0.5 pl-2.5 pr-2 text-xs font-medium text-app-text-muted">
-                        <span aria-hidden="true">Rest</span>
-                        <input
-                            id={restId}
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="–"
-                            className="h-6 w-12 rounded-sm border border-app-border bg-app-canvas text-center text-app-text placeholder:text-app-text-muted aria-invalid:border-app-danger"
-                            value={exercise.restSeconds}
-                            aria-invalid = {restError ? true : undefined}
-                            aria-describedby={restError? restErrorId: undefined}
-                            onChange={(e)=> {
-                                dispatch({ type: "restChanged", exKey: exercise.key, value: e.target.value })
-                            }}
-                        />
-                        <label htmlFor={restId} className="sr-only">
-                            {`Rest time for ${name}, in seconds`}
-                        </label>
-                        <span aria-hidden="true">s</span>
-                    </div>
-                }
-                >
-                    {restError && <p id={restErrorId} className="text-xs text-app-danger">{restError}</p>}
-                </ExerciseCardHeader>
+                />
 
                 <SetColumnsHeader fields={fields} />
 

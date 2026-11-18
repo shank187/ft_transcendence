@@ -17,12 +17,6 @@ export interface FieldDef {
     message: string
 }
 
-// "" is no value (null), never 0.
-export function toNumber(text: string): number | null
-{
-    return text.trim() === "" ? null : Number(text)
-}
-
 export function toText(value: number | null): string
 {
     return value !== null ? value.toString() : ""
@@ -39,7 +33,7 @@ function isDecimalBetween(value: number, min: number, max: number, decimals: num
         && Number(value.toFixed(decimals)) === value
 }
 
-// Bad text gives NaN, which every isValid rejects.
+// "" is no value (null), never 0. Bad text gives NaN, which every isValid rejects.
 function parsePlain(text: string): number | null
 {
     if (text.trim() === "") return null

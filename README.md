@@ -334,7 +334,7 @@ Keep this section evidence-based and update it from merged commits/PRs before ev
 ## Known gaps at this checkpoint
 
 - Error response bodies: every module returns `{ message }` except some gyms errors (`{ error }`), until S1 finalizes the shared error DTO.
-- S3: there is no list of past workouts (a finished workout opens only from its link), no rest timer during a workout, and an exercise can't be removed from a workout in progress (its sets can).
+- S3: there is no list of past workouts (a finished workout opens only from its link), and an exercise can't be removed from a workout in progress (its sets can).
 - CI/Gitleaks is not set up (no `.github/workflows`).
 - Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
 

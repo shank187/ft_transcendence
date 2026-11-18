@@ -38,7 +38,7 @@ Gym expansion approved on 31 Oct 2026: verified, unverified and private gyms, me
 
 Exercise catalog/types/muscles/equipment; search/filter; plans/days/planned exercises/sets; empty/planned session snapshots; type-aware performed sets; completion; workout history; basic PRs.
 
-Second priority: previous values, rest timer, add/replace active-session exercise. Advanced live reordering, complex supersets/circuits, advanced PRs, and recommended templates do not block core validation.
+Second priority: previous values, add/replace active-session exercise. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. Advanced live reordering, complex supersets/circuits, advanced PRs, and recommended templates do not block core validation.
 
 ### S4 — Social & Real-Time
 
@@ -107,7 +107,7 @@ A label or implemented-looking schema is not evidence. Each claimed module needs
 
 See the checkpoint in the README for what is on `main`.
 
-S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: rest timer, previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. Workout history has no list page yet.
+S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. Workout history has no list page yet.
 
 S1/shared: Compose now fails clearly when a required value is missing (JWT secrets included). Still open: CI/Gitleaks.
 
