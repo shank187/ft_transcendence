@@ -23,7 +23,7 @@ export default function SetValueInput(props: {
             id={props.inputId}
             type="text"
             placeholder={props.placeholder}
-            inputMode={props.field.key === "weight" || props.field.key === "distance" ? "decimal" : "numeric"}
+            inputMode={props.field.key === "duration" ? "text" : props.field.key === "reps" ? "numeric" : "decimal"}
             disabled={props.disabled}
             aria-invalid={props.error ? true : undefined}
             aria-describedby={props.error ? errorId : undefined}
