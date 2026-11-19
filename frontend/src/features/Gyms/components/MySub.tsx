@@ -4,7 +4,10 @@ import GymNavbar from "./gymNavBar";
 import type { Gym , GymSubmission} from "../type/gym";
 import { Link } from "react-router-dom";
 
-import EditGym from "./editGym"
+import EditGym from "./editGym";
+import { Pencil, Trash2 } from "lucide-react";
+import { MapPin, Dumbbell } from "lucide-react";
+
 
 interface submissionProps{
     onTabChange : (tab :"search" | "add" | "submission") =>void; 
@@ -101,46 +104,82 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                 <div>
                     <h2 className="text-xs font-extrabold text-[#8E8E8E] mb-2">SELECTED GYM</h2>
 
-                    {/* //////////////////////////////////////// */}
 
-                    <div className=" bg-[#181818] rounded-2xl border border-[#CCFF00]/30">
-                        {currentGym && (
-                            <div className="flex flex-col sm:flex-row  justify-between sm:items-center gap-4 items-start px-4 py-6">
-                                <div className="flex flex-col ">
-                                    <div className="flex items-center gap-4">
-                                        <h3 className="text-xl font-bold">{currentGym.name}</h3>
-                                        <span className="px-2.5 py-0.5 rounded-full  text-xs font-medium bg-[#242424] text-[#BDBDBD] hover:text-white border border-[#2E2E2E]">
-                                            {currentGym.visibility}
-                                        </span>
+                    {currentGym && (
+                                <div className="max-w-[700px] group relative flex flex-col sm:flex-row rounded-2xl bg-[#181818] border border-[#CCFF00]/45 overflow-hidden transition-all duration-200  hover:bg-[#1C1C1C] cursor-pointer sm:h-56">
+                                        
+                                        
+                                    <div className=" relative w-full sm:w-54  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
+                                        <img src={currentGym.imageUrl} alt={currentGym.name} 
+                                            className="h-full w-full object-cover group-hover:scale-105 "/>
+                                        
+                                        <div className="absolute top-3.5 left-3.5">
+                                            {currentGym.verified ? (
+                                                <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Veridied</p>
+                                            ) : (
+                                                <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Veridied</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <span className="mt-2 text-xs text-[#9E9E9E]">{currentGym.city}</span>
-                                    <p className="text-xs  mt-1">Workouts and the exercise picker use this gym.</p>
 
+                                    <div className="flex flex-col justify-between p-5 min-w-0 ">
+                                        <div >
+                                            <div className="flex items-center  justify-between gap-2.5">
+                                                <h3 className="text-xl font-bold text-white truncate">{currentGym.name}</h3>
+
+                                            </div>
+
+                                            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#A3A3A3]">
+                                                <MapPin className="w-3.5 h-3.5 text-[#A3A3A3] shrink-0"/>
+                                                <span>{currentGym.city}</span>
+                                                {currentGym.address && (
+                                                    <div className="flex items-center">
+                                                        <span className="ml-4 text-zinc-600 text-2xl">•</span>
+                                                        <span className="truncate ml-4">{currentGym.address}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                {currentGym.description && (
+                                                    <p className="text-xs text-[#8E8E8E] mt-3 line-clamp-2">
+                                                        {currentGym.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className=" flex items-center justify-between mt-4 pt-3 border-t border-[#262626] ">
+                                            <div>
+                                                {currentGym.equipment && currentGym.equipment.length > 0 ? (
+                                                    <div className="flex items-center gap-1.5 text-xs font-medium text-[#9E9E9E]">
+                                                        <Dumbbell className="w-3.5 h-3.5 text-[#CCFF00]"/>
+                                                        <span className="text-white font-bold">{currentGym.equipment.length}</span>
+                                                        {" "}equipment
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-zinc-400">Gym</span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-row gap-2">
+                                                <Link 
+                                                    to={`/gyms/${currentGym.id}`}
+                                                    className="px-4 py-2.5 text-xs font-semibold  border rounded-full text-white hover:text-[#CCFF00]  border-[#2E2E2E] transition-colors text-center">
+                                                    View
+                                                </Link>
+                                                <button 
+                                                    type="button"
+                                                    onClick={handleReset}
+                                                    className="px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#CCFF00] text-black   border border-[#2E2E2E] hover:scale-102 transition-colors">
+                                                    Change gym
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex flex-row gap-2">
-                                    <Link 
-                                        to={`/gyms/${currentGym.id}`}
-                                        className="px-4 py-2.5 text-xs font-semibold  border rounded-full text-white hover:text-[#CCFF00]  border-[#2E2E2E] transition-colors text-center">
-                                        View
-                                    </Link>
-                                    <button 
-                                        type="button"
-                                        onClick={handleReset}
-                                        className="px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#CCFF00] text-black   border border-[#2E2E2E] hover:scale-102 transition-colors">
-                                        Change gym
-                                    </button>
-
-                                </div>
-                            </div>
-                        )}
-                        { !currentGym && (
-                            <div className=" border border-red-400 rounded-2xl">
-                                <p className="px-4 py-2 text-xs ">No gym selected yet. Go to Search to pick your gym!</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* //////////////////////////////////////// */}
+                            )}
 
                     <div className="flex gap-3 mt-12 items-center font-bold p-4">
                         <h2 className="text-2xl font-extrabold text-white mb-2">Private gyms</h2>
@@ -178,13 +217,13 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                                 <button type="button"
                                                         onClick={function(){setSelectedGym(gym)}}
                                                         className="rounded-xl bg-[#141414] hover:bg-[#222222] border border-[#333333] px-4 py-2.5 text-xs font-semibold text-white transition-colors">
-                                                    Edit
+                                                    <Pencil className="w-4 h-4" />
                                                 </button>
                                             </div>
                                            <button type="button"
                                                     onClick={function(){handleDelete(gym)}}
                                                     className="rounded-xl bg-red-500/5 hover:bg-red-500/25 border border-app-danger px-4 py-2.5 text-xs font-semibold text-red-400 transition-colors">
-                                                delete
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>
