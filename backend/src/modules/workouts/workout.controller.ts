@@ -29,9 +29,10 @@ export async function getNextDayController(req: AuthenticatedRequest, res: Respo
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
     try{
         const next = await getNextWorkoutDay(req.userId)
-        if(!next) return res.status(404).json({message:"no next Workout day founc, Plan your days first"})
+        if(!next) return res.status(404).json({message:"No next workout day found, plan your days first."})
         return res.status(200).json(next)
-    }catch(err){
+    }catch(error){
+        console.error("GET /api/workout-plans/nextday failed:", error)
         return res.status(500).json({message: "Internal server error"})
     }
 }
