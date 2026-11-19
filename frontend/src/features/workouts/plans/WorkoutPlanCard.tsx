@@ -15,8 +15,8 @@ export default function WorkoutPlanCard(props: WorkoutsCardProps){
         >
         <Card className="space-y-3">
         <div className="flex items-center gap-3 text-app-primary">
-            <h1 className="text-xl font-semibold">{props.workout.name}</h1>
-            <h3 className="text-sm uppercase"> {props.workout.type} </h3>
+            <h2 className="text-xl font-semibold">{props.workout.name}</h2>
+            <p className="text-sm uppercase">{props.workout.type}</p>
         </div>
         <p className="text-app-text-secondary">{props.workout.days} Days per Week.</p>
         <p className="text-app-text-secondary">{props.workout.description}</p>

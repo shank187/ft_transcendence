@@ -18,7 +18,7 @@ export type ButtonVariant = keyof typeof variantClasses
 
 const sizeClasses = {
     md:   'rounded-md px-4 py-2',
-    pill: 'h-[30px] rounded-full border px-3',
+    pill: 'h-11 rounded-full border px-3',
 } as const
 
 export type ButtonSize = keyof typeof sizeClasses
