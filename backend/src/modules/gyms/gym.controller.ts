@@ -12,6 +12,8 @@ import {resetCurrent} from "./gym.service"
 import {getPrivate} from "./gym.service"
 import {RMPrivateGym} from "./gym.service";
 import {getUserSubmissions} from "./gym.service";
+import {EditGym} from "./gym.service";
+import { error } from "console";
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -261,5 +263,32 @@ export async function getUserSubmissionsController(req : AuthenticatedRequest, r
     }catch(e){
         console.log(e);
         res.status(500).json({error : "server error"});
+    }
+}
+
+
+export async function EditGymCOntroller(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+
+    const useId = req.userId;
+    const gymId = req.params.id;
+
+    if (typeof gymId !== "string"){
+        return res.status(400).json({error : "invalid gym ID"});
+    }
+    const data = req.body;
+    try{
+        await EditGym(useId, gymId, data);
+        res.status(200).json({message : "Gym updated successfully"});
+    }
+    catch(e : any){
+        if (e.message === "gym not found")
+            return res.status(404).json({error : "gym not found"});
+        if (e.message === "Acees denied")
+            return res.status(403).json({error : "Access denied"});
+
+        console.log(e);
+        res.status(500).json({error :"server error"});
     }
 }

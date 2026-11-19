@@ -1,5 +1,5 @@
 import type { Gym } from "../type/gym";
-import { X, Check } from "lucide-react";
+import {X} from "lucide-react";
 import  type { Equipment } from "../type/gym";
 import api from "../../auth/axiosInstance";
 import React, { useState, useEffect } from "react";
@@ -14,10 +14,10 @@ interface editProps {
 }
 
 export default function EditGym({gym, onClose, onSuccess, refrech} : editProps){
-    const [name, setName] = useState("");
-    const [city, setCity] = useState("");
-    const [address, setAddress] = useState("");
-    const [phoneNumber, SetPhoneNumber] = useState("");
+    const [name, setName] = useState( gym.name || "");
+    const [city, setCity] = useState(gym.city ||"");
+    const [address, setAddress] = useState(gym.address || "");
+    const [phoneNumber, SetPhoneNumber] = useState(gym.phone || "");
     const [allEquip, setAllEquip] = useState<Equipment[] | []>([]);
     const [selectedEquip, setSelectedEquip] = useState<string[]>(
         gym.equipment ? gym.equipment.map(function(item){
@@ -55,8 +55,25 @@ export default function EditGym({gym, onClose, onSuccess, refrech} : editProps){
             quantity : 1
         }
     })
-    async function handleSubmit(){
-
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
+        e.preventDefault();
+        if (!name.trim()){
+            alert("Gym name cannot be empty");
+            return ;
+        }
+        try{
+            const res = await api.patch(`/api/gyms/${gym.id}`, {
+                name : name.trim(),
+                city : city || undefined,
+                address : address || undefined,
+                phone : phoneNumber || undefined,
+                equipment : formattedEquip,
+            });
+            onSuccess("Gym updated successfully");
+            refrech();
+        }catch(e){
+            console.log(e);
+        }
     }
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6">

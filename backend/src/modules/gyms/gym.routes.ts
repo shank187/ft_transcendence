@@ -14,6 +14,7 @@ import {CurrentGymCOntroller} from "./gym.controller";
 import {getPrivateController} from "./gym.controller";
 import {RMPrivateGymController} from "./gym.controller"
 import {getUserSubmissionsController} from "./gym.controller"
+import {EditGymCOntroller} from "./gym.controller"
 
 
 const router = Router();
@@ -28,6 +29,7 @@ router.post('/', authenticate, createGymController);
 router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
 
 router.patch('/me/current', authenticate, CurrentGymCOntroller);
+router.patch('/:id', authenticate, EditGymCOntroller);
 router.get('/me/current', authenticate, getCurrentGymCOntroller);
 router.get('/private', authenticate, getPrivateController);
 

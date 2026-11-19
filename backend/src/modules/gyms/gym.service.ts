@@ -268,3 +268,37 @@ export async function RMPrivateGym(gymId : string, userId : string){
         where : {id : gymId}
     });
 }
+
+export async function EditGym(useId : string, gymId : string, data : any){
+
+    const gym=  await prisma.gym.findUnique({
+        where : {id : gymId}
+    });
+
+    if (!gym)
+        throw new Error("gym not found");
+    if (gym.visibility !== "PRIVATE" || gym.createdById !== useId){
+        throw new Error("Acees denied");
+    }
+    await prisma.gymEquipment.deleteMany({
+        where : {gymId : gymId}
+    });
+
+    await prisma.gym.update({
+        where : {id : gymId},
+        data : {
+            name : data.name,
+            city : data.city,
+            address : data.address,
+            phone: data.phone,
+            equipment : {
+                create : data.equipment?.map(function(equip : any){
+                    return {
+                        equipmentId:equip.equipmentId,
+                        quantity: 1
+                    }
+                })
+            }
+        }
+    });
+}
