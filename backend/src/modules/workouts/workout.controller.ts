@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, replaceWorkoutDay, updateWorkoutPlan } from "./workout.service";
+import { createWorkoutDay, createWorkoutPlan, deleteWorkoutDay, deleteWorkoutPlan, getNextWorkoutDay, getWorkoutDay, getWorkoutPlan, getWorkoutPlans, renameWorkoutDay, replaceWorkoutDay, updateWorkoutPlan } from "./workout.service";
 import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, saveDayBody, workoutDayBody, workoutPlanBody } from "./workout.schema";
 import { idParam } from "../../lib/validation";
 
@@ -21,6 +21,17 @@ export async function getWorkoutPlansController(req: AuthenticatedRequest, res: 
         return res.status(200).json(workoutPlans);
     }catch(error){
         console.error("GET /api/workout-plans failed:", error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function getNextDayController(req: AuthenticatedRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    try{
+        const next = await getNextWorkoutDay(req.userId)
+        if(!next) return res.status(404).json({message:"no next Workout day founc, Plan your days first"})
+        return res.status(200).json(next)
+    }catch(err){
         return res.status(500).json({message: "Internal server error"})
     }
 }

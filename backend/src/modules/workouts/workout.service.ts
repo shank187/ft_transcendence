@@ -215,6 +215,45 @@ export async function deleteWorkoutPlan(userId: string, planId: string): Promise
     }
 }
 
+
+
+export async function getNextWorkoutDay(userId: string):Promise<PlanDay|null>
+{
+    //check if user has atleast one plan and that has atleast one day to continue
+    //now check if and retyrn the atest compeleted workout-session with a valid foreign key
+    //to worout day and get its order from this we will figure out the next day id and from it we ill get the planday
+    //if no workout session performed we will return just the first day in the latest created plan
+    const firstDayLatestPlan = await prisma.workoutPlan.findFirst({
+        where:{ userId: userId, days: {some:{}} },
+        orderBy:{ createdAt:"desc"},
+        select: {days:{ take: 1, orderBy:{dayOrder:"asc"}, select: daySelect} },
+    })
+    if(!firstDayLatestPlan || firstDayLatestPlan.days.length === 0)
+        return null
+    // in this case do both , verified  that the user has atleast one day, and also if an he dont start any session yet we have an workoutday where he can start
+    // now we will check for the latest session executedt that it has non null foreign key to workout day
+
+    const latestSession = await prisma.workoutSession.findFirst({
+        where: { userId: userId, status: "COMPLETED", workoutDayId: {not: null}},
+        orderBy: {completedAt: "desc"},
+        select:{ workoutDay:{select:{dayOrder: true, workoutPlanId: true}}}
+    })
+    if(!latestSession || !latestSession.workoutDay)
+        return (planDayDto(firstDayLatestPlan.days[0]))
+    const {dayOrder: latestOrder,workoutPlanId: latestPlanId} = latestSession.workoutDay
+
+    const days =  await prisma.workoutDay.findMany({
+        where:{
+            workoutPlanId: latestPlanId,
+        },
+        orderBy:{dayOrder: "asc"},
+        select: daySelect
+    })
+    if(days.length === 0) return null
+    const next = days.find(d => d.dayOrder > latestOrder) ?? days[0]
+    return planDayDto(next)
+}
+
 export async function getWorkoutDay(userId: string, planId: string, dayId: string): Promise<DayDetail | null>
 {
     const day = await prisma.workoutDay.findFirst({
