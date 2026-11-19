@@ -12,7 +12,7 @@ import type { FriendData } from '../features/chat/chat.types';
 import { useWebSocket } from './WebSocketContext';
 import { getNextDay } from '../features/workouts/shared/get-plan-details';
 import StartDayButton from '../features/workouts/shared/StartDayButton';
-import type {PlanDay } from '../../../shared/workouts';
+import type { HomeDay } from '../features/workouts/shared/workouts.types';
 
 function Home() {
     const { user, setUser } = useAuth();
@@ -26,7 +26,7 @@ function Home() {
     const [friends_error, set_friends_error] = useState('');
     const friendshipUpdate = lastMessage?.type === 'friendship_updated' ? lastMessage : null;
 
-    type NextDaystates= {status:"loading"} |{status: "success", result: PlanDay|null} | {status: "failure", message: string}
+    type NextDaystates= {status:"loading"} |{status: "success", result: HomeDay|null} | {status: "failure", message: string}
         
     const [nextDayState, setNextDayState] = useState<NextDaystates>({status:"loading"});
 
@@ -131,7 +131,16 @@ function Home() {
                                     <p className="text-sm text-app-text-secondary">Sets</p>
                                 </div>
                             </div>
-                            <StartDayButton dayId={nextDayState.result.id} />
+                            {nextDayState.result.activeSessionId ? (
+                                <div className="space-y-2">
+                                    <p className="text-sm text-app-text-secondary">You already started this workout.</p>
+                                    <Button className="w-full min-h-11" onClick={() => navigate(`/workouts/session/${nextDayState.result?.activeSessionId}`)}>
+                                        ▶ Resume
+                                    </Button>
+                                </div>
+                            ) : (
+                                <StartDayButton dayId={nextDayState.result.id} />
+                            )}
                         </div>
                     )}
                 </Card>

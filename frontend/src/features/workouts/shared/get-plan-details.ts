@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios";
 import api from "../../auth/axiosInstance";
-import type { PlanDay, PlanDetail } from "./workouts.types";
+import type { HomeDay, PlanDetail } from "./workouts.types";
 import { toApiError } from "./api-error";
 
 export async function getPlanDetails(planId: string): Promise<PlanDetail | null> {
@@ -13,7 +13,7 @@ export async function getPlanDetails(planId: string): Promise<PlanDetail | null>
     }
 }
 
-export async function getNextDay(): Promise<PlanDay| null>
+export async function getNextDay(): Promise<HomeDay | null>
 {
     try{
         const resp = await api.get('/api/workout-plans/nextday')

@@ -30,6 +30,12 @@ export interface PlanDay
     setCount: number,
 }
 
+// The next day shown on Home; activeSessionId is set while a workout of this day is in progress.
+export interface HomeDay extends PlanDay
+{
+    activeSessionId: string | null,
+}
+
 // GET /api/workout-plans/:planId
 export interface PlanDetail
 {
