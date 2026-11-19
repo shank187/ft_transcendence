@@ -1,6 +1,6 @@
 
 import ChatWindow from "../features/chat/ChatWindow"
-import FriendsList from "../features/chat/FriendsList"
+import { FriendsList } from "../features/chat/FriendsList"
 import { useEffect, useState } from "react"
 import type { FriendData, ClientMessage } from "../features/chat/chat.types"
 import { useWebSocket } from "./WebSocketContext"
