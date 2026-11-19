@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by shank187 and the ft_transcendence team.*
+*This project has been created as part of the 42 curriculum by aelbour, abel-had, zyahansa, mouarar, sabadri.*
 
 # Gym App — ft_transcendence
 
@@ -138,15 +138,13 @@ The executable sources remain authoritative for current implementation details:
 
 ## Team information
 
-The repository must contain the confirmed names/logins for all five members before evaluation. Do not guess them here.
-
-| Member | Role | Slice/responsibility |
-|---|---|---|
-| Aymane (`shank187`) | Technical Lead / Architect; Developer | Architecture/review and S3 Workout Planning & Execution |
-| TODO: confirmed login | TODO: confirmed role | S1 Platform & Identity |
-| TODO: confirmed login | TODO: confirmed role | S2 Gym Discovery & Equipment |
-| TODO: confirmed login | TODO: confirmed role | S4 Social & Real-Time Interaction |
-| TODO: confirmed login | TODO: confirmed role | S5 Progress & Gamification |
+| Member | Login | Role | Slice/responsibility |
+|---|---|---|---|
+| Aymane El Bour | `aelbour` | Technical Lead / Architect; Developer | Architecture/review and S3 Workout Planning & Execution |
+| Abdelhamid El Haddadi | `abel-had` | Project Manager; Developer | S1 Platform & Identity |
+| Salaheddine Badri | `sabadri` | Product Owner; Developer | S5 Progress & Gamification |
+| Zyad Ahansal | `zyahansa` | Developer | S2 Gym Discovery & Equipment |
+| Mohamed Ouarar | `mouarar` | Developer | S4 Social & Real-Time Interaction |
 
 ### Project management
 
@@ -329,12 +327,19 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 
 ## Individual contributions
 
-Keep this section evidence-based and update it from merged commits/PRs before evaluation. Aymane’s S3 part is drafted in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md): workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, contracts, and Technical Lead coordination. Add every teammate’s verified merged work without inflating or transferring ownership.
+Taken from the merged commits and pull requests on `main`.
+
+- **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, next workout on Home, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
+- **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
+- **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
+- **mouarar (S4):** friends, friend requests and blocking, public profile, WebSocket chat with reconnection and presence, conversations and message history, Social page and the social part of Home.
+- **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
 
 ## Known gaps at this checkpoint
 
 - Error response bodies: every module returns `{ message }` except some gyms errors (`{ error }`), until S1 finalizes the shared error DTO.
-- S3: there is no list of past workouts (a finished workout opens only from its link), and an exercise can't be removed from a workout in progress (its sets can).
+- S3: an exercise can't be removed from a workout in progress (its sets can).
+- The list of past workouts moved to S5 (Progress) on 19 Nov; until it lands, a finished workout opens only from its link.
 - CI/Gitleaks is not set up (no `.github/workflows`).
 - Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
 

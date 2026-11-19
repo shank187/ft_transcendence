@@ -107,7 +107,7 @@ A label or implemented-looking schema is not evidence. Each claimed module needs
 
 See the checkpoint in the README for what is on `main`.
 
-S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. Workout history has no list page yet.
+S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. The workout history list moved to S5 (Progress) on 19 Nov.
 
 S1/shared: Compose now fails clearly when a required value is missing (JWT secrets included). Still open: CI/Gitleaks.
 
