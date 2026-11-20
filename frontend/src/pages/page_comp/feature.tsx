@@ -8,7 +8,6 @@ function Feature(){
 
                 <div className="flex flex-col gap-12">
                     <div className="flex flex-col items-center gap-6 md:flex-row">
-                        <img src="/landing-mockups/gyms.png" alt="Gym discovery on a phone" className="w-56 max-w-full" loading="lazy" />
                         <div className="flex-1 text-center">
                             <div className="text-2xl font-semibold">Discover gyms</div>
                             <div className="mx-auto mt-3 max-w-md leading-relaxed text-app-text-secondary">
@@ -16,6 +15,7 @@ function Feature(){
                                 Choose a gym that fits your needs and set it as your current gym.
                             </div>
                         </div>
+                        <img src="/landing-mockups/gyms.png" alt="Gym discovery on a phone" className="w-56 max-w-full" loading="lazy" />
                     </div>
 
                     <div className="flex flex-col items-center gap-6 md:flex-row">
@@ -29,8 +29,7 @@ function Feature(){
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-center gap-6 md:flex-row">
-                        <img src="/landing-mockups/progress.png" alt="Training progress on a phone" className="w-56 max-w-full" loading="lazy" />
+                    <div className="flex flex-col items-center justify-start gap-6 md:flex-row">
                         <div className="flex-1 text-center">
                             <div className="text-2xl font-semibold">Track your progress</div>
                             <div className="mx-auto mt-3 max-w-md leading-relaxed text-app-text-secondary">
@@ -38,6 +37,7 @@ function Feature(){
                                 Follow your progression as you keep training and reach new milestones.
                             </div>
                         </div>
+                        <img src="/landing-mockups/progress.png" alt="Training progress on a phone" className="w-56 max-w-full" loading="lazy" />
                     </div>
 
                     <div className="flex flex-col items-center gap-6 md:flex-row">
