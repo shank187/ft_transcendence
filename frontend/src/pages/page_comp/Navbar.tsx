@@ -9,10 +9,8 @@ function Navbar(){
                         REPA
                     </a>
                     <div className="flex items-center gap-8">
-                        <a href="#" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">Home</a>
-                        <a href="#" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">Features</a>
-                        <a href="#" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">About</a>
-                        <a href="#" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">Testimonials</a>
+                        <a href="#features" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">Features</a>
+                        <a href="#about" className="text-[13px] font-medium text-gray-300 hover:text-[#ffffff] hover:scale-102">About</a>
 
                     </div>
                     <div className="flex items-center gap-3">
