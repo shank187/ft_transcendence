@@ -46,6 +46,7 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
 | GET | `/api/equipment` | Yes | Return every equipment item with its category |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
+| GET | `/api/workout-plans/nextday` | Yes | Return the user's next workout day for Home |
 | POST | `/api/workout-plans` | Yes | Create a custom plan |
 | GET | `/api/workout-plans/:planId` | Yes | Return one owned plan with its days |
 | PATCH | `/api/workout-plans/:planId` | Yes | Update an owned plan's name and description |
@@ -410,6 +411,35 @@ Status codes:
 - `500` unexpected error — `{ "message": "Internal server error" }`
 
 Failure example: `{ "name": "   " }` returns `400` `{ "message": "Plan name is required." }`.
+
+### `GET /api/workout-plans/nextday`
+
+Returns the day Home shows under the next workout (`getNextDay` in `frontend/src/features/workouts/shared/get-plan-details.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Rule:** takes the user's last completed workout that came from a day, and returns the next day of that plan by `dayOrder`, back to the first day after the last one. With no such workout, returns the first day of the newest plan that has days.
+- **Ownership:** the plan comes from the user's own plans or own last workout (`userId` from the token), never from the request.
+- **Code:** `getNextDayController` → `getNextWorkoutDay` in `workout.service.ts`.
+
+Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `activeSessionId`, the id of a workout of this day still in progress, else `null`. Home shows Resume instead of Start when it is set.
+
+```json
+{
+  "id": "8a2e4c1d-3b5f-4e6a-9c7d-1f2e3a4b5c6d",
+  "name": "Push",
+  "dayOrder": 1,
+  "exerciseCount": 4,
+  "setCount": 12,
+  "activeSessionId": null
+}
+```
+
+Status codes:
+
+- `200` next day returned
+- `404` no plan with a day yet — `{ "message": "No next workout day found, plan your days first." }`
+- `401` missing, invalid, or expired access token
+- `500` unexpected error — `{ "message": "Internal server error" }`
 
 ### `GET /api/workout-plans/:planId`
 
