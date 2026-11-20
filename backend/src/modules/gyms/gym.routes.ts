@@ -25,6 +25,9 @@ router.get('/me/submissions', authenticate, getUserSubmissionsController);
 
 router.get('/search', authenticate, searchGymsController);
 router.get('/equip', authenticate, getALLEquipController);
+
+// router.get('/equip/:id', authenticate, getGymEquipController);
+
 router.post('/', authenticate, createGymController);
 router.post('/upload-image', authenticate, upload_gym_image, uploadGymImageController);
 

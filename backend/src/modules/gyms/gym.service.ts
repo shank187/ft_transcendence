@@ -302,3 +302,11 @@ export async function EditGym(useId : string, gymId : string, data : any){
         }
     });
 }
+
+
+// export async function getGymEquip(useId : string, gymId : string){
+//     const euipList = await prisma.gym.findUnique({
+//         where : {id : gymId},
+//         select :
+//     });
+// }

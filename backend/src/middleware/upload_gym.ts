@@ -45,3 +45,37 @@ const upload = multer({
 
 export const upload_gym_image = upload.single("image");
 
+
+
+// const uploadSingle = upload.single("image");
+
+// export const upload_avatar: RequestHandler = (req, res, next) => {
+//     uploadSingle(req, res, (error) => {
+//         if (!error)
+//         {
+//             next();
+//             return;
+//         }
+
+//         if (error instanceof multer.MulterError)
+//         {
+//             if (error.code === "LIMIT_FILE_SIZE")
+//             {
+//                 res.status(413).json({message: "Image must not exceed 2 MB."});
+//                 return;
+//             }
+
+//             res.status(400).json({message: "Invalid avatar upload."});
+//             return;
+//         }
+
+//         if (error.message === "Choose a JPG or PNG image.")
+//         {
+//             res.status(400).json({message: error.message});
+//             return;
+//         }
+
+//         console.log("error :", error);
+//         res.status(500).json({message: "Could not upload your avatar."});
+//     });
+// };

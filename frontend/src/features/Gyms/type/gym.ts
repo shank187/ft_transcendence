@@ -20,6 +20,8 @@ export interface Gym{
     website?: string | null;
     verified?: boolean;   
     visibility?: "PUBLIC" | "PRIVATE";
+    latitude?: number | null;
+    longitude?: number | null; 
     equipment: GymEquipmentItem[];
     
 }

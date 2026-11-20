@@ -2,8 +2,11 @@ import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import type { Gym } from "../type/gym";
 import LoadingState from '../../../components/states/LoadingState';
-import {Link }from "react-router-dom"
+import {Link }from "react-router-dom";
+import {ArrowLeft} from "lucide-react";
 import api from '../../auth/axiosInstance';
+import { MapPin, Dumbbell, Compass, Navigation} from "lucide-react";
+
 
 
 function GymDetailsPage() {
@@ -11,6 +14,7 @@ function GymDetailsPage() {
     const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(false);
+    // console [equipList, setEquipList] = useState();
 
 
     async function handleSelectgym(){
@@ -44,102 +48,191 @@ function GymDetailsPage() {
         getGymDetails();
     }, [id]);
 
-
     if (loading)
         return <LoadingState message="Loading gym info..." />;
     if (!gym)
         return <div className="p-8 text-3xl font-bold">Gym not found!</div>;
 
-    
+    const openMapUrl = `https://www.google.com/maps?q=${gym.latitude},${gym.longitude}`;
+  const mapUrl = `https://maps.google.com/maps?q=${gym.latitude},${gym.longitude}&z=15&output=embed`;
+
 
     return (
-        <div className="flex flex-col w-full max-w-[500px] min-h-screen  text-white border-r border-gray-500 ">
-            <div className="flex justify-between  p-4 border-b border-gray-600 bg-[#1c1c1c] rounded-2xl mb-1">
-                <h1 className="text-xl font-medium">{gym.name}</h1>
-                <button type="button"
-                        disabled={selected}
-                        onClick={handleSelectgym}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${selected ? "bg-[#CCFF00] text-black cursor-default" : "bg-[#242424] text-white hover:bg-[#CCFF00] hover:text-black"}`}>
-                            {/* <span>select this gym</span>  */}
-                            {selected ? "selected" : "select this gym"}
-                        </button>
-                <Link to ={`/gyms`}>
-                    <svg className="w-6 h-6 text-red-500 border border-gray-700 hover:scale-120" fill="none" viewBox="0 0 24 24" stroke="currentColor ">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </Link>
-            </div>
 
-            <div className="px-4 my-4">
-                <img className="w-full h-62.5  rounded-2xl object-cover hover:scale-101" src="https://imgs.search.brave.com/YV90j4kDI6DSkh8Kw4G7e7HwA5zcpNMiEo_kQpUYBY0/rs:fit:1920:0:0:0/g:ce/aHR0cHM6Ly9saDUu/Z29vZ2xldXNlcmNv/bnRlbnQuY29tL3Av/QUYxUWlwUGtUZl8y/aW11UU42R3o1NkRx/TE9md3J4ZmJEMlFH/MXBabi1rbE89dzMw/MC1oMjAwLWstbi1y/dw" alt="{gym.name}" />
-            </div>
+        <div className='max-w-[780px] mx-auto px-4 py-4 sm:px-6  bg-[#1f1f1e] rounded-2xl border border-[#CCFF00]/30 space-y-6'>
 
-            <div className="flex flex-wrap gap-4 px-4 mb-6 items-center">
-                <button className="flex gap-2 items-center bg-[#2d2d2d] hover:bg-[#383838] rounded-full px-5 py-3  transition-colors ">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                    WebSite
-                </button>
+            <Link to={"/gyms"} className='flex items-center gap-4'>
+                <ArrowLeft className="w-4 h-4 text-[#CCFF00]"/>
+                <span className='font-bold'>Back to Gyms</span>
+            </Link>
 
-                <button className="flex  items-center gap-2 bg-[#2d2d2d] hover:bg-[#383838] rounded-full px-5 py-3 transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                    Call
-                </button>
+            <div >
+                <div className="w-full group relative flex flex-col sm:flex-row rounded-2xl  bg-[#181818] border border-white/[0.09] overflow-hidden transition-all duration-200  hover:bg-[#1C1C1C] cursor-pointer sm:h-56">
 
-                <button className="flex  items-center gap-2 bg-[#2d2d2d] hover:bg-[#383838] rounded-full px-5 py-3 transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                    Directions
-                </button>
-            </div>
 
-            <div className="flex flex-col border-t border-gray-700 rounded-2xl bg-[#1c1c1c] rounded-2xl m-1 py-2">
-                <div className="flex items-center gap-3 px-5 mb-4  hover:bg-[#2d2d2d] hover:rounded-2xl py-3">
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>opening hour</span>
-                    <span>7:00 AM - 11:00 PM</span>
-                </div >
+                    <div className=" relative w-full sm:w-74  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
+                        <img src={gym.imageUrl} alt={gym.name} 
+                            className="h-full w-full object-cover group-hover:scale-105 "/>
 
-                <div className="flex items-center gap-3 px-5 mb-4  hover:bg-[#2d2d2d] hover:rounded-2xl py-3">
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    <span>{gym.address}</span>
-                </div>
-                <div className="flex items-center gap-3 px-5 mb-1  hover:bg-[#2d2d2d] hover:rounded-2xl py-3">
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                    <span>{gym.phone}</span>
-                </div>
-            </div>
-
-            <div className="flex  flex-col border-t border-gray-700 px-5 py-6 mb-4" >
-                <h2 className="text-lg font-medium mb-4">description</h2>
-                <div className="text-lg rounded-2xl bg-[#1c1c1c] rounded-2xl p-4">
-                    <p className="text-md text-gray-300  line-clamp-3">{gym.description} Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus nemo fugit, id veniam aut amet fugiat vitae temporibus consequuntur exercitationem. Perspiciatis, officia sunt perferendis accusantium culpa et facere fuga ab!</p>
-                </div>
-            </div>
-            <div className="h-[300px] mr-3 border-t border-gray-700 p-5">
-                <h2 className="text-lg font-medium mb-4">Available Equipment</h2>
-                <ul className="flex flex-col gap-3 mt-2">
-                    {gym.equipment?.map((equi) => (
-                        <li
-                            key={equi.equipmentId}
-                            className="flex items-center justify-between gap-3 text-lg mb-2 bg-[#1c1c1c] px-4 py-3 rounded-2xl hover:bg-[#2d2d2d] shadow-sm"
-                        >
-                            <span>{equi.equipment.name}</span>
-                            <span>{equi.quantity}</span>
-                            {equi.equipment.imageUrl ? (
-                                <img
-                                    src={equi.equipment.imageUrl}
-                                    alt={equi.equipment.name}
-                                    className="w-12 h-12 rounded-xl object-cover"
-                                />
+                        <div className="absolute top-3.5 left-3.5">
+                            {gym.verified ? (
+                                <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Veridied</p>
                             ) : (
-                                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#2d2d2d] text-xs text-gray-400">
-                                    <span>no img</span>
-                                </div>
+                                <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Veridied</p>
                             )}
-                        </li>
-                    ))}
-                </ul>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col justify-between p-5 min-w-0 ">
+                        <div >
+                            <div className="flex items-center  justify-between gap-2.5">
+                                <h3 className="text-xl font-bold text-white truncate">{gym.name}</h3>
+
+                            </div>
+
+                            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#A3A3A3]">
+                                <MapPin className="w-3.5 h-3.5 text-[#A3A3A3] shrink-0"/>
+                                <span>{gym.city}</span>
+                                {gym.address && (
+                                    <div className="flex items-center">
+                                        <span className="ml-4 text-zinc-600 text-2xl">•</span>
+                                        <span className="truncate ml-4">{gym.address}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                {gym.description && (
+                                    <p className="text-xs text-[#8E8E8E] mt-3 line-clamp-2">
+                                        {gym.description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className=" flex items-center justify-between mt-4 pt-3 border-t border-[#262626] ">
+                            <div>
+                                {gym.equipment && gym.equipment.length > 0 ? (
+                                    <div className="flex items-center gap-1.5 text-xs font-medium text-[#9E9E9E]">
+                                        <Dumbbell className="w-3.5 h-3.5 text-[#CCFF00]"/>
+                                        <span className="text-white font-bold">{gym.equipment.length}</span>
+                                        {" "}equipment
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-zinc-400">Gym</span>
+                                )}
+                            </div>
+                            <div className="flex flex-row gap-2">
+                                <button 
+                                    type="button"
+                                    disabled={selected}
+                                    onClick={handleSelectgym}
+                                    className="px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#CCFF00] text-black   border border-[#2E2E2E] hover:scale-102 transition-colors">
+                                        {selected ? "selected" : "Set as My Gym"}
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+                
+                
+                </div>
+            </div>
+            <div className='rounded-3xl bg-[#181818] border border-white/[0.09] p-6'>
+                <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-2'>
+
+                    <div>
+                        <div className='flex items-center gap-2'>
+                            <Compass  className='w-4 h-4 text-[#CCFF00]'/>
+                            <h2 className='text-lg font-bold text-white'>
+                                Gym Maps Location & Directions
+                            </h2>
+                        </div>
+                            <p className='text-xs text-zinc-400 mt-0.5'>
+                                Interactive map pin and GPS coordinates for {gym.name}
+                            </p>
+                    </div>
+                    {gym.latitude && gym.latitude ? (
+                        <a href={openMapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-2xl bg-[#242424] hover:bg-[#2E2E2E] border border-white/10  px-4 py-2.5 text-xs font-semibold text-white transition-colors">
+                            <span>Open in Google Mpas</span>
+                            <Navigation className='w-4 h-4 text-[#CCFF00]'/>
+                        </a> 
+     
+                    ) : (
+                        <span className="px-3 py-2 rounded-2xl bg-[#1C1C1C] border border-white/5 text-xs text-zinc-500 cursor-not-allowed"
+                            >No GPS pin available
+                        </span>
+                    )}
+                </div>
+
+
+                <div>
+                    <div className="w-full rounded-2xl overflow-hidden border border-white/[0.08] bg-zinc-900">
+                        <iframe src={mapUrl}
+                                className="w-full h-full min-h-[280px] sm:min-h-[320px] border-0"
+                                loading="lazy">
+                                
+                        </iframe>
+
+                    </div>
+                </div>
+            </div>
+            <div className="rounded-2xl bg-[#181818] border border-white/[0.09] p-5">
+                <div className="mb-4">
+                    <div className="flex items-center gap-2.5">
+                        <Dumbbell className="w-4 h-4 text-[#CCFF00] "/>
+                        <h2 className="text-lg font-bold text-white">
+                            Equipment in {gym.name}
+                        </h2>
+                        <span className="rounded-full bg-[#252525] border border-white/[0.08] px-2.5 py-0.5 text-xs font-bold text-[#CCFF00]">
+                            {gym.equipment ? gym.equipment.length : 0} items
+                        </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                        Complete list of racks, machines, free weights, and cardio units
+                        available on the floor
+                    </p>
+                </div>
+
+                {gym.equipment && gym.equipment.length > 0 ? 
+                
+                (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {gym.equipment.map(function(equip : any){
+                        return <div
+                            key={equip.equipment.id}
+                            className="group flex flex-col justify-between rounded-2xl bg-[#121212] border border-white/[0.07] hover:border-[#CCFF00]/40 p-4 transition-all">
+                                <div>
+                                    <span className="inline-flex rounded-2xl bg-[#242424] px-2.5 py-1 text-xs font-bold text-zinc-300 ">
+                                        {equip.equipment.category}
+                                    </span>
+                                    <h4 className="mt-3 text-xl font-bold text-white group-hover:text-[#CCFF00] transition-colors">
+                                        {equip.equipment.name}
+                                    </h4>
+                                </div>
+                                <div className="flex items-center gap-2 mt-4 border-t border-white/[0.06] py-1.5">
+                                    <span className="h-2 w-2 rounded-full bg-[#CCFF00]"></span>
+                                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#CCFF00]">
+                                        Available
+                                    </div>
+                                </div>
+                        </div>
+                    })
+                    }
+                </div>)
+                :(
+                    <div className="py-10 text-center rounded-2xl bg-[#141414]  border border-white/5">
+                        <p className="text-xs font-medium text-zinc-400">No equipment listed yet</p>
+                        <p className="text-xs text-zinc-600 mt-1">This gym hasn't registered its machines and weights.</p>
+
+                    </div>
+                )}
             </div>
         </div>
+
     )
 }
 

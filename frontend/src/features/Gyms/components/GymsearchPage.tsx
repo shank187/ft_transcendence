@@ -96,8 +96,6 @@ function GymsearchPage(){
             <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
 
 
-
-
             {bannerMessage && (
                 <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#1A1A1A]/95  border border-[#CCFF00]/40 shadow-2xl text-xs text-white transition-all">
                     <span>{bannerMessage}</span>
@@ -109,7 +107,10 @@ function GymsearchPage(){
             )} 
 
             <div className="flex justify-between  items-center gap-4 mb-6">
-                <SearchBar searchTerm={textSearched} onSearchChange={setTextSearched}/>
+                <SearchBar searchTerm={textSearched} 
+                            onSearchChange={setTextSearched} 
+                            style="bg-black border border-[#CCFF00]/70 "
+                            placeholder="search for gym by name"/>
             </div>
             <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
 

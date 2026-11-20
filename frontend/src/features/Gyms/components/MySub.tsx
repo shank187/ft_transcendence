@@ -109,7 +109,7 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                 <div className="max-w-[700px] group relative flex flex-col sm:flex-row rounded-2xl bg-[#181818] border border-[#CCFF00]/45 overflow-hidden transition-all duration-200  hover:bg-[#1C1C1C] cursor-pointer sm:h-56">
                                         
                                         
-                                    <div className=" relative w-full sm:w-54  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
+                                    <div className=" relative w-full sm:w-74  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
                                         <img src={currentGym.imageUrl} alt={currentGym.name} 
                                             className="h-full w-full object-cover group-hover:scale-105 "/>
                                         

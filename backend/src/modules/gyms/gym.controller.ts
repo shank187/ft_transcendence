@@ -13,7 +13,6 @@ import {getPrivate} from "./gym.service"
 import {RMPrivateGym} from "./gym.service";
 import {getUserSubmissions} from "./gym.service";
 import {EditGym} from "./gym.service";
-import { error } from "console";
 
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
@@ -292,3 +291,22 @@ export async function EditGymCOntroller(req : AuthenticatedRequest, res : Respon
         res.status(500).json({error :"server error"});
     }
 }
+
+// export async function getGymEquipController(req : AuthenticatedRequest, res : Response){
+//     if (!req.userId)
+//         return res.status(401).json({message: "unauthorized"});
+
+//     const userId  = req.userId;
+//     const gymId = req.params.gymId;
+
+//     if (typeof gymId != "string"){
+//         return res.status(400).json({error : "invalid gym ID"});
+//     }
+
+//     try{
+//         const equipList = await getGymEquip(userId, gymId);
+//         res.status(200).json(equipList);
+//     }catch(e){
+//         console.log(e);
+//     }
+// }

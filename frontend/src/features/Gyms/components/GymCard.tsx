@@ -74,6 +74,16 @@ function GymCard({gym} : GymCardPara){
                     </div>
                 </div>
             </div>
+            
+
+                            
+
+
+
+
+
+
+
         </Link>
     )
 }
