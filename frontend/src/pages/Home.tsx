@@ -27,7 +27,7 @@ function Home() {
     const friendshipUpdate = lastMessage?.type === 'friendship_updated' ? lastMessage : null;
 
     type NextDaystates= {status:"loading"} |{status: "success", result: HomeDay|null} | {status: "failure", message: string}
-        
+
     const [nextDayState, setNextDayState] = useState<NextDaystates>({status:"loading"});
 
     useEffect(() => {
