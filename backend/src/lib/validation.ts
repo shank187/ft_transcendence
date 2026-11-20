@@ -23,10 +23,6 @@ export const MAX_SETS_PER_EXERCISE = 20;
 // The values below are never nullable here: each body adds .nullable() / .optional(),
 // and null means "no value", never 0.
 
-const REST_MESSAGE = "Rest must be between 0 and 3600 seconds."
-
-export const restSecondsValue = z.number(REST_MESSAGE).int(REST_MESSAGE).min(0, REST_MESSAGE).max(3600, REST_MESSAGE)
-
 const WEIGHT_MESSAGE = "Weight must be between 0 and 1000 kg."
 const REPS_MESSAGE = "Reps must be a whole number between 1 and 999."
 const DURATION_MESSAGE = "Time must be a whole number of seconds, 1 to 86400."

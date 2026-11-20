@@ -11,9 +11,9 @@ This file separates implemented endpoints from frozen target contracts. `backend
 - External/browser traffic must use HTTPS in the validated deployment
 - Credentials/cookies are sent only according to the shared auth configuration
 
-## Implemented endpoint inventory — 30 September 2026
+## Implemented endpoint inventory — 16 November 2026
 
-Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
+Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). This file documents the S3 endpoints (exercises, equipment, workout plans, workout sessions) in detail; the other rows list what exists, and each slice owner documents their own contracts.
 
 | Method | Path | Auth | Purpose |
 |---|---|---:|---|
@@ -21,15 +21,32 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | POST | `/api/auth/login` | No | Authenticate |
 | GET | `/api/auth/google` | No | Start Google OAuth (sets state cookie, redirects to Google) |
 | GET | `/api/auth/google/callback` | No | Complete Google OAuth, set refresh cookie, redirect to `/onboarding` or `/home` |
+| POST | `/api/auth/verify-registration` | No | Confirm the email code and create the account |
+| POST | `/api/auth/resend-verification` | No | Send a new email code |
 | POST | `/api/auth/refresh` | Refresh cookie | Return a new access token |
 | POST | `/api/auth/logout` | Refresh cookie | Revoke session and clear cookie |
 | GET | `/api/auth/session` | Refresh cookie | Report `{ "authenticated": boolean }` |
-| GET | `/api/users/me` | Yes | Return current user's `onboardingCompletedAt` |
+| GET | `/api/users/me` | Yes | Return the current user |
 | PATCH | `/api/users/onboarding` | Yes | Save onboarding fields |
+| POST | `/api/users/update_me` | Yes | Update the own profile |
+| POST | `/api/users/change_password` | Yes | Change the password |
+| POST | `/api/users/me/avatar` | Yes | Upload an avatar |
+| DELETE | `/api/users/me/avatar/delete` | Yes | Remove the avatar |
+| POST | `/api/users/add_admin` | Yes (admin) | Give another user the admin role |
+| GET | `/api/users/:userId/friends` | Yes | List a user's friends |
+| GET | `/api/users/:username/profile` | Yes | Public profile |
+| GET | `/api/gyms/search` | Yes | Search gyms |
+| GET | `/api/gyms/equip` | Yes | Equipment list for the gym forms |
+| GET | `/api/gyms/submissions` | Yes (admin) | Gym submissions to review |
+| POST | `/api/gyms` | Yes | Submit or create a gym |
+| POST | `/api/gyms/upload-image` | Yes | Upload a gym image |
+| PATCH | `/api/gyms/me/current` | Yes | Set the user's current gym (`{ "gymId" }`) |
+| GET | `/api/gyms/:id` | Yes | Gym details |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
 | GET | `/api/equipment` | Yes | Return every equipment item with its category |
 | GET | `/api/workout-plans` | Yes | List the authenticated user's own workout plans |
+| GET | `/api/workout-plans/nextday` | Yes | Return the user's next workout day for Home |
 | POST | `/api/workout-plans` | Yes | Create a custom plan |
 | GET | `/api/workout-plans/:planId` | Yes | Return one owned plan with its days |
 | PATCH | `/api/workout-plans/:planId` | Yes | Update an owned plan's name and description |
@@ -39,16 +56,33 @@ Source: `backend/src/app.ts` and module route files on `s3-api-endpoints`.
 | PATCH | `/api/workout-plans/:planId/days/:dayId` | Yes | Rename a day of an owned plan |
 | DELETE | `/api/workout-plans/:planId/days/:dayId` | Yes | Delete a day and renumber the remaining days |
 | PUT | `/api/workout-plans/:planId/days/:dayId/exercises` | Yes | Replace a day's planned exercises and sets |
+| POST | `/api/workout-sessions` | Yes | Start a workout, empty or from a plan day |
 | GET | `/api/workout-sessions/:sessionId` | Yes | Return one owned workout with its exercises and sets |
 | DELETE | `/api/workout-sessions/:sessionId` | Yes | Discard (delete) a workout in progress |
+| POST | `/api/workout-sessions/:sessionId/finish` | Yes | Finish a workout: PRs and award |
 | POST | `/api/workout-sessions/:sessionId/exercises` | Yes | Add exercises to a workout in progress |
+| PATCH | `/api/workout-sessions/:sessionId/exercises/:exerciseId` | Yes | Move an exercise up or down |
 | POST | `/api/workout-sessions/:sessionId/exercises/:exerciseId/sets` | Yes | Add a set to an exercise of a workout in progress |
 | PATCH | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Update or tick a set of a workout in progress |
 | DELETE | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Delete a set and renumber the remaining sets |
+| GET | `/api/progress/summary` | Yes | XP, level and unlocked achievements |
+| GET | `/api/progress/leaderboard` | Yes | XP leaderboard among friends |
+| GET | `/api/friends` | Yes | List friends |
+| GET | `/api/friends/pending_request` | Yes | Pending friend requests |
+| POST | `/api/friends/:userId/request` | Yes | Send a friend request |
+| DELETE | `/api/friends/:userId/cancel_request` | Yes | Cancel a sent request |
+| POST | `/api/friends/:userId/accept` | Yes | Accept a request |
+| POST | `/api/friends/:userId/reject` | Yes | Reject a request |
+| DELETE | `/api/friends/:userId/delete` | Yes | Remove a friend |
+| POST | `/api/friends/:userId/block` | Yes | Block a user |
+| POST | `/api/friends/:userId/unblock` | Yes | Unblock a user |
+| GET | `/api/friends/:userId/can-message` | Yes | Whether the user can message this user |
+| GET | `/api/conversations` | Yes | List conversations |
+| GET | `/api/conversations/:target/messages` | Yes | Message history with a user |
 
-"Auth: Yes" means `Authorization: Bearer <access token>` checked by `backend/src/middleware/authenticate.ts`, which sets `req.userId`.
+"Auth: Yes" means `Authorization: Bearer <access token>` checked by `backend/src/middleware/authenticate.ts`, which sets `req.userId`. Live chat and presence use a WebSocket opened on the same server (`backend/src/server.ts`).
 
-Do not document gym, progress, social, chat, or workout write/session endpoints as implemented until their routes are merged.
+Cross-slice rules that are not endpoints (`getWorkoutStats`, `award()`, the PR rule, the current gym) are in [contracts.md](contracts.md).
 
 ## Request flow
 
@@ -81,7 +115,7 @@ React action
 
 ## Error contract
 
-API error responses must use this JSON shape:
+API error responses must use this JSON shape (still to align: some errors in `backend/src/modules/gyms/gym.controller.ts` return `{ "error": "..." }`):
 
 ```json
 {
@@ -234,12 +268,12 @@ Status codes:
 - `401` missing, invalid, or expired access token
 - `500` `{ "message": "Internal server error" }` when the database fails; the error is logged on the server
 
-Required validation hardening before final QA:
+Failure handling in the exercise picker (`frontend/src/features/workouts/shared/exercise-picker/ExercisePicker.tsx`):
 
-- initial failure can retry without reload;
-- later-page failure retains loaded cards and retries the failed page;
-- overlapping/repeated requests cannot duplicate/corrupt results;
-- final-page controls are deliberate.
+- a first-page failure shows an error with Retry, no reload needed;
+- a later-page failure keeps the loaded cards and shows Retry for that page;
+- each request ignores its answer if the query changed meanwhile, so overlapping requests can't mix pages;
+- Load more is disabled while a page loads and hidden on the last page.
 
 ### `GET /api/equipment`
 
@@ -296,14 +330,13 @@ Every limit is checked on both sides with the same message: the frontend for fas
 | Set time | whole seconds 1–86400 | `durationValue` | `set-values.ts` | `400` "Time must be a whole number of seconds, 1 to 86400." |
 | Set distance | more than 0, at most 1000000, 1 decimal | `distanceValue` | `set-values.ts` | `400` "Distance must be between 0 and 1000000 m." |
 | Set type | `NORMAL`, `HEAVY`, `WARMUP`, `DROP`, `FAILURE` | `setTypeValue` | `SET_TYPES` | `400` "Invalid set type." |
-| Rest (day editor) | whole seconds 0–3600, `null` = no timer | `restSecondsValue` | `validateRest` | `400` "Rest must be between 0 and 3600 seconds." |
 | Exercise search | at most 100 characters, trimmed, no control characters | `exercise.schema.ts` | `EXERCISE_SEARCH_MAX` (search box `maxLength`) | `400` "Invalid Search" |
 | Text (plan name, description, day name) | one line: no control characters (NUL, line breaks, tabs) | `CONTROL_CHARACTER` refine | `CONTROL_CHARACTER` | `400` e.g. "Plan name can't contain line breaks or tabs." |
 | Names (plan, day) | at least one visible character (letter, number, punctuation or symbol; emoji are fine) | `VISIBLE_CHARACTER` refine | `VISIBLE_CHARACTER` | `400` "Plan name is required." / "Day name is required." |
 | Ids in the URL (`:planId`, `:dayId`, `:sessionId`, `:exerciseId`, `:setId`) | UUID | `idParam` (`z.uuid()`) in the controllers | — | `404` with the route's normal message, e.g. "Plan not found." |
 | `exerciseIds` items, `muscle`, `equipment` | UUID | `addExercisesBody`, `exercise.schema.ts` | — | `400` "Exercise not found." / "Invalid Muscle" / "Invalid Equipment" |
 
-Backend files: a rule more than one module uses (ids, text rules, exercises per day and workout, sets per exercise, set types, set values, rest) is in `backend/src/lib/validation.ts`; a rule only one module uses stays in its schema: plans and days in `backend/src/modules/workouts/workout.schema.ts`, workout bodies in `backend/src/modules/workout-sessions/workout-session.schema.ts`, search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
+Backend files: a rule more than one module uses (ids, text rules, exercises per day and workout, sets per exercise, set types, set values) is in `backend/src/lib/validation.ts`; a rule only one module uses stays in its schema: plans and days in `backend/src/modules/workouts/workout.schema.ts`, workout bodies in `backend/src/modules/workout-sessions/workout-session.schema.ts`, search in `backend/src/modules/exercises/exercise.schema.ts`. When the frontend is at a count limit it hides the add button and shows the same message.
 
 Lengths count characters, not UTF-16 units: an emoji counts as one on both sides (`[...text].length` on the frontend, zod on the backend). Text is stored as typed, not HTML-escaped: React escapes it when it renders and Prisma sends every value as a query parameter, so `<script>` in a name is plain text. Control characters are rejected because PostgreSQL refuses NUL in text (it used to give a 500) and none belong in a one-line name.
 
@@ -378,6 +411,35 @@ Status codes:
 - `500` unexpected error — `{ "message": "Internal server error" }`
 
 Failure example: `{ "name": "   " }` returns `400` `{ "message": "Plan name is required." }`.
+
+### `GET /api/workout-plans/nextday`
+
+Returns the day Home shows under the next workout (`getNextDay` in `frontend/src/features/workouts/shared/get-plan-details.ts`).
+
+- **Auth:** required (Bearer access token).
+- **Rule:** takes the user's last completed workout that came from a day, and returns the next day of that plan by `dayOrder`, back to the first day after the last one. With no such workout, returns the first day of the newest plan that has days.
+- **Ownership:** the plan comes from the user's own plans or own last workout (`userId` from the token), never from the request.
+- **Code:** `getNextDayController` → `getNextWorkoutDay` in `workout.service.ts`.
+
+Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `activeSessionId`, the id of a workout of this day still in progress, else `null`. Home shows Resume instead of Start when it is set.
+
+```json
+{
+  "id": "8a2e4c1d-3b5f-4e6a-9c7d-1f2e3a4b5c6d",
+  "name": "Push",
+  "dayOrder": 1,
+  "exerciseCount": 4,
+  "setCount": 12,
+  "activeSessionId": null
+}
+```
+
+Status codes:
+
+- `200` next day returned
+- `404` no plan with a day yet — `{ "message": "No next workout day found, plan your days first." }`
+- `401` missing, invalid, or expired access token
+- `500` unexpected error — `{ "message": "Internal server error" }`
 
 ### `GET /api/workout-plans/:planId`
 
@@ -519,7 +581,6 @@ Response `200`:
     {
       "id": "b2c3d4e5-0000-4000-8000-000000000001",
       "order": 1,
-      "restSeconds": 90,
       "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
       "sets": [
         { "id": "d4e5f6a7-0000-4000-8000-000000000001", "setNumber": 1, "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
@@ -535,7 +596,6 @@ Response `200`:
 | `planId`, `planName` | string | The parent `WorkoutPlan` |
 | `exercises[].id` | string (UUID) | `WorkoutExercise.id` |
 | `exercises[].order` | number | 1..n inside the day |
-| `exercises[].restSeconds` | number \| null | `null` = no rest timer |
 | `exercises[].exerciseSummary` | object | `id`, `name`, `type` (`ExerciseType`), `primaryMuscle` (muscle group name), `imageUrl` |
 | `exercises[].sets[]` | `PlannedSet` | `id`, `setNumber`, `setType`, `targetWeight`, `targetReps`, `targetDuration`, `targetDistance` (targets nullable) |
 
@@ -614,7 +674,6 @@ Replaces all of a day's planned exercises and sets with the body: the day editor
   "exercises": [
     {
       "exerciseId": "c3d4e5f6-0000-4000-8000-000000000001",
-      "restSeconds": 90,
       "sets": [
         { "setType": "WARMUP", "targetWeight": 40, "targetReps": 8, "targetDuration": null, "targetDistance": null },
         { "setType": "NORMAL", "targetWeight": 60, "targetReps": 8, "targetDuration": null, "targetDistance": null }
@@ -628,7 +687,6 @@ Replaces all of a day's planned exercises and sets with the body: the day editor
 |---|---|---|
 | `exercises` | array | at most 20 (`MAX_EXERCISES`) |
 | `exercises[].exerciseId` | string (UUID) | must exist in the exercise catalog |
-| `exercises[].restSeconds` | integer \| null | 0–3600; `null` = no rest timer |
 | `exercises[].sets` | array | at most 20 per exercise (`MAX_SETS_PER_EXERCISE`) |
 | `sets[].setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `sets[].targetWeight`, `targetReps`, `targetDuration`, `targetDistance` | number \| null | same limits as a workout set (see Limits); `null` = no target, never `0` |
@@ -668,7 +726,7 @@ Rules shared by every route below:
 Starts a workout, empty or from one of the user's plan days.
 
 - **Body:** `{}` for an empty workout, or `{ "dayId": "<uuid>" }` to start from that day.
-- **From a day:** the day's exercises and sets are copied in one transaction. `order`, `restSeconds`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
+- **From a day:** the day's exercises and sets are copied in one transaction. `order`, `setNumber` and `setType` are copied as they are; `target*` values become `planned*`. Later edits to the plan never change the workout.
 - **One active workout:** a user with a workout `IN_PROGRESS` gets `409` with that workout's id, so the client can offer to resume or discard it.
 - **Daily limit:** at most 5 workouts started in the last 24 hours (`MAX_WORKOUTS_PER_DAY` in `workout-session.schema.ts`). Discarded workouts no longer count: discarding deletes the session (`DELETE /api/workout-sessions/:sessionId`).
 - **Starts at the same moment:** the checks and the insert run in one `Serializable` transaction. When two starts overlap, PostgreSQL rolls one back, and that request answers `409` without an id. Tested with 10 starts sent together: one workout saved, nine `409`.
@@ -713,7 +771,6 @@ Response `200`:
       "id": "f6a7b8c9-0000-4000-8000-000000000001",
       "order": 1,
       "exerciseSummary": { "id": "c3d4e5f6-0000-4000-8000-000000000001", "name": "Bench Press", "type": "WEIGHT_REPS", "primaryMuscle": "Chest", "imageUrl": null },
-      "restSeconds": null,
       "previousBest": 72.5,
       "sets": [
         { "id": "a7b8c9d0-0000-4000-8000-000000000001", "setType": "NORMAL", "setNumber": 1, "plannedWeight": null, "plannedReps": null, "plannedDuration": null, "plannedDistance": null, "weight": 60, "reps": 8, "duration": null, "distance": null, "completedAt": "2026-11-08T17:05:40.000Z" }
@@ -779,7 +836,7 @@ Finishes a workout in progress: `status` becomes `COMPLETED`, `completedAt` is s
 - **Finish and set writes in order:** finish, `PATCH …/sets/:setId` and `DELETE …/sets/:setId` first lock the session row (`SELECT … FOR UPDATE`, `lockOpenSession`). A set write sent during a finish waits, then answers `404` because the workout is no longer in progress; a finish sent during a set write waits, then counts the ticked sets again and answers `422` if none is left. A finished workout's sets never change.
 - **PR rule:** only ticked sets with a weight and reps count, for exercises of type `WEIGHT_REPS` or `WEIGHTED_BODYWEIGHT`. Each set gets an estimated one-rep max (Epley: `weight * (1 + reps / 30)`; one rep is the weight itself). The workout's best set of an exercise is a PR when its estimate is strictly higher than the best estimate in the user's earlier `COMPLETED` workouts. At most one PR per exercise; the first time an exercise is done is not a PR. Ticking a set never writes `isPr`; only finish does.
 - **Award:** S5's `award()` (`backend/src/modules/progress/progress.service.ts`) gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. It saves 100 XP for the workout and 50 XP per PR (`progress.rules.ts`), unlocks the workout-count achievements, and returns `xpGained`, `levelUp` and the newly `unlocked` achievement codes.
-- **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200` and `"award": null`, so a retry after a lost response is not an error and nothing is awarded twice. Two finishes sent at the same moment: the update requires `status = IN_PROGRESS`, so only one changes the row; the other answers `200` with `"award": null`.
+- **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200` and `"award": null`, so a retry after a lost response is not an error and nothing is awarded twice. Two finishes sent at the same moment: the second waits on the session row lock, finds the workout no longer `IN_PROGRESS`, and answers `200` with `"award": null`.
 - **Code:** `finishWorkoutSessionController` → `finishWorkoutSession`.
 
 Response `200`:
@@ -927,25 +984,17 @@ Status codes:
 
 Failure example: deleting the same set twice returns `404` `{ "message": "Set not found." }` the second time.
 
-## Frozen S3 target resources
+## S3 concurrency and repeat rules
 
-Design the smallest coherent REST contract around:
+All the S3 endpoints above are implemented. How each rule is kept:
 
-- owned custom plans and days (list read implemented above; create/detail/update/delete pending);
-- ordered planned exercises/sets;
-- starting empty/planned sessions;
-- active session sets;
-- session completion and authenticated history.
+- **One active workout:** the start runs in a `Serializable` transaction; two starts at the same moment save one workout, the other answers `409`.
+- **Snapshot:** starting from a day copies its exercises and sets in the same transaction.
+- **No double reward:** a repeated finish answers `200` with `"award": null`, and `XpEvent` is unique on `(reason, sourceId)`.
+- **Reordering:** moving an exercise and renumbering sets or days run in one transaction; a clash answers `409` "… changed. Please try again."
+- **Closed workouts:** every write checks `status = IN_PROGRESS` again in its own `where`; finish and the set writes take the session row lock first.
 
-Before adding routes, inspect actual schema names and agree with S1 on error/auth conventions and S5 on completion DTOs. Do not treat the examples here as already implemented.
-
-## Idempotency and concurrency
-
-- Prevent or deterministically resolve multiple active-session starts.
-- Starting a planned workout copies the plan snapshot atomically.
-- Repeated completion must not create duplicate rewards/side effects.
-- Reordering multiple records uses a transaction.
-- Closed sessions reject further mutations.
+Checked on the dev stack on 16 November 2026 with two users (ownership, double finish, simultaneous starts, limits, pagination); results in PR #84.
 
 ## Documentation completion gate
 

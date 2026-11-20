@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react"
-import type { DayDetail, DraftExercise } from "./day-editor.types"
-import type { SetType } from "../shared/workouts.types"
+import { useEffect, useReducer, useState } from "react"
+import type { DayDetail } from "./day-editor.types"
 import getWorkoutDay, { saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../../components/states/ErrorState"
 import NotFoundState from "../../../components/states/NotFoundState"
@@ -8,9 +7,8 @@ import Button from "../../../components/ui/Button"
 import LoadingState from "../../../components/states/LoadingState"
 import EmptyState from "../../../components/states/EmptyState"
 import emptyStateIcon from "../../../assets/empty-icon.png"
-import { addDraftSet, appendExercises, isDraftValid, moveExercise, removeDraftSet, removeExercise, toDraft, toSaveBody, updateRest, updateSetField, updateSetType } from "./day-editor.draft"
+import { draftReducer, isDraftValid, toDraft, toSaveBody } from "./day-editor.draft"
 import { MAX_EXERCISES } from "../shared/limits"
-import type { FieldKey } from "../shared/exercise-fields"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
 import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../../components/ui/Dialog"
@@ -25,7 +23,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const [dayLoading, setDayLoading] = useState(true)
     const [reloadCount, setReloadCount] = useState(0)
 
-    const [draft, setDraft] = useState<DraftExercise[]>([])
+    const [draft, dispatch] = useReducer(draftReducer, [])
 
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState<string|null>(null)
@@ -39,36 +37,9 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     const navigate = useNavigate()
 
-    const moveExerciseCard = (key: DraftExercise["key"], direction: 1 | -1)=>{
-        setDraft(prev => moveExercise(prev, key, direction))
-    }
-    const removeExerciseCard = (key: DraftExercise["key"])=>{
-        setDraft(prev => removeExercise(prev, key))
-    }
-
     const addSelectedExercises = (selected: ExerciseItem[])=>{
-        setDraft(prev => appendExercises(prev, selected))
+        dispatch({ type: "exercisesAdded", selected })
         closeExercisePickerDialog()
-    }
-
-    const addSet = (key: string)=>{
-        setDraft(prev => addDraftSet(prev, key))
-    }
-
-    const removeSet = (exKey: string, setKey: string) =>{
-        setDraft(prev => removeDraftSet(prev, exKey, setKey))
-    }
-
-    const changeSetField = (exKey: string, setKey: string, field: FieldKey, value: string) =>{
-        setDraft(prev => updateSetField(prev, exKey, setKey, field, value))
-    }
-
-    const changeSetType = (exKey: string, setKey: string, setType: SetType) =>{
-        setDraft(prev => updateSetType(prev, exKey, setKey, setType))
-    }
-
-    const changeRest = (exKey: string, value :string) =>{
-        setDraft(prev => updateRest(prev, exKey, value))
     }
 
     const planPath = `/workouts/plans/${props.planId}`
@@ -79,7 +50,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         try{
             const result = await saveWorkoutDay(props.planId, props.dayId, toSaveBody(draft))
             setDay(result)
-            setDraft(toDraft(result.exercises))
+            dispatch({ type: "reset", exercises: result.exercises })
             setSaving(false)
             return true
         }catch(err){
@@ -96,7 +67,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
     const discardChanges = ()=>{
         if(!day) return
         setSaveError(null)
-        setDraft(toDraft(day.exercises))
+        dispatch({ type: "reset", exercises: day.exercises })
     }
 
     const reloadDay = () => {
@@ -114,7 +85,7 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                 const result = await getWorkoutDay(props.planId, props.dayId)
                 if (ignore) return
                 setDay(result)
-                setDraft(result ? toDraft(result.exercises) : [])
+                dispatch({ type: "reset", exercises: result?.exercises ?? [] })
             }catch(err){
                 if (ignore) return
                 setDayError(err instanceof Error ? err.message: "Failed to Load the workout's day.")
@@ -205,16 +176,10 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         {draft.map((exercise, i)=>(
                             <li key={exercise.key}>
                                 <WorkoutExerciseCard
-                                onAddSet={addSet}
-                                onRemoveSet={removeSet}
-                                onChangeRest={changeRest}
-                                onFieldChange={changeSetField}
-                                onSetTypeChange={changeSetType}
+                                exercise={exercise}
+                                dispatch={dispatch}
                                 openSetMenu={openSetMenu}
                                 setOpenSetMenu={setOpenSetMenu}
-                                exercise={exercise}
-                                onRemove={removeExerciseCard}
-                                onMove={moveExerciseCard}
                                 position={i+1}
                                 isFirst={i === 0}
                                 isLast= {i === draft.length - 1}
