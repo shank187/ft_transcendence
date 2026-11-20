@@ -12,8 +12,6 @@ const nav_items = [
     { to: '/progress', label: 'Progress' },
     { to: '/social', label: 'Social' },
     { to: '/profile', label: 'Profile' },
-    { to: '/privacy', label: 'privacy' },
-    { to: '/terms', label: 'terms' },
     { to: '/profile/settings', label: 'settings' }
 ];
 
@@ -90,10 +88,10 @@ function MainLayout() {
     return (
     <WebSocketProvider>
         <div className="min-h-screen bg-app-canvas md:flex">
-            <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:flex">
+            <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:sticky md:top-0 md:flex md:shrink-0">
                 <nav className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
                     {nav_items.map((item)=> (
-                        <Link key={item.to} to={item.to} className=" px-3 py-2 hover:bg-app-surface-hover" >{item.label}</Link>
+                        <Link key={item.to} to={item.to} className="px-3 py-2 hover:bg-app-surface-hover focus-visible:bg-app-surface-hover focus-visible:outline-none!" >{item.label}</Link>
                     ))}
                 </nav>
                 <div className="mt-auto pt-4">
@@ -101,6 +99,10 @@ function MainLayout() {
                     <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
                         {is_logging_out ? 'Logging out...' : 'Log out'}
                     </Button>
+                    <div className="flex gap-2  text-xs text-app-text-secondary">
+                        <Link to="/privacy" className="hover:underline">Privacy</Link>
+                        <Link to="/terms" className="hover:underline">Terms</Link>
+                    </div>
                 </div>
             </div>
             <div className="min-w-0 p-4 pb-24 md:flex-1 md:p-8">
