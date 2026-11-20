@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by shank187 and the ft_transcendence team.*
+*This project has been created as part of the 42 curriculum by aelbour, abel-had, zyahansa, mouarar, sabadri.*
 
 # Gym App — ft_transcendence
 
@@ -27,22 +27,19 @@ The project deliberately freezes scope around a reliable 14-point validation tar
 
 Implementation status must be taken from GitHub/Trello. A feature listed in the frozen target is not automatically implemented.
 
-## Current implementation checkpoint — 30 September 2026
+## Current implementation checkpoint — 16 November 2026
 
-Verified on `main` at `177c75a`, plus `feature/workout-plans-get` (pending merge):
+What exists on `main` at `49cb343` (routes and pages in the code, not a claim that each module is validated):
 
-- React/Vite/TypeScript frontend and Express/TypeScript backend
-- PostgreSQL through Prisma
-- Docker Compose development topology
-- Registration, login, Google OAuth, refresh/logout/session-check infrastructure, and onboarding route
-- Protected frontend layout with `/home`, `/workouts`, and placeholder `/workouts/new-plan`
-- `/workouts` lists the user's own plans with loading/error/retry/empty states
-- Authenticated `GET /api/workout-plans` returning owned plans only (branch `feature/workout-plans-get`)
-- Authenticated, paginated exercise catalog API (catalog UI exists but is not currently routed)
-- Shared `Button`, `Card`, and loading/error/empty state foundations
-- Workout planning/execution schema foundation
+- React/Vite/TypeScript frontend, Express/TypeScript backend, PostgreSQL through Prisma, Docker Compose
+- Auth: email/password with email code, Google OAuth, refresh/logout/session check, onboarding
+- Profile: own profile, settings, avatar, public profile, Privacy and Terms pages
+- Gyms: search, details, current gym, gym submission and admin review
+- Workouts (S3): plans, days, day editor, exercise picker (search, filters, sort, gym filter, pagination), active workout, finish with PRs and XP
+- Progress: summary and leaderboard
+- Social: friends, requests, blocking, conversations and WebSocket chat
 
-Current Slice 3 gate: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan behind `/workouts/new-plan`. Catalog failure recovery is still required before validation but is intentionally scheduled when the catalog re-enters the picker/search flow.
+The full endpoint list is in [`docs/api.md`](docs/api.md).
 
 ## Technical stack
 
@@ -69,12 +66,10 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 ```bash
 git clone https://github.com/shank187/ft_transcendence.git
 cd ft_transcendence
-make setup
+cp .env.example .env
 ```
 
-Fill every required value with local credentials. Never commit `.env` or real secrets.
-
-> Repository gap at this checkpoint: the safe automated environment bootstrap and complete Compose JWT injection are assigned to S1/shared infrastructure. Until that work merges, verify the effective Compose configuration before relying on `make`.
+Fill every required value with local credentials. Never commit `.env` or real secrets. Compose refuses to start while a required value (database, JWT secrets, SMTP, URLs) is missing.
 
 ### Start
 
@@ -125,8 +120,11 @@ Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.e
 
 - [`docs/architecture.md`](docs/architecture.md) — system boundaries, slices, request flow, and contracts
 - [`docs/api.md`](docs/api.md) — implemented endpoints and API conventions
+- [`docs/contracts.md`](docs/contracts.md) — what S2, S3 and S5 rely on from each other
+- [`docs/database-relationships.md`](docs/database-relationships.md) — focused schema diagrams and delete rules
 - [`docs/database.md`](docs/database.md) — current schema mental model and historical-data rules
 - [`docs/development.md`](docs/development.md) — branch, review, verification, and environment workflow
+- [`docs/pr-guide.md`](docs/pr-guide.md) — PR shape, naming, and the required PR description
 - [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — frozen product, 14-point module plan, and cutoffs
 - [`docs/UPGRADE.md`](docs/UPGRADE.md) — October 2026 dependency upgrade: what changed, what to run after pulling, what is deferred
 
@@ -140,15 +138,13 @@ The executable sources remain authoritative for current implementation details:
 
 ## Team information
 
-The repository must contain the confirmed names/logins for all five members before evaluation. Do not guess them here.
-
-| Member | Role | Slice/responsibility |
-|---|---|---|
-| Aymane (`shank187`) | Technical Lead / Architect; Developer | Architecture/review and S3 Workout Planning & Execution |
-| TODO: confirmed login | TODO: confirmed role | S1 Platform & Identity |
-| TODO: confirmed login | TODO: confirmed role | S2 Gym Discovery & Equipment |
-| TODO: confirmed login | TODO: confirmed role | S4 Social & Real-Time Interaction |
-| TODO: confirmed login | TODO: confirmed role | S5 Progress & Gamification |
+| Member | Login | Role | Slice/responsibility |
+|---|---|---|---|
+| Aymane El Bour | `aelbour` | Technical Lead / Architect; Developer | Architecture/review and S3 Workout Planning & Execution |
+| Abdelhamid El Haddadi | `abel-had` | Project Manager; Developer | S1 Platform & Identity |
+| Salaheddine Badri | `sabadri` | Product Owner; Developer | S5 Progress & Gamification |
+| Zyad Ahansal | `zyahansa` | Developer | S2 Gym Discovery & Equipment |
+| Mohamed Ouarar | `mouarar` | Developer | S4 Social & Real-Time Interaction |
 
 ### Project management
 
@@ -331,14 +327,20 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 
 ## Individual contributions
 
-Keep this section evidence-based and update it from merged commits/PRs before evaluation. At this checkpoint, Aymane’s verified work includes the workout schema foundation, exercise-catalog vertical slice/pagination, shared UI contributions, architecture/context documentation, and Technical Lead coordination. Add every teammate’s verified merged work without inflating or transferring ownership.
+Taken from the merged commits and pull requests on `main`.
+
+- **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, next workout on Home, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
+- **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
+- **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
+- **mouarar (S4):** friends, friend requests and blocking, public profile, WebSocket chat with reconnection and presence, conversations and message history, Social page and the social part of Home.
+- **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
 
 ## Known gaps at this checkpoint
 
-- Workout plan create/detail/update/delete, days/exercises/sets, and all session APIs/UI are not yet implemented; only the owned-plan list read exists.
-- Error response bodies are inconsistent (`{ message }` vs `{ error }`) until S1 finalizes the shared error DTO.
-- Exercise search/filter and complete recovery hardening remain pending.
-- Safe `.env` bootstrap, JWT Compose injection, and CI/Gitleaks remain S1/shared tasks.
+- Error response bodies: every module returns `{ message }` except some gyms errors (`{ error }`), until S1 finalizes the shared error DTO.
+- S3: an exercise can't be removed from a workout in progress (its sets can).
+- The list of past workouts moved to S5 (Progress) on 19 Nov; until it lands, a finished workout opens only from its link.
+- CI/Gitleaks is not set up (no `.github/workflows`).
 - Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
 
 This list is a dated checkpoint, not a permanent project status.

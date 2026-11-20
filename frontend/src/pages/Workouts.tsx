@@ -29,7 +29,6 @@ function Workouts()
     }
     return (
         <div>
-            {! emptySessionError &&
             <Button
             variant="secondary"
             disabled={startingEmptyState}
@@ -39,21 +38,8 @@ function Workouts()
                     navigate(url)
             }}
             >
-                {!startingEmptyState ? "Start empty workouts" : "Starting..."}
-            </Button>}
-            {emptySessionError &&
-                <Button
-                variant="secondary"
-                disabled={startingEmptyState}
-                onClick={async ()=>{
-                    const url = await createEmptySessionUrl();
-                    if(url)
-                        navigate(url)
-                }}
-                >
-                    {startingEmptyState? "Starting...": "Retry"}
-                </Button>
-            }
+                {startingEmptyState ? "Starting..." : emptySessionError ? "Retry" : "Start empty workouts"}
+            </Button>
             {emptySessionError && <p className="text-app-danger">{emptySessionError}</p>}
             {activeSessionId &&
                 <ActiveWorkoutDialog

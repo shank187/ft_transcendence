@@ -1,27 +1,16 @@
-import { toNumber } from "../shared/set-values";
-import type { FieldKey } from "../shared/exercise-fields";
-import { type PerformedValues } from "./workout-session.types";
 import { type WorkoutSessionExercise, type WorkoutSessionSet } from "../shared/workouts.types";
 
-// Inputs hold text: a row starts from the server numbers, null shows as "".
-export function toText(value: number | null): string
-{
-    return value !== null ? value.toString() : ""
-}
-
-// The way back on tick: "" becomes null, "80.5" becomes 80.5.
-export function toPerformed(text: Record<FieldKey, string>): PerformedValues
-{
-    return {
-        weight: toNumber(text.weight),
-        reps: toNumber(text.reps),
-        duration: toNumber(text.duration),
-        distance: toNumber(text.distance),
-    }
-}
-
-// The only place that copies the nested arrays: the changed exercise and set
+// The only places that copy the nested arrays: the changed exercise and set
 // get new objects, every other one keeps its reference.
+export function updateExercise(
+    exercises: WorkoutSessionExercise[],
+    exerciseId: string,
+    change: (exercise: WorkoutSessionExercise) => WorkoutSessionExercise,
+): WorkoutSessionExercise[]
+{
+    return exercises.map(exercise => exercise.id !== exerciseId ? exercise : change(exercise))
+}
+
 export function updateSet(
     exercises: WorkoutSessionExercise[],
     exerciseId: string,
@@ -29,10 +18,8 @@ export function updateSet(
     change: (set: WorkoutSessionSet) => WorkoutSessionSet,
 ): WorkoutSessionExercise[]
 {
-    return exercises.map(exercise => exercise.id !== exerciseId
-        ? exercise
-        : { ...exercise, sets: exercise.sets.map(set => set.id !== setId ? set : change(set)) }
-    )
+    return updateExercise(exercises, exerciseId, exercise =>
+        ({ ...exercise, sets: exercise.sets.map(set => set.id !== setId ? set : change(set)) }))
 }
 
 // Same Epley formula as finishWorkoutSession on the backend, so the live badge

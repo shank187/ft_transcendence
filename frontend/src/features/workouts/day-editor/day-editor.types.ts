@@ -13,7 +13,6 @@ export interface DraftSet{
 
 export interface DraftExercise{
     key: string,
-    restSeconds: string,
     exerciseSummary: ExerciseSummary
     sets: DraftSet[]
 }
