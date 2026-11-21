@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useAuth } from "../features/auth/AuthContext"
@@ -8,6 +7,7 @@ import ProfileActions from "../features/profile/ProfileActions"
 import { useWebSocket } from "./WebSocketContext"
 import ProfileFriends from "../features/profile/ProfileFriends"
 import PendingRequests from "../features/profile/PendingRequests"
+import PublicProfileProgress from "../features/profile/PublicProfileProgress"
 
 export default function Profile() {
     const { username } = useParams<{ username: string }>()
@@ -40,6 +40,7 @@ export default function Profile() {
         const targetUsername = username ?? user?.username
 
         if (!targetUsername) {
+            setProfile(null)
             setLoading(false)
             return
         }
@@ -102,18 +103,16 @@ export default function Profile() {
             {/* Profile card */}
             <div className="rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
                 <div className="flex flex-col gap-7 sm:gap-6">
-
                     {/* Avatar and profile information */}
                     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
-                        {/* Avatar */}
                         <div className="shrink-0">
                             <img
                                 src={
                                     profile.avatarUrl
                                         ? new URL(
-                                            profile.avatarUrl,
-                                            api.defaults.baseURL
-                                        ).href
+                                              profile.avatarUrl,
+                                              api.defaults.baseURL
+                                          ).href
                                         : "/default-avatar.png"
                                 }
                                 alt={profile.username}
@@ -121,7 +120,6 @@ export default function Profile() {
                             />
                         </div>
 
-                        {/* Profile information */}
                         <div className="min-w-0 flex-1 text-center sm:text-left">
                             <h1 className="break-words text-2xl font-bold text-app-text">
                                 {profile.displayName || profile.username}
@@ -146,13 +144,11 @@ export default function Profile() {
                         >
                             Show Friends
                         </button>
-                        
+
                         <ProfileActions
                             profile={profile}
                             onUpdate={refreshProfile}
                         />
-
-
 
                         {profile.id === user?.id && (
                             <button
@@ -167,6 +163,9 @@ export default function Profile() {
                 </div>
             </div>
 
+            {/* XP, level and unlocked achievements */}
+            <PublicProfileProgress profile={profile} />
+
             {/* Friends popup */}
             {showFriends && (
                 <div
@@ -178,7 +177,7 @@ export default function Profile() {
                         role="dialog"
                         aria-modal="true"
                         aria-label="Friends"
-                        onClick={event => event.stopPropagation()}
+                        onClick={(event) => event.stopPropagation()}
                     >
                         <div className="max-h-[70vh] overflow-y-auto p-2">
                             <ProfileFriends
@@ -201,7 +200,7 @@ export default function Profile() {
                         role="dialog"
                         aria-modal="true"
                         aria-label="Friend Requests"
-                        onClick={event => event.stopPropagation()}
+                        onClick={(event) => event.stopPropagation()}
                     >
                         <PendingRequests
                             onClose={() => setShowRequests(false)}

@@ -36,4 +36,18 @@ export const achievements: Achievement[] = [
         description: "Complete 100 workouts",
         unlocked: false,
     },
+    {
+        id: 7,
+        code: "EARLY_BIRD",
+        title: "Early Bird",
+        description: "Finish a workout between 05:00 and 09:00 UTC",
+        unlocked: false,
+    },
+    {
+        id: 8,
+        code: "NIGHT_OWL",
+        title: "Night Owl",
+        description: "Finish a workout between 22:00 and 05:00 UTC",
+        unlocked: false,
+    },
 ];
