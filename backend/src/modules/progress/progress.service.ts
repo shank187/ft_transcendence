@@ -127,19 +127,6 @@ export async function getLeaderboardEntries(userId: string) {
         },
     });
 
-// Handle zero friends.
-    if (users.length === 0) {
-        users = await prisma.user.findMany({
-            where: {
-                id: userId,
-            },
-            select: {
-                id: true,
-                username: true,
-            },
-        });
-    }
-
     // Calculate stored XP for these friends only.
     const xpTotals = await prisma.xpEvent.groupBy({
         by: ["userId"],
