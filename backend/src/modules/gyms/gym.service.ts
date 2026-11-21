@@ -24,7 +24,7 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
             page = 1;
         const gymskiped = (page - 1) * limit;
         
-        const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC"};
+        const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC", closedAt : null};
         
         if (textSearched)
             searchCondiions.name = {contains: textSearched, mode: "insensitive"};
@@ -170,7 +170,8 @@ export async function getSubmissions(){
             submitter : {
                 select : {
                     id : true,
-                    email :true,
+                    username :true,
+                    displayName : true,
                 },
             },
             equipment : {
@@ -216,6 +217,9 @@ export async function selectCurrentGym(gymId : string, userId : string){
     
     if (!gym.verified && gym.visibility !== "PRIVATE")
         throw new Error("Gym is unverified");
+    if (gym.closedAt){
+        throw new Error("Gym is closed");
+    }
     await prisma.user.update({
         where : {id : userId},
         data :{currentGymId:gymId}

@@ -191,6 +191,8 @@ export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Respo
             return res.status(403).json({error: "Access denied"});
         if (e.message === "Gym is unverified")
             return res.status(422).json({error : "Cannot select an unverified gym"});
+        if (e.message === "Gym is closed")
+            return res.status(422).json({error: "Cannot select a closed gym"});
         console.log(e);
         res.status(500).json({ error: "server error" });
     }
