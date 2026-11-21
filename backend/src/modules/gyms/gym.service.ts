@@ -18,30 +18,44 @@ interface CreateGymData {
 
 
 
-export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
+export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, sort? : string ,page? : number){
     let limit : number = 6;
     if (!page)
             page = 1;
         const gymskiped = (page - 1) * limit;
+
+        const where : Prisma.GymWhereInput = {
+            visibility : "PUBLIC",
+            closedAt : null,
+            name : textSearched ? {contains : textSearched, mode: "insensitive"} : undefined,
+            city : city ? city.toLocaleLowerCase() : undefined,
+            verified: typeof verified === "boolean" ? verified : undefined,
+        };
+
+        let orderBy: any = {verified : "desc"};
+        if (sort === "name_asc"){
+            orderBy = {name : "asc"};
+        }
+        else if (sort === "name_desc"){
+            orderBy = {name : "desc"};
+        }
+        else if (sort === "newest"){
+            orderBy = {createdAt : "desc"};
+        }
+
+        // if (textSearched)
+        //     searchCondiions.name = {contains: textSearched, mode: "insensitive"};
+        // if (city)
+        //     searchCondiions.city = city.toLocaleLowerCase();
+        // if (typeof verified == "boolean")
+        //     searchCondiions.verified = verified;
         
-        const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC", closedAt : null};
-        
-        if (textSearched)
-            searchCondiions.name = {contains: textSearched, mode: "insensitive"};
-        if (city)
-            searchCondiions.city = city.toLocaleLowerCase();
-        if (typeof verified == "boolean")
-            searchCondiions.verified = verified;
-        
-        const totalGym = await prisma.gym.count({where : searchCondiions});
+        const totalGym = await prisma.gym.count({where : where});
         const totalPage =  Math.ceil(totalGym/limit);
     
         const gyms = await prisma.gym.findMany({
-            where : searchCondiions,
-            orderBy : [
-                {name : "asc"},
-                {id : "asc"}
-            ],
+            where : where,
+            orderBy : orderBy,
             skip : gymskiped,
             take : limit + 1,
             include : {

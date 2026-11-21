@@ -14,6 +14,7 @@ import {RMPrivateGym} from "./gym.service";
 import {getUserSubmissions} from "./gym.service";
 import {EditGym} from "./gym.service";
 
+
 export async function searchGymsController(req : AuthenticatedRequest, res : Response){
     if (!req.userId){
         return res.status(401).json({message :  "unauthorized"});
@@ -23,13 +24,15 @@ export async function searchGymsController(req : AuthenticatedRequest, res : Res
         const city  = typeof req.query.city === "string" ? req.query.city : undefined ;
         const page = Number(req.query.page) || 1 ;
 
+        const sort = typeof req.query.sort === "string" ? req.query.sort : undefined;
+
         let isVerified : boolean | undefined = undefined;
         if (req.query.verified === "true")
                 isVerified = true;
         if (req.query.verified === "false")
                 isVerified = false;
 
-        const gyms = await searchForGyms(search, city, isVerified, page);
+        const gyms = await searchForGyms(search, city, isVerified, sort, page);
         res.status(200).json(gyms);
     }
     catch(e){

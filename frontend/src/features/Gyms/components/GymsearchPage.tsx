@@ -20,6 +20,8 @@ function GymsearchPage(){
     const [textSearched, setTextSearched] = useState("");
     const[loading, setLoading] = useState(true);
     const [city, setCity] = useState("");
+    const [sort, setSort] = useState("");
+
     const [verified, setVerified]= useState<boolean | null>(true);
     const [page , setPage] = useState(1);
     const [hasNextPage, setHasNextPage] = useState(false);
@@ -31,7 +33,7 @@ function GymsearchPage(){
 
     useEffect (function(){
         setPage(1);
-    },[textSearched, city, verified]);
+    },[textSearched, city, verified, sort]);
 
 
     useEffect(()=> {
@@ -46,6 +48,7 @@ function GymsearchPage(){
                         textSearched: textSearched || undefined,
                         city: city,
                         verified : verified ?? undefined,
+                        sort : sort,
                         page : page,
                     }
                 });
@@ -67,7 +70,7 @@ function GymsearchPage(){
         return  function(){
             ignore = true;
         }
-    }, [textSearched, city, verified, page]);
+    }, [textSearched, city, verified, page, sort]);
     useEffect(function(){
         if (!bannerMessage)
             return;
@@ -112,7 +115,7 @@ function GymsearchPage(){
                             style="bg-black border border-[#CCFF00]/70 "
                             placeholder="search for gym by name"/>
             </div>
-            <GymFilters setCityProps={setCity} setverifiedProps={setVerified}></GymFilters>
+            <GymFilters setCityProps={setCity} setverifiedProps={setVerified} setSortProps={setSort}></GymFilters>
 
 
         {loading ? 
