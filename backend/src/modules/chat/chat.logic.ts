@@ -1,23 +1,10 @@
-
 import WebSocket, { WebSocketServer } from "ws"
 import { ClientMessage, ServerMessage, AuthenticatedWebSocket } from "./chat.type"
 import jwt from "jsonwebtoken"
 import { getFriendsId, areUsersFriends } from "../friends/friends.service"
-import { storeMessage } from "./chat.service"
+import { storeMessage, setReadMessageTime } from "./chat.service"
 
 export let connectedUsers = new Map<string, Set<AuthenticatedWebSocket>>()
-
-// export function notifyFriendshipUpdate(userId: string, targetId: string) {
-//     const response: ServerMessage = {
-//         type: "friendship_updated",
-//         userId: userId
-//     }
-
-//     connectedUsers.get(targetId)?.forEach(socket => {
-//         if (socket.readyState === WebSocket.OPEN)
-//             socket.send(JSON.stringify(response))
-//     })
-// }
 
 function isValidMessage(message: unknown): message is ClientMessage {
     if (typeof message === "object" && message !== null) {
@@ -35,6 +22,9 @@ function isValidMessage(message: unknown): message is ClientMessage {
                 typeof message.token === "string"
             )
         }
+        else if ("type" in message && message.type === "readMessage")
+            return ("target" in message && typeof message.target === "string" &&
+                    "messageId" in message && typeof message.messageId === "string")
     }
 
     return false
@@ -224,7 +214,15 @@ export function initializeChat(wss: WebSocketServer) {
                                 ws.send(JSON.stringify(response))
                                 return
                             }
+                            if (message.content.length > 500) {
+                                const response: ServerMessage = {
+                                    type: "send_error",
+                                    message: "Failed to send message. Please try again."
+                                }
 
+                                if (ws.readyState === WebSocket.OPEN)
+                                    ws.send(JSON.stringify(response))
+                            }
                             if (!(await areUsersFriends(message.to, ws.userId))) {
                                 const response: ServerMessage = {
                                     type: "error",
@@ -235,11 +233,27 @@ export function initializeChat(wss: WebSocketServer) {
                                 return
                             }
 
-                            const msgRecord = await storeMessage(
-                                message.to,
-                                message.content,
-                                ws.userId
-                            )
+                            let msgRecord
+
+                            try {
+                                msgRecord = await storeMessage(
+                                    message.to,
+                                    message.content,
+                                    ws.userId
+                                )
+                            } catch (error) {
+                                console.error("Failed to store message:", error)
+
+                                const response: ServerMessage = {
+                                    type: "send_error",
+                                    message: "Failed to send message. Please try again."
+                                }
+
+                                if (ws.readyState === WebSocket.OPEN)
+                                    ws.send(JSON.stringify(response))
+
+                                return
+                            }
 
                             const response: ServerMessage = {
                                 type: "message",
@@ -248,7 +262,8 @@ export function initializeChat(wss: WebSocketServer) {
                                 content: message.content,
                                 messageId: msgRecord.id,
                                 conversationId: msgRecord.conversationId,
-                                createdAt: msgRecord.createdAt.toISOString()
+                                createdAt: msgRecord.createdAt.toISOString(),
+                                readAt: null
                             }
 
                             connectedUsers.get(message.to)?.forEach(toSocket => {
@@ -264,6 +279,28 @@ export function initializeChat(wss: WebSocketServer) {
                             console.log(
                                 `Message received from user ${ws.userId}`
                             )
+                        }
+                        else if (message.type === "readMessage") {
+                            if (!(await areUsersFriends(message.target, ws.userId)) || message.target === ws.userId) {
+                                const response: ServerMessage = {
+                                    type: "error",
+                                    message: "You can only read messages from accepted friends"
+                                }
+                                ws.send(JSON.stringify(response))
+                                return
+                            }
+                            const response = await setReadMessageTime(message.target, message.messageId, ws.userId)
+                            if (response.type === "error") {
+                                connectedUsers.get(ws.userId)?.forEach(toSocket => {
+                                    toSocket.send(JSON.stringify(response))
+                                })
+                            }
+                            else {
+                                connectedUsers.get(message.target)?.forEach(toSocket => {
+                                    toSocket.send(JSON.stringify(response))
+                                })
+                            }
+                            return
                         }
                     } catch (error) {
                         console.error(

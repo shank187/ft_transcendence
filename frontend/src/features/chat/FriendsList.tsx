@@ -1,11 +1,10 @@
-
 import type { FriendsListProps } from "./chat.types"
 import api from "../auth/axiosInstance"
 import { Link } from "react-router-dom"
 
-export  function FriendsList({ friends, onSelectFriend }: FriendsListProps) {
+export function FriendsList({ friends, onSelectFriend }: FriendsListProps) {
     return (
-        <section className="flex min-w-0 flex-col gap-4">
+        <section className="flex flex-col gap-4">
             <h2 className="text-center text-lg font-semibold text-app-text">
                 Online friends
             </h2>
@@ -15,12 +14,11 @@ export  function FriendsList({ friends, onSelectFriend }: FriendsListProps) {
                     No online friends.
                 </p>
             ) : (
-                <div className="flex min-w-0 gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {friends.map(friend => {
                         const avatar = friend.avatarUrl
                             ? new URL(friend.avatarUrl, api.defaults.baseURL).href
                             : "/default-avatar.png"
-
                         return (
                             <button
                                 key={friend.id}
@@ -62,7 +60,7 @@ export function FriendsListHome({ friends }: FriendsListProps) {
                     No online friends.
                 </p>
             ) : (
-                <div className="flex min-w-0 gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {friends.map(friend => {
                         const avatar = friend.avatarUrl
                             ? new URL(friend.avatarUrl, api.defaults.baseURL).href

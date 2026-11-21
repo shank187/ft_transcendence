@@ -77,86 +77,73 @@ function Social() {
         onlineUserIds.includes(friend.id)
     )
 
-    return (
-<div
-    className="
-        flex
-        h-[calc(100dvh-5rem)]
-        min-h-0
-        w-full
-        min-w-0
-        overflow-hidden
-        bg-app-surface
-        overscroll-none
-        md:h-[calc(100dvh-4rem)]
-        md:gap-4
-        md:bg-transparent
-    "
->
-            {/* Friends and conversations */}
-            <aside
-                className={`
-                    ${selectedFriend ? "hidden" : "flex"}
-                    min-h-0 w-full flex-col gap-0
-                    overflow-hidden bg-app-surface
-                    md:flex md:w-[30%] md:min-w-60 md:max-w-96
-                    md:shrink-0 md:gap-4 md:overflow-visible
-                    md:bg-transparent
-                `}
+return (
+    <div
+        className="
+            flex h-[calc(100dvh-5rem)] w-full
+            overflow-hidden bg-app-surface
+            md:h-[calc(100dvh-4rem)] md:gap-4 md:bg-transparent
+        "
+    >
+        {/* Friends and conversations */}
+        <aside
+            className={`
+                ${selectedFriend ? "hidden" : "flex"}
+                w-full flex-col overflow-hidden
+                md:flex md:w-[30%] md:min-w-60 md:max-w-96
+                md:shrink-0 md:gap-4
+            `}
+        >
+            {/* Online friends */}
+            <div
+                className="
+                    shrink-0 p-4
+                    md:rounded-2xl md:border md:border-app-border
+                    md:bg-app-surface
+                "
             >
-                {/* Online friends */}
-                <div
-                    className="
-                        shrink-0 p-4
-                        md:rounded-2xl md:border md:border-app-border
-                        md:bg-app-surface
-                    "
-                >
-                    <FriendsList
-                        friends={onlineFriends}
-                        onSelectFriend={setSelectedFriend}
-                    />
-                </div>
-
-                {/* Separator visible only on mobile */}
-                <div className="mx-4 border-t border-app-border md:hidden" />
-
-                {/* Conversations */}
-                <div
-                    className="
-                        min-h-0 flex-1 overflow-y-auto p-4
-                        [scrollbar-width:none]
-                        [&::-webkit-scrollbar]:hidden
-                        md:rounded-2xl md:border md:border-app-border
-                        md:bg-app-surface
-                    "
-                >
-                    <ConversationsList
-                        onSelectFriend={setSelectedFriend}
-                    />
-                </div>
-            </aside>
-
-            {/* Chat */}
-            <section
-                className={`
-                    ${selectedFriend ? "flex" : "hidden"}
-                    min-h-0 min-w-0 flex-1 flex-col
-                    overflow-hidden bg-app-surface
-                    md:flex md:rounded-2xl
-                    md:border md:border-app-border
-                `}
-            >
-                <ChatWindow
-                    key={selectedFriend?.id ?? "no-friend"}
-                    friend={selectedFriend}
-                    onSendMessage={sendMessage}
-                    lastMessage={wsMessage}
-                    onBack={handleBack}
+                <FriendsList
+                    friends={onlineFriends}
+                    onSelectFriend={setSelectedFriend}
                 />
-            </section>
-        </div>
-    )
+            </div>
+
+            {/* Separator visible only on mobile */}
+            <div className="border-t border-app-border md:hidden" />
+
+            {/* Conversations */}
+            <div
+                className="
+                    flex-1 overflow-y-auto p-4
+                    [scrollbar-width:none]
+                    [&::-webkit-scrollbar]:hidden
+                    md:rounded-2xl md:border md:border-app-border
+                    md:bg-app-surface
+                "
+            >
+                <ConversationsList onSelectFriend={setSelectedFriend} />
+            </div>
+        </aside>
+
+        {/* Chat */}
+        <section
+            className={`
+                ${selectedFriend ? "flex" : "hidden"}
+                flex-1 flex-col overflow-hidden bg-app-surface
+                md:flex md:rounded-2xl md:border md:border-app-border
+            `}
+        >
+            <ChatWindow
+                key={selectedFriend?.id ?? "no-friend"}
+                friend={selectedFriend}
+                onSendMessage={sendMessage}
+                lastMessage={wsMessage}
+                onBack={handleBack}
+                onlineFriends={onlineFriends}
+            />
+        </section>
+    </div>
+)
 }
 
 export default Social

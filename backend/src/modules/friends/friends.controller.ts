@@ -102,8 +102,3 @@ export const getPendingRequests = async (
         })
     }
 }
-
-
-export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) => {
-
-}

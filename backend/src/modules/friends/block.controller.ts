@@ -8,7 +8,6 @@ export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
 
     if (!blockerId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const addresseeId = userId;
@@ -82,7 +81,6 @@ export const unblockUser = async (req: AuthenticatedRequest, res: Response) => {
 
     if (!unblockerId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const addresseeId = userId;

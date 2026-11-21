@@ -10,7 +10,6 @@ export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response
 
     if (!requesterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const addresseeId = userId;
@@ -70,7 +69,6 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!accepterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const requestSenderId = userId;
@@ -134,7 +132,6 @@ export const rejectFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!rejecterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const requestSenderId = userId;
@@ -180,7 +177,6 @@ export const cancelFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!deleterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const otherFriend = userId;
