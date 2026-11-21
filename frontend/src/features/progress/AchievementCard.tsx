@@ -5,6 +5,8 @@ import {
     LockKeyhole,
     CheckCircle2,
     Dumbbell,
+    Sunrise,
+    Moon,
 } from "lucide-react";
 
 type AchievementCardProps = {
@@ -23,35 +25,48 @@ const achievementColors: Record<
     1: {
         icon: "text-amber-600",
         background: "bg-amber-700/15",
-        border: "border-amber-700/30",
+        border: "border-app-primary",
+        glow: "",
+    },
+    2: {
+        icon: "text-amber-600",
+        background: "bg-amber-700/15",
+        border: "border-app-primary",
         glow: "",
     },
     4: {
         icon: "text-slate-300",
         background: "bg-slate-300/10",
-        border: "border-slate-300/30",
+        border: "border-app-primary",
         glow: "",
     },
     5: {
         icon: "text-yellow-400",
         background: "bg-yellow-400/10",
-        border: "border-yellow-400/30",
+        border: "border-app-primary",
         glow: "",
     },
     6: {
         icon: "text-purple-400",
         background: "bg-purple-400/10",
-        border: "border-purple-400/30",
+        border: "border-app-primary",
         glow: "",
     },
+    
 };
 
 export default function AchievementCard({
     achievement,
 }: AchievementCardProps) {
     const colors =
-        achievementColors[achievement.id] ?? achievementColors[1];
+        achievementColors[achievement.id] ?? achievementColors[4];
 
+    const Icon =
+    achievement.code === "EARLY_BIRD"
+        ? Sunrise
+        : achievement.code === "NIGHT_OWL"
+          ? Moon
+          : Dumbbell;
     return (
             <div
                 className={`flex flex-col gap-3 rounded-xl border p-5 transition-all duration-300 ${
@@ -65,7 +80,7 @@ export default function AchievementCard({
                 <div
                     className={`flex h-14 w-14 items-center justify-center rounded-xl border ${colors.background} ${colors.border}`}
                 >
-                    <Dumbbell
+                    <Icon
                         className={`h-7 w-7 ${colors.icon}`}
                     />
                 </div>
