@@ -98,8 +98,8 @@ export async function getUnlockedAchievements(userId: string) {
 export async function getLeaderboardEntries(userId: string) {
     let users = await prisma.user.findMany({
         where: {
-            id: { not: userId },
             OR: [
+                { id: userId },
                 {
                     //// ////
                     receivedFriendships: {
