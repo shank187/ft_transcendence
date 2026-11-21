@@ -6,6 +6,11 @@ import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs/promises";
 import { getPublicProfile } from "./users.service"
 import {getRelationshipStatus} from "../friends/friends.service"
+import {
+    getTotalXp,
+    getUnlockedAchievements,
+} from "../progress/progress.service";
+import { getLevel } from "../progress/progress.rules";
 
 const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const TRAINING_GOALS = ['BUILD_MUSCLE', 'GAIN_STRENGTH', 'LOSE_FAT', 'IMPROVE_GENERAL_FITNESS', 'IMPROVE_ENDURANCE', 'MAINTAIN_FITNESS'];
@@ -334,32 +339,42 @@ export const get_public_profile = async (
     req: AuthenticatedRequest,
     res: Response
 ) => {
-    const { username } = req.params
-    const userId = req.userId
+    const { username } = req.params;
+    const userId = req.userId;
 
-    if (!userId)
-        return res.status(401).json({ message: "Unauthorized" })
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    if (typeof username !== "string")
-        return res.status(400).json({ message: "Invalid username" })
+    if (typeof username !== "string") {
+        return res.status(400).json({ message: "Invalid username" });
+    }
 
     try {
-        const profile = await getPublicProfile(username)
+        const profile = await getPublicProfile(username);
 
-        if (!profile)
-            return res.status(404).json({ message: "User not found" })
+        if (!profile) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-        const relationship = await getRelationshipStatus(
-            userId,
-            profile.id
-        )
+        const [relationship, totalXp, achievements] = await Promise.all([
+            getRelationshipStatus(userId, profile.id),
+            getTotalXp(profile.id),
+            getUnlockedAchievements(profile.id),
+        ]);
 
         return res.status(200).json({
             ...profile,
-            relationship
-        })
+            relationship,
+            totalXp,
+            level: getLevel(totalXp),
+            achievements,
+        });
     } catch (error) {
-        console.error(error)
-        return res.status(500).json({ message: "Internal server error" })
+        console.error("Failed to load public profile:", error);
+
+        return res.status(500).json({
+            message: "Internal server error",
+        });
     }
-}
+};
