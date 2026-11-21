@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import authRoutes from './modules/auth/auth.routes';
@@ -17,10 +16,6 @@ import gymsRoutes from "./modules/gyms/gym.routes"
 const app = express();
 
 
-app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-}));
 app.use("/uploads/avatars", express.static("uploads/avatars"));
 app.use("/uploads/gyms", express.static("uploads/gyms"));
 

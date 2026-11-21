@@ -38,7 +38,7 @@ Gym expansion approved on 31 Oct 2026: verified, unverified and private gyms, me
 
 Exercise catalog/types/muscles/equipment; search/filter; plans/days/planned exercises/sets; empty/planned session snapshots; type-aware performed sets; completion; workout history; basic PRs.
 
-Second priority: previous values, rest timer, add/replace active-session exercise. Advanced live reordering, complex supersets/circuits, advanced PRs, and recommended templates do not block core validation.
+Second priority: previous values, add/replace active-session exercise. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. Advanced live reordering, complex supersets/circuits, advanced PRs, and recommended templates do not block core validation.
 
 ### S4 — Social & Real-Time
 
@@ -103,12 +103,12 @@ Gamification is stored in `XpEvent` and `UserAchievement`.
 
 A label or implemented-looking schema is not evidence. Each claimed module needs a working demo, success/failure/ownership/repeated-action tests as applicable, clean browser behavior, documented implementation, accurate contributor evidence, and a teammate who can explain and modify it.
 
-## Current implementation checkpoint — 30 September 2026
+## Current implementation checkpoint — 16 November 2026
 
-Verified current foundation: auth/onboarding (email/password and Google OAuth, refresh/session check), protected shell, `/home`, protected `/workouts` plan list with loading/error/empty states, authenticated `GET /api/workout-plans` (owned plans only; on `feature/workout-plans-get` pending merge), authenticated paginated exercise catalog API (UI currently unrouted), shared Button/Card and state components, Prisma schema/migrations, and Docker Compose baseline.
+See the checkpoint in the README for what is on `main`.
 
-Active S3 task: close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan (`/workouts/new-plan` is currently a placeholder). Catalog recovery is required before final validation but scheduled when the catalog re-enters the picker/search path.
+S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. The workout history list moved to S5 (Progress) on 19 Nov.
 
-S1/shared open security work: safe non-overwriting environment bootstrap, required-value failure, Compose JWT injection/no insecure fallback, runtime rotation confirmation, and CI/Gitleaks.
+S1/shared: Compose now fails clearly when a required value is missing (JWT secrets included). Still open: CI/Gitleaks.
 
 Refresh this section from live GitHub/Trello evidence whenever a milestone merges.

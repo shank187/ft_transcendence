@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
     CONTROL_CHARACTER, MAX_EXERCISES, MAX_SETS_PER_EXERCISE, VISIBLE_CHARACTER, distanceValue, durationValue,
-    exerciseIdValue, repsValue, restSecondsValue, setTypeValue, weightValue,
+    exerciseIdValue, repsValue, setTypeValue, weightValue,
 } from "../../lib/validation";
 
 // The frontend checks the same limits in frontend/src/features/workouts/shared/limits.ts.
@@ -32,7 +32,6 @@ export const saveDayBody = z.object({
     exercises: z.array(
         z.object({
             exerciseId: exerciseIdValue,
-            restSeconds: restSecondsValue.nullable(),
             sets: z.array(z.object({
                 setType: setTypeValue,
                 targetWeight: weightValue.nullable(),

@@ -4,6 +4,7 @@ import Hero from "./page_comp/Hero"
 import MissonCard from "./page_comp/MissonCard"
 import GymsLogos from "./page_comp/gymLogos"
 import Feature from "./page_comp/feature"
+import About from "./page_comp/About"
 import Footer from "./page_comp/Footer"
 
 
@@ -17,6 +18,7 @@ function LandingPage(){
                 <GymsLogos/>
                 <MissonCard/>
                 <Feature/>
+                <About/>
             </main>
             <Footer/>
         </>

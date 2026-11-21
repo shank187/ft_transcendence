@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, type WorkoutPlanBody } from "./workout.schema";
-import type { DayDetail, DayExercise, PlanDay, PlanDetail, PlannedSet, SaveDayBody, WorkoutPlan } from "./workout.types";
+import type { DayDetail, DayExercise, HomeDay, PlanDay, PlanDetail, PlannedSet, SaveDayBody, WorkoutPlan } from "./workout.types";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
 
@@ -38,7 +38,6 @@ const dayDetailSelect = {
         select: {
             id: true,
             order: true,
-            restSeconds: true,
             exercise: { select: exerciseSummarySelect },
             sets: {
                 orderBy: { setNumber: "asc" },
@@ -122,7 +121,6 @@ function toDayExerciseDto(exercise: DayExerciseRowDb): DayExercise
     return {
         id: exercise.id,
         order: exercise.order,
-        restSeconds: exercise.restSeconds,
         exerciseSummary: toExerciseSummaryDto(exercise.exercise),
         sets: exercise.sets.map(toPlannedSetDto),
     }
@@ -215,6 +213,49 @@ export async function deleteWorkoutPlan(userId: string, planId: string): Promise
             return false
         throw error
     }
+}
+
+
+
+async function findNextDay(userId: string): Promise<DayRowDb | null>
+{
+    const firstDayLatestPlan = await prisma.workoutPlan.findFirst({
+        where:{ userId: userId, days: {some:{}} },
+        orderBy:{ createdAt:"desc"},
+        select: {days:{ take: 1, orderBy:{dayOrder:"asc"}, select: daySelect} },
+    })
+    if(!firstDayLatestPlan || firstDayLatestPlan.days.length === 0)
+        return null
+    const latestSession = await prisma.workoutSession.findFirst({
+        where: { userId: userId, status: "COMPLETED", workoutDayId: {not: null}},
+        orderBy: {completedAt: "desc"},
+        select:{ workoutDay:{select:{dayOrder: true, workoutPlanId: true}}}
+    })
+    if(!latestSession || !latestSession.workoutDay)
+        return firstDayLatestPlan.days[0]
+    const {dayOrder: latestOrder,workoutPlanId: latestPlanId} = latestSession.workoutDay
+
+    const days =  await prisma.workoutDay.findMany({
+        where:{
+            workoutPlanId: latestPlanId,
+        },
+        orderBy:{dayOrder: "asc"},
+        select: daySelect
+    })
+    if(days.length === 0) return null
+    const next = days.find(d => d.dayOrder > latestOrder) ?? days[0]
+    return next
+}
+
+export async function getNextWorkoutDay(userId: string): Promise<HomeDay | null>
+{
+    const day = await findNextDay(userId)
+    if(!day) return null
+    const active = await prisma.workoutSession.findFirst({
+        where: { userId, status: "IN_PROGRESS", workoutDayId: day.id },
+        select: { id: true },
+    })
+    return { ...planDayDto(day), activeSessionId: active?.id ?? null }
 }
 
 export async function getWorkoutDay(userId: string, planId: string, dayId: string): Promise<DayDetail | null>
@@ -339,7 +380,6 @@ export async function replaceWorkoutDay(userId: string, planId: string, dayId: s
                     workoutDay:{connect:{id: dayId}},
                     exercise: {connect:{ id: item.exerciseId}},
                     order: index + 1,
-                    restSeconds: item.restSeconds,
                     sets:{
                         createMany:{
                             data: item.sets.map((set, setIndex)=>({...set,setNumber: setIndex + 1}))
