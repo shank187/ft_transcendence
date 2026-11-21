@@ -44,8 +44,22 @@ function AddGym({onTabChange, onSuccess} : gymProps){
     }
     async function handleSubmit(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
-        if (!name.trim()){
-            alert("please enter a gym name");
+        // if (!name.trim()){
+        //     alert("please enter a gym name");
+        //     return;
+        // }
+        const trimmedName = name.trim();
+        if (trimmedName.length < 2 || trimmedName.length > 80){
+            alert("Gym name must be between 2 and 80 characters.");
+            return;
+        }
+
+        if (!city.trim()){
+            alert("Please select a city.");
+            return;
+        }
+        if (!imageUrl){
+            alert("Public gyms require at least one photo for admin verification.");
             return;
         }
         const formattedEquip = selectedEquip.map(function(id){
