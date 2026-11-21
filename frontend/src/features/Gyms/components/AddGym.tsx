@@ -10,6 +10,8 @@ import GymNavbar from "./gymNavBar";
 interface gymProps{
     onTabChange:(tab : "search" | "add" | "submission")=>void;
     onSuccess : (msg : string)=>void;
+    // onFailure : (msg : string)=>void;
+
 }
 
 function AddGym({onTabChange, onSuccess} : gymProps){
@@ -95,10 +97,19 @@ function AddGym({onTabChange, onSuccess} : gymProps){
                 return;
 
         const file = e.target.files[0];
-        const fileToSend = new FormData();
 
-        fileToSend.append("image", file);
-
+        if (file.type !== "image/jpeg" && file.type !== "image/png") {
+                // set_error("Choose a JPG or PNG image.");
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024)
+            {
+                // set_error("Image must not exceed 2 MB.");
+                return;
+            }
+            const fileToSend = new FormData();
+            fileToSend.append("image", file);
+    
         try{
             const res = await api.post("/api/gyms/upload-image", fileToSend);
             setImageUrl(res.data.imageUrl);

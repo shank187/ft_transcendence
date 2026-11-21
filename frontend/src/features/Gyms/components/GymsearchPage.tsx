@@ -83,7 +83,7 @@ function GymsearchPage(){
     },[bannerMessage]);
 
     if (activeTab == "add"){
-        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage}/>
+        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage}/>/////
     }
     if (activeTab == "submission"){
         return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage}/>
