@@ -12,11 +12,11 @@ function GymCard({gym} : GymCardPara){
     let imageUrl =  gym.imageUrl || "/gym-images/default-gym.png";
 
     return (
-        <Link to={`/gyms/${gym.id}`}>
-            <div className="group relative flex flex-col sm:flex-row rounded-2xl bg-[#181818] border border-[#2A2A2A] overflow-hidden transition-all duration-200 hover:border-[#3D3D3D] hover:bg-[#1C1C1C] cursor-pointer sm:h-56">
+        <Link to={`/gyms/${gym.id}`} className="@container">
+            <div className="group relative flex flex-col @[500px]:flex-row rounded-2xl bg-[#181818] border border-[#2A2A2A] overflow-hidden transition-all duration-200 hover:border-[#3D3D3D] hover:bg-[#1C1C1C] cursor-pointer @[500px]:h-56">
                     
                     
-                <div className=" relative w-full sm:w-54  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
+                <div className="relative w-full @[500px]:w-54 h-52 @[500px]:h-auto overflow-hidden shrink-0 bg-[#101010]">
                     <img src={imageUrl} alt={gym.name} 
                         className="h-full w-full object-cover group-hover:scale-105 "/>
                     
