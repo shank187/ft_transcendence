@@ -14,7 +14,7 @@ function GymDetailsPage() {
     const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(false);
-    // console [equipList, setEquipList] = useState();
+
 
 
     async function handleSelectgym(){
@@ -53,8 +53,9 @@ function GymDetailsPage() {
     if (!gym)
         return <div className="p-8 text-3xl font-bold">Gym not found!</div>;
 
+    const imageUrl = gym.imageUrl || "/gym-images/default-gym.png";
     const openMapUrl = `https://www.google.com/maps?q=${gym.latitude},${gym.longitude}`;
-  const mapUrl = `https://maps.google.com/maps?q=${gym.latitude},${gym.longitude}&z=15&output=embed`;
+    const mapUrl = `https://maps.google.com/maps?q=${gym.latitude},${gym.longitude}&z=15&output=embed`;
 
 
     return (
@@ -71,7 +72,7 @@ function GymDetailsPage() {
 
 
                     <div className=" relative w-full sm:w-74  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
-                        <img src={gym.imageUrl} alt={gym.name} 
+                        <img src={imageUrl} alt={gym.name} 
                             className="h-full w-full object-cover group-hover:scale-105 "/>
 
                         <div className="absolute top-3.5 left-3.5">

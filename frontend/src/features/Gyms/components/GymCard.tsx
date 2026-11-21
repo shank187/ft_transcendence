@@ -22,14 +22,14 @@ function GymCard({gym} : GymCardPara){
                     
                     <div className="absolute top-3.5 left-3.5">
                         {gym.verified ? (
-                            <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Veridied</p>
+                            <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Verified</p>
                         ) : (
-                            <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Veridied</p>
+                            <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Verified</p>
                         )}
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between p-5 min-w-0 ">
+                <div className="flex-1 flex flex-col justify-between p-5 min-w-0 ">
                     <div >
                         <div className="flex items-center  justify-between gap-2.5">
                             <h3 className="text-xl font-bold text-white truncate">{gym.name}</h3>
