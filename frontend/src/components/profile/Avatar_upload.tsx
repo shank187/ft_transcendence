@@ -30,7 +30,6 @@ export default function Avatar_upload({ user, on_avatar_updated }: AvatarProps)
         if (event.target.files && event.target.files.length > 0)
         {
             const selected_file = event.target.files[0];
-            event.target.value = "";
             if (selected_file.type !== "image/jpeg" && selected_file.type !== "image/png") {
                 set_error("Choose a JPG or PNG image.");
                 return;
