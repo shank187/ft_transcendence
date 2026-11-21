@@ -10,7 +10,7 @@ import {
 type AchievementCardProps = {
     achievement: Achievement;
 };
-
+//!!!!!!!!!!!!!!
 const achievementColors: Record<
     number,
     {
@@ -24,25 +24,25 @@ const achievementColors: Record<
         icon: "text-amber-600",
         background: "bg-amber-700/15",
         border: "border-amber-700/30",
-        glow: "shadow-amber-600/40",
+        glow: "",
     },
     4: {
         icon: "text-slate-300",
         background: "bg-slate-300/10",
         border: "border-slate-300/30",
-        glow: "shadow-slate-300/40",
+        glow: "",
     },
     5: {
         icon: "text-yellow-400",
         background: "bg-yellow-400/10",
         border: "border-yellow-400/30",
-        glow: "shadow-yellow-400/40",
+        glow: "",
     },
     6: {
         icon: "text-purple-400",
         background: "bg-purple-400/10",
         border: "border-purple-400/30",
-        glow: "shadow-purple-400/40",
+        glow: "",
     },
 };
 
@@ -50,8 +50,7 @@ export default function AchievementCard({
     achievement,
 }: AchievementCardProps) {
     const colors =
-        achievementColors[achievement.id] ??
-        achievementColors[1];
+        achievementColors[achievement.id] ?? achievementColors[1];
 
     return (
             <div
