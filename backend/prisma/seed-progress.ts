@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-    const username = "salah";
+    const username = "badrisalah47_0d4b";
     const workoutCount = 101;
 
     const user = await prisma.user.findUnique({

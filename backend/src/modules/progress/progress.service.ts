@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma"
 import type { Prisma } from "@prisma/client"
+import { getWorkoutStats } from "../workout-sessions/workout-stats";
 
 import {
     XP_PER_WORKOUT,
@@ -42,7 +43,7 @@ const workoutMilestones = [
     { code: "WORKOUTS_50", requiredWorkouts: 50 },
     { code: "WORKOUTS_100", requiredWorkouts: 100 },
 ];
-
+///// add prisma enum
 export async function unlockWorkoutAchievements(
     userId: string,
     tx: Prisma.TransactionClient = prisma
@@ -100,6 +101,7 @@ export async function getLeaderboardEntries(userId: string) {
             id: { not: userId },
             OR: [
                 {
+                    //// ////
                     receivedFriendships: {
                         some: {
                             requesterId: userId,
@@ -223,4 +225,21 @@ export async function award(
             getLevel(previousXp + xpGained) > getLevel(previousXp),
         unlocked,
     };
+}
+
+//////////////////stats from date to date
+
+export async function getWeeklyStats(userId: string) {
+    const from = new Date();
+
+    //first monday
+    const daySincemonday = (from.getUTCDate() + 6) % 7;
+    from.setUTCDate(from.getUTCDate() - daySincemonday);
+    from.setUTCHours(0, 0, 0, 0);
+
+    const to = new Date(from);
+    to.setUTCDate(to.getUTCDate() + 7);
+    
+    return getWorkoutStats(userId, from, to);
+
 }
