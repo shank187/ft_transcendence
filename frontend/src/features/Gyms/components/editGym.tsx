@@ -3,6 +3,8 @@ import {X} from "lucide-react";
 import  type { Equipment } from "../type/gym";
 import api from "../../auth/axiosInstance";
 import React, { useState, useEffect } from "react";
+import { isAxiosError } from 'axios';
+
 
 
 
@@ -11,9 +13,10 @@ interface editProps {
     onClose : ()=> void;
     onSuccess : (msg : string)=>void;
     refrech : ()=>void;
+    onFailure :(msg : string) =>void;
 }
 
-export default function EditGym({gym, onClose, onSuccess, refrech} : editProps){
+export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : editProps){
     const [name, setName] = useState( gym.name || "");
     const [city, setCity] = useState(gym.city ||"");
     const [address, setAddress] = useState(gym.address || "");
@@ -31,8 +34,13 @@ export default function EditGym({gym, onClose, onSuccess, refrech} : editProps){
             const res = await api.get("/api/gyms/equip");
             setAllEquip(res.data);
 
-        }catch(e){
-            console.log("Failed to fetch equipment");
+        }
+        catch (e) {
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Could not get equipment");
+            } else {
+                onFailure("Could not get equipment");
+            }
         }
     }
     useEffect(function(){
@@ -72,7 +80,11 @@ export default function EditGym({gym, onClose, onSuccess, refrech} : editProps){
             onSuccess("Gym updated successfully");
             refrech();
         }catch(e){
-            console.log(e);
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to update gym");
+            } else {
+                onFailure("Failed to update gym");
+            }
         }
     }
     return (

@@ -12,6 +12,7 @@ import AddGym from "./AddGym";
 import GymNavbar from "./gymNavBar";
 import MySub from "./MySub";
 import { X } from "lucide-react";
+import { isAxiosError } from "axios";
 
 
 
@@ -28,6 +29,8 @@ function GymsearchPage(){
     const [paginPage, setPaginPage] = useState(1);
 
     const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+    const [bannerFailedMessage, setBannerFailedMessage] = useState<string | null>(null);
+
     const [activeTab, setActiveTab] = useState<"search" | "add" | "submission">("search");
 
 
@@ -60,7 +63,11 @@ function GymsearchPage(){
 
             }
             catch(err){
-                console.log(err);
+                if (isAxiosError(err)) {
+                    setBannerFailedMessage(err.response?.data?.message || err.response?.data?.error || "Failed to load gyms");
+                } else {
+                    setBannerFailedMessage("Failed to load gyms");
+                }
             }
             finally{
                 setLoading(false);
@@ -82,11 +89,24 @@ function GymsearchPage(){
         }
     },[bannerMessage]);
 
+    
+     useEffect(function(){
+        if (!bannerFailedMessage)
+            return;
+        const timer = setTimeout(function(){
+            setBannerFailedMessage(null);
+        }, 3000);
+        return function(){
+            clearTimeout(timer);
+        }
+    },[bannerFailedMessage]);
+
+
     if (activeTab == "add"){
-        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage}/>/////
+        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>/////
     }
     if (activeTab == "submission"){
-        return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage}/>
+        return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>
     }
 
 
@@ -100,14 +120,25 @@ function GymsearchPage(){
 
 
             {bannerMessage && (
-                <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#1A1A1A]/95  border border-[#CCFF00]/40 shadow-2xl text-xs text-white transition-all">
+                <div className="fixed top-6 left-1/2 z-50 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-[#CCFF00] border border-[#B8E600] shadow-2xl text-xs font-bold text-black transition-all">
                     <span>{bannerMessage}</span>
                     <button onClick={function(){setBannerMessage(null)}}
                             className="text-red-400 hover:text-white font-bold px-2 py-1">
-                                <X/>
+                                <X className="text-white"/>
                             </button>
                 </div>
             )} 
+
+            {bannerFailedMessage && (
+                <div className="fixed top-6 left-1/2 z-50 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-red-500 border border-red-900 shadow-2xl text-xs font-bold text-white transition-all">
+                    <span>{bannerMessage}</span>
+                    <button onClick={function(){setBannerFailedMessage(null)}}
+                            className="text-re-400 hover:text-white font-bold px-2 py-1">
+                                <X className="text-white"/>
+                            </button>
+                </div>
+            )} 
+
 
             <div className="flex justify-between  items-center gap-4 mb-6">
                 <SearchBar searchTerm={textSearched} 
@@ -138,7 +169,6 @@ function GymsearchPage(){
                 totalPage={paginPage}/>
         </div>
 
-        {/* <AddGym isOpen={isAddGymOpen}  onClose={setIsAddGymOpen}/> */}
             </div>
         </div>
     )

@@ -3,6 +3,7 @@ import api from "../../auth/axiosInstance";
 import type { Equipment } from "../type/gym";
 import { Check, ChevronLeft, X, Camera} from "lucide-react";
 import GymNavbar from "./gymNavBar";
+import { isAxiosError } from "axios";
 
 
 
@@ -10,11 +11,11 @@ import GymNavbar from "./gymNavBar";
 interface gymProps{
     onTabChange:(tab : "search" | "add" | "submission")=>void;
     onSuccess : (msg : string)=>void;
-    // onFailure : (msg : string)=>void;
+    onFailure : (msg : string)=>void;
 
 }
 
-function AddGym({onTabChange, onSuccess} : gymProps){
+function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
 
     const [name, setName] = useState("");
     const [city, setCity] = useState("");
@@ -35,7 +36,11 @@ function AddGym({onTabChange, onSuccess} : gymProps){
                 const res = await api.get("/api/gyms/equip");
                 setEquiList(res.data);
             }catch(e){
-                console.error("Failed to fetch equipment", e);
+                if (isAxiosError(e)) {
+                    onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to fetch equipment");
+                } else {
+                    onFailure("Failed to fetch equipment");
+                }
             }
         }
         fetchEquip();
@@ -87,8 +92,11 @@ function AddGym({onTabChange, onSuccess} : gymProps){
             handleClose();
         }
         catch(e){
-            console.error("Failed to create gym:",e);
-            alert("Failed to submit gym. Please try again.");
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to submit gym");
+            } else {
+                onFailure("Failed to submit gym. Please try again.");
+            }
         }
     }
 
@@ -99,12 +107,12 @@ function AddGym({onTabChange, onSuccess} : gymProps){
         const file = e.target.files[0];
 
         if (file.type !== "image/jpeg" && file.type !== "image/png") {
-                // set_error("Choose a JPG or PNG image.");
+                onFailure("Choose a JPG or PNG image.");
                 return;
             }
             if (file.size > 2 * 1024 * 1024)
             {
-                // set_error("Image must not exceed 2 MB.");
+                onFailure("Image must not exceed 2 MB.");
                 return;
             }
             const fileToSend = new FormData();
@@ -114,7 +122,11 @@ function AddGym({onTabChange, onSuccess} : gymProps){
             const res = await api.post("/api/gyms/upload-image", fileToSend);
             setImageUrl(res.data.imageUrl);
         }catch(e){
-            console.log(e);
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to upload image");
+            } else {
+                onFailure("Failed to upload image");
+            }
         }
     }
 

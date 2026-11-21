@@ -7,15 +7,18 @@ import { Link } from "react-router-dom";
 import EditGym from "./editGym";
 import { Pencil, Trash2 } from "lucide-react";
 import { MapPin, Dumbbell } from "lucide-react";
+import { isAxiosError } from "axios";
 
 
 interface submissionProps{
     onTabChange : (tab :"search" | "add" | "submission") =>void; 
     onSuccess : (msg : string)=> void;
+    onFailure : (msg : string)=> void;
+
 }
 
 
-export default function MySub({onTabChange, onSuccess} : submissionProps){
+export default function MySub({onTabChange, onSuccess, onFailure} : submissionProps){
     const [currentGym, setCurrentGym] = useState<Gym | null>(null);
     const [isLoading, setIsLoadin] = useState(true);
 
@@ -31,7 +34,9 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                 setCurrentGym(res.data);
                 
             }catch(e){
-                console.log(e);
+                if (isAxiosError(e)) {
+                    onFailure(e.response?.data?.message || e.response?.data?.error || "Could not load current gym");
+                }
             }
             finally{
                 setIsLoadin(false);
@@ -47,7 +52,9 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                 setSubmittedList(res.data);
             }
             catch(e){
-                console.log(e);
+                if (isAxiosError(e)) {
+                    onFailure(e.response?.data?.message || e.response?.data?.error || "Could not load submissions");
+                }
             }
         }
         getSubmitted();
@@ -58,7 +65,9 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
             const res = await api.get("/api/gyms/private");
             setPrivateList(res.data);
         }catch(e){
-            console.log(e);
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Could not load private gyms");
+            }
         }
     }
     useEffect(function(){
@@ -72,7 +81,11 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
             onTabChange("search");
             onSuccess("Current gym reset successfully");
         }catch(e){
-            console.log(e);
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Could not reset current gym");
+            } else {
+                onFailure("Could not reset current gym");
+            }
         }
     }
 
@@ -89,7 +102,11 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                 setCurrentGym(null);
             }
         }catch(e){
-            console.log("failed to delete gym",e);
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to delete gym");
+            } else {
+                onFailure("Failed to delete gym");
+            }
         }
     }
     return (
@@ -117,7 +134,7 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                                             {currentGym.verified ? (
                                                 <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Veridied</p>
                                             ) : (
-                                                <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Veridied</p>
+                                                <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] ">Not Veridied</p>
                                             )}
                                         </div>
                                     </div>
@@ -333,7 +350,8 @@ export default function MySub({onTabChange, onSuccess} : submissionProps){
                             setSelectedGym(null);
                             getPrivate();
 
-                        }}/>
+                        }}
+                        onFailure={onFailure}/>
                 </div>
             )
             }

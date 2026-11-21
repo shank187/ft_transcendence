@@ -28,7 +28,7 @@ function GymNavbar({currentTab, onTabChange} : gymProps){
                 <button  
                     type="button" 
                     onClick={function(){onTabChange("add")}}
-                    className={`flex items-center gap-2 rounded-full  px-4 py-2 text-xs transition-all cursor-pointer ${currentTab === "add" ? "bg-[#CCFF00] text-black font-extrabold" : "bg-[#1E1E1E] text-[#A3A3A3] hover:text-white border border-[#2E2E2E font-extrabold"}`}>
+                    className={`flex items-center gap-2 rounded-full  px-4 py-2 text-xs transition-all cursor-pointer ${currentTab === "add" ? "bg-[#CCFF00] text-black font-extrabold" : "bg-[#1E1E1E] text-[#A3A3A3] hover:text-white border border-[#2E2E2E] font-extrabold"}`}>
                     <Plus className={`w-3.5 h-3.5 `}/>
                     Add a gym
                 </button>

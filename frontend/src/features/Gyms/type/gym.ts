@@ -2,7 +2,9 @@ export interface Equipment {
     id: string;
     name : string;
     imageUrl? : string;
+    category?: string;
 }
+
 export interface GymEquipmentItem {
     gymId: string;
     equipmentId: string;
