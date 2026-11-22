@@ -20,7 +20,6 @@ interface submissionProps{
 
 export default function MySub({onTabChange, onSuccess, onFailure} : submissionProps){
     const [currentGym, setCurrentGym] = useState<Gym | null>(null);
-    const [isLoading, setIsLoadin] = useState(true);
 
     const [privateList, setPrivateList] = useState<Gym[]>([]);
     const [submittedList, setSubmittedList] = useState<GymSubmission[]>([]);
@@ -37,9 +36,6 @@ export default function MySub({onTabChange, onSuccess, onFailure} : submissionPr
                 if (isAxiosError(e)) {
                     onFailure(e.response?.data?.message || e.response?.data?.error || "Could not load current gym");
                 }
-            }
-            finally{
-                setIsLoadin(false);
             }
         }
         getCurrentGym();
@@ -127,7 +123,7 @@ export default function MySub({onTabChange, onSuccess, onFailure} : submissionPr
                                         
                                         
                                     <div className=" relative w-full sm:w-74  h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
-                                        <img src={currentGym.imageUrl} alt={currentGym.name} 
+                                        <img src={currentGym.imageUrl || "/gym-images/default-gym.png"} alt={currentGym.name} 
                                             className="h-full w-full object-cover group-hover:scale-105 "/>
                                         
                                         <div className="absolute top-3.5 left-3.5">

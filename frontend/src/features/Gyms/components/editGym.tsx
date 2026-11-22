@@ -21,7 +21,7 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
     const [city, setCity] = useState(gym.city ||"");
     const [address, setAddress] = useState(gym.address || "");
     const [phoneNumber, SetPhoneNumber] = useState(gym.phone || "");
-    const [allEquip, setAllEquip] = useState<Equipment[] | []>([]);
+    const [allEquip, setAllEquip] = useState<Equipment[]>([]);
     const [selectedEquip, setSelectedEquip] = useState<string[]>(
         gym.equipment ? gym.equipment.map(function(item){
             return item.equipmentId;
@@ -70,7 +70,7 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
             return ;
         }
         try{
-            const res = await api.patch(`/api/gyms/${gym.id}`, {
+                await api.patch(`/api/gyms/${gym.id}`, {
                 name : name.trim(),
                 city : city || null,
                 address : address || null,
@@ -140,7 +140,7 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
                             <label className="block text-xs font-bold text-white mb-2 ">Address</label>
                             <input type="text"
                                     value={address}
-                                    placeholder={gym.address}
+                                    placeholder={gym.address ?? undefined}
                                     onChange={function(e){setAddress(e.target.value)}}
                                     className="w-full rounded-xl bg-[#0E0E0E]  border-[#242424] px-4 py-2.5 text-xs focus:border-[#CCFF00]"/>
                         </div>
@@ -149,7 +149,7 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
                     <div>
                         <label className="block text-xs font-bold text-white mb-2 ">Phone Number</label>
                         <input type="text"
-                                placeholder={gym.phone}
+                                placeholder={gym.phone ?? undefined}
                                 value={phoneNumber}
                                 onChange={function(e){SetPhoneNumber(e.target.value)}}
                                 className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
