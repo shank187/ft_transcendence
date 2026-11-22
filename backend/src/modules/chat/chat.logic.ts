@@ -214,7 +214,7 @@ export function initializeChat(wss: WebSocketServer) {
                                 ws.send(JSON.stringify(response))
                                 return
                             }
-                            if (message.content.length > 500) {
+                            if (!message.content.trim() || message.content.length > 500) {
                                 const response: ServerMessage = {
                                     type: "send_error",
                                     message: "Failed to send message. Please try again."
@@ -222,6 +222,7 @@ export function initializeChat(wss: WebSocketServer) {
 
                                 if (ws.readyState === WebSocket.OPEN)
                                     ws.send(JSON.stringify(response))
+                                return
                             }
                             if (!(await areUsersFriends(message.to, ws.userId))) {
                                 const response: ServerMessage = {
@@ -297,6 +298,9 @@ export function initializeChat(wss: WebSocketServer) {
                             }
                             else {
                                 connectedUsers.get(message.target)?.forEach(toSocket => {
+                                    toSocket.send(JSON.stringify(response))
+                                })
+                                connectedUsers.get(ws.userId)?.forEach(toSocket => {
                                     toSocket.send(JSON.stringify(response))
                                 })
                             }
