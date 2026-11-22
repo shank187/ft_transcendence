@@ -210,7 +210,8 @@ export default function MySub({onTabChange, onSuccess, onFailure} : submissionPr
                         </div>
                     ) : (
                         privateList.map(function(gym){
-                            return <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 rounded-2xl bg-[#181818] border border-[#CCFF00]/45 p-5 sm:p-6">
+                            return <div key={gym.id}
+                                    className="flex flex-col md:flex-row md:items-center justify-between gap-5 rounded-2xl bg-[#181818] border border-[#CCFF00]/45 p-5 sm:p-6">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2.5">
                                                 <h3 className="text-xl font-bold text-white">

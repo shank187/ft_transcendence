@@ -261,7 +261,7 @@ export async function resetCurrent(userId : string){
 
 
 export async function getPrivate(userId : string){
-    const list =  prisma.gym.findMany({
+    const list =  await prisma.gym.findMany({
         where : {visibility : "PRIVATE", createdById : userId},
         include : {
             equipment  : true
