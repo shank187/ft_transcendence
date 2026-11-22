@@ -38,3 +38,45 @@ export async function getPublicProfile(username: string) {
         friendsCount
     }
 }
+
+export async function getName(
+    searchedName: string,
+    userId: string,
+    cursor?: string
+) {
+
+    return prisma.user.findMany({
+        where: {
+    id: {
+        not: userId
+    },
+    OR: [
+        {
+            username: {
+                contains: searchedName,
+                mode: "insensitive"
+            }
+        },
+        {
+            displayName: {
+                contains: searchedName,
+                mode: "insensitive"
+            }
+        }
+    ]
+        },
+        select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true
+        },
+        orderBy: [
+            { username: "asc" },
+            { id: "asc" }
+        ],
+        take: 11,
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : undefined
+    })
+}

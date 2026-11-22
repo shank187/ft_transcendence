@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useMatch, useNavigate } from 'react-router-dom';
 import WebSocketProvider from "./WebSocketProvider"
 import { useState, useEffect , useRef} from 'react';
 import { isAxiosError } from 'axios';
@@ -40,6 +40,7 @@ function MainLayout() {
     const navigation_ref = useRef<HTMLDivElement>(null);
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const isSocial = useMatch('/social') !== null;
 
     async function handle_logout() {
         if (is_logging_out)
@@ -87,7 +88,7 @@ function MainLayout() {
     }, []);
     return (
     <WebSocketProvider>
-        <div className="min-h-screen bg-app-canvas md:flex">
+        <div className={`${isSocial ? 'min-h-dvh' : 'min-h-screen'} bg-app-canvas md:flex`}>
             <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:sticky md:top-0 md:flex md:shrink-0">
                 <nav className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
                     {nav_items.map((item)=> (
@@ -105,7 +106,7 @@ function MainLayout() {
                     </div>
                 </div>
             </div>
-            <div className="min-w-0 p-4 pb-24 md:flex-1 md:p-8">
+            <div className={`min-w-0 md:flex-1 md:p-8 ${isSocial ? '' : 'p-4 pb-24'}`}>
                 <Outlet />
             </div>
 

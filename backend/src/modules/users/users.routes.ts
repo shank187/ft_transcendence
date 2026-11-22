@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate';
-import { updateOnboarding , get_me, update_me, change_password, update_avatar, delete_avatar, validate_onboarding, get_public_profile} from './users.controller';
+import { updateOnboarding , get_me, update_me, change_password, update_avatar, delete_avatar, validate_onboarding, get_public_profile, getNameController} from './users.controller';
 import { validate_profile } from "../../middleware/validate_profile";
 import { upload_avatar } from "../../middleware/upload_avatar";
 import { getUserFriends } from "../friends/friends.controller"
@@ -16,4 +16,5 @@ router.post("/me/avatar", authenticate, upload_avatar, update_avatar);
 router.delete("/me/avatar/delete", authenticate, delete_avatar);
 router.get('/:userId/friends', authenticate, getUserFriends);
 router.get("/:username/profile", authenticate, get_public_profile)
+router.get("/name", authenticate, getNameController);
 export default router;

@@ -24,7 +24,6 @@ router.post("/upload-image", authenticate, upload_gym_image, uploadGymImageContr
 router.patch("/submissions/:id/reject", authenticate, rejectSubmissionController);
 router.patch("/submissions/:id/approve", authenticate, approveSubmissionController);
 router.patch("/me/current", authenticate, CurrentGymCOntroller);
-
 router.get("/:id", authenticate, getGymByIdController);
 
 export default router;

@@ -24,7 +24,7 @@ export async function searchForGyms(textSearched? : string , city? : string , ve
         const gymskiped = (page - 1) * limit;
         
         const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC"};
-        
+
         if (textSearched)
             searchCondiions.name = {contains: textSearched, mode: "insensitive"};
         if (city)
@@ -319,3 +319,6 @@ export async function selectCurrentGym(gymId : string, userId : string){
         data :{currentGymId:gymId}
     });
 }
+
+
+
