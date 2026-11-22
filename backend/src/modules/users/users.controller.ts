@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../../middleware/authenticate';
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs/promises";
-import { getPublicProfile } from "./users.service"
+import { getPublicProfile, getName } from "./users.service"
 import {getRelationshipStatus} from "../friends/friends.service"
 
 const EXPERIENCE_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
@@ -358,6 +358,58 @@ export const get_public_profile = async (
             ...profile,
             relationship
         })
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+
+export async function getNameController(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    const userId = req.userId
+    const { cursor } = req.query
+
+    const name = typeof req.query.name === "string"
+        ? req.query.name.trim()
+        : ""
+
+    if (!userId)
+        return res.status(401).json({ message: "Unauthorized" })
+
+    if (!name)
+        return res.status(200).json({
+            users: [],
+            nextCursor: null,
+            hasMore: false
+        })
+
+    if (name.length > 30)
+        return res.status(400).json({ message: "Search term too long" })
+
+    if (cursor !== undefined && typeof cursor !== "string")
+        return res.status(400).json({ message: "Invalid cursor" })
+
+    try {
+        const userHistory = await getName(name, userId, cursor)
+
+        const hasMore = userHistory.length > 10
+
+        const users = userHistory.slice(0, 10)
+
+        const nextCursor = hasMore
+            ? users[users.length - 1].id
+            : null
+
+        return res.status(200).json({
+            users,
+            nextCursor,
+            hasMore
+        })
+
     } catch (error) {
         console.error(error)
         return res.status(500).json({ message: "Internal server error" })
