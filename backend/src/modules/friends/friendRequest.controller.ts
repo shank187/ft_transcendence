@@ -57,7 +57,6 @@ export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response
         await notifyFriendshipUpdate(userId, requesterId)
         return res.status(201).json({ message: "Friendship Request created" })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -119,7 +118,6 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(userId, accepterId)
         return res.status(200).json({ message: "Friendship request accepted" })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -166,7 +164,6 @@ export const rejectFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(userId, rejecterId)
         return res.status(200).json({ message: "Friendship request rejected" });
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -215,7 +212,6 @@ export const cancelFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(otherFriend, deleterId)
         return res.status(200).json({ message: "Friend request deleted" });
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }

@@ -32,9 +32,7 @@ export default function Profile() {
             )
 
             setProfile(response.data)
-        } catch (error) {
-            console.error("Failed to refresh profile:", error)
-        }
+        } catch (error) {}
     }
 
     useEffect(() => {
@@ -59,8 +57,6 @@ export default function Profile() {
                 if (!cancelled)
                     setProfile(response.data)
             } catch (error) {
-                if (!cancelled)
-                    console.error("Failed to fetch profile:", error)
             } finally {
                 if (!cancelled)
                     setLoading(false)
@@ -103,7 +99,7 @@ export default function Profile() {
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:p-4 md:p-6">
             <SearchBar hideOnMobile={false}/>
             {/* Profile card */}
-            <div className="rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
+            <div className="mt-4 rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
                 <div className="flex flex-col gap-7 sm:gap-6">
 
                     {/* Avatar and profile information */}
