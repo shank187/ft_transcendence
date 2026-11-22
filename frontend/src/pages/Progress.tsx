@@ -7,8 +7,7 @@ import LoadingState from "../components/states/LoadingState";
 import ErrorState from "../components/states/ErrorState";
 import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
-import ProgressTabs from "../features/progress/ProgressTabs";
-import Achievements from "../features/progress/Achievements";
+import ProgressTabs from "../components/ui/ProgressTabs";import Achievements from "../features/progress/Achievements";
 import { ChartLine } from "lucide-react"
 
 const XP_PER_LEVEL = 500;
