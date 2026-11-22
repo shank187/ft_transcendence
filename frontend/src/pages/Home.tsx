@@ -5,9 +5,6 @@ import { useAuth } from '../features/auth/AuthContext';
 import api from '../features/auth/axiosInstance';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import WorkoutPlanCard from '../features/workouts/plans/WorkoutPlanCard';
-import { getWorkouts } from '../features/workouts/plans/plans.api';
-import type { WorkoutPlan } from '../features/workouts/plans/plans.types';
 import {
     getProgressSummary,
     getLeaderboard,
@@ -20,21 +17,30 @@ import HomeProgressCard from '../features/progress/HomeProgressCard';
 import { FriendsListHome } from '../features/chat/FriendsList';
 import type { FriendData } from '../features/chat/chat.types';
 import { useWebSocket } from './WebSocketContext';
+import { getNextDay } from '../features/workouts/shared/get-plan-details';
+import StartDayButton from '../features/workouts/shared/StartDayButton';
+import type { HomeDay } from '../features/workouts/shared/workouts.types';
+
+type NextDayState =
+    | { status: 'loading' }
+    | { status: 'success'; result: HomeDay | null }
+    | { status: 'failure'; message: string };
 
 function Home() {
     const { user, setUser } = useAuth();
     const { onlineUserIds, lastMessage, connectionStatus } = useWebSocket();
     const navigate = useNavigate();
 
-    const [workouts, set_workouts] = useState<WorkoutPlan[] | null>(null);
-    const [friends, set_friends] = useState<FriendData[] | null>(null);
     const [progress, set_progress] = useState<ProgressSummary | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [friends, set_friends] = useState<FriendData[] | null>(null);
+    const [nextDayState, setNextDayState] = useState<NextDayState>({
+        status: 'loading',
+    });
 
     const [profile_error, set_profile_error] = useState('');
-    const [workouts_error, set_workouts_error] = useState('');
-    const [friends_error, set_friends_error] = useState('');
     const [progress_error, set_progress_error] = useState('');
+    const [friends_error, set_friends_error] = useState('');
 
     const friendshipUpdate =
         lastMessage?.type === 'friendship_updated' ? lastMessage : null;
@@ -57,17 +63,20 @@ function Home() {
             }
         }
 
-        async function loadWorkouts() {
+        async function loadNextWorkoutDay() {
+            setNextDayState({ status: 'loading' });
+
             try {
-                const data = await getWorkouts();
-                set_workouts(data);
-                set_workouts_error('');
+                const data = await getNextDay();
+                setNextDayState({ status: 'success', result: data });
             } catch (error) {
-                if (error instanceof Error) {
-                    set_workouts_error(error.message);
-                } else {
-                    set_workouts_error('Could not load your plans.');
-                }
+                setNextDayState({
+                    status: 'failure',
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : 'Could not load your next workout. Check your workouts page.',
+                });
             }
         }
 
@@ -94,7 +103,7 @@ function Home() {
         }
 
         loadProfile();
-        loadWorkouts();
+        loadNextWorkoutDay();
         loadProgress();
     }, [setUser]);
 
@@ -144,29 +153,88 @@ function Home() {
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card className="min-w-0 space-y-6 border border-app-border">
                     <h2 className="text-sm font-semibold uppercase">
-                        Your workouts
+                        Next workout
                     </h2>
 
-                    {workouts_error ? (
-                        <p role="alert" className="text-sm text-app-danger">
-                            {workouts_error}
-                        </p>
-                    ) : workouts === null ? (
+                    {nextDayState.status === 'loading' ? (
                         <p role="status" className="text-app-text-secondary">
-                            Loading your plans...
+                            Loading your next workout...
                         </p>
-                    ) : workouts.length === 0 ? (
-                        <p className="text-app-text-secondary">
-                            No workout plans yet. Open workouts to create your
-                            first plan.
+                    ) : nextDayState.status === 'failure' ? (
+                        <p role="alert" className="text-sm text-app-danger">
+                            {nextDayState.message}
                         </p>
-                    ) : (
-                        <WorkoutPlanCard workout={workouts[0]} />
-                    )}
+                    ) : nextDayState.result === null ? (
+                        <div className="space-y-4">
+                            <p className="text-app-text-secondary">
+                                You don&apos;t have any planned day yet.
+                            </p>
 
-                    <Button onClick={() => navigate("/workouts")}>
-                        all plans
-                    </Button>
+                            <Button
+                                variant="outline"
+                                className="border"
+                                onClick={() => navigate('/workouts')}
+                            >
+                                Plan your workouts
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <h3 className="truncate text-xl font-semibold">
+                                {nextDayState.result.name}
+                            </h3>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <p className="text-2xl font-bold">
+                                        {nextDayState.result.dayOrder}
+                                    </p>
+                                    <p className="text-sm text-app-text-secondary">
+                                        Day
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="text-2xl font-bold">
+                                        {nextDayState.result.exerciseCount}
+                                    </p>
+                                    <p className="text-sm text-app-text-secondary">
+                                        Exercises
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="text-2xl font-bold">
+                                        {nextDayState.result.setCount}
+                                    </p>
+                                    <p className="text-sm text-app-text-secondary">
+                                        Sets
+                                    </p>
+                                </div>
+                            </div>
+
+                            {nextDayState.result.activeSessionId ? (
+                                <div className="space-y-2">
+                                    <p className="text-sm text-app-text-secondary">
+                                        You already started this workout.
+                                    </p>
+
+                                    <Button
+                                        className="w-full min-h-11"
+                                        onClick={() =>
+                                            navigate(
+                                                `/workouts/session/${nextDayState.result?.activeSessionId}`
+                                            )
+                                        }
+                                    >
+                                        ▶ Resume
+                                    </Button>
+                                </div>
+                            ) : (
+                                <StartDayButton dayId={nextDayState.result.id} />
+                            )}
+                        </div>
+                    )}
                 </Card>
 
                 <HomeProgressCard

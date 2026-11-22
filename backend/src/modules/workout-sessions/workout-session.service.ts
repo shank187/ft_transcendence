@@ -26,7 +26,6 @@ const setSelect = {
 const sessionExerciseSelect = {
     id: true,
     order: true,
-    restSeconds: true,
     exercise: { select: exerciseSummarySelect },
     sets: { orderBy: { setNumber: "asc" }, select: setSelect },
 } satisfies Prisma.WorkoutSessionExerciseSelect;
@@ -72,7 +71,6 @@ function toSessionExerciseDto(exercise: SessionExerciseRowDb, previousBest: numb
         id: exercise.id,
         order: exercise.order,
         exerciseSummary: toExerciseSummaryDto(exercise.exercise),
-        restSeconds: exercise.restSeconds,
         previousBest,
         sets: exercise.sets.map(toSessionSetDto),
     }
@@ -540,7 +538,6 @@ const daySnapshotSelect = {
         select: {
             exerciseId: true,
             order: true,
-            restSeconds: true,
             sets: {
                 orderBy: { setNumber: "asc" },
                 select: { setNumber: true, setType: true, targetWeight: true, targetReps: true, targetDuration: true, targetDistance: true },
@@ -589,7 +586,6 @@ export async function startWorkoutSession(userId: string, dayId: string | undefi
                         create: (day?.exercises ?? []).map(exercise => ({
                             exerciseId: exercise.exerciseId,
                             order: exercise.order,
-                            restSeconds: exercise.restSeconds,
                             sets: {
                                 createMany: {
                                     data: exercise.sets.map(set => ({
@@ -651,7 +647,7 @@ export async function moveSessionExercise(userId: string, sessionId: string, exe
         })
     }catch(error){
         // Another move or add changed this workout's order at the same time.
-        if(isUniqueViolation(error))
+        if(isUniqueViolation(error) || isWriteConflict(error))
             return { ok: false, reason: "CONFLICT" }
         throw error
     }

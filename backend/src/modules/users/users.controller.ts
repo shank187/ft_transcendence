@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../../middleware/authenticate';
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs/promises";
-import { getPublicProfile } from "./users.service"
+import { getPublicProfile, getName } from "./users.service"
 import {getRelationshipStatus} from "../friends/friends.service"
 import {
     getTotalXp,
@@ -377,4 +377,4 @@ export const get_public_profile = async (
             message: "Internal server error",
         });
     }
-};
+}

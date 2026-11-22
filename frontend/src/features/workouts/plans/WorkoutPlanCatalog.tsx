@@ -100,14 +100,14 @@ export default function WorkoutPlanCatalog()
             </div>
             {workouts.length >= MAX_PLANS_PER_USER && (<p>{`You can have at most ${MAX_PLANS_PER_USER} plans.`}</p>)}
 
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+            <ul className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 {workouts.map((workout) => (
                     <WorkoutPlanCard
                         key={workout.id}
                         workout={workout}
                     />
                 ))}
-            </div>
+            </ul>
             {createDialog}
         </section>
     )
