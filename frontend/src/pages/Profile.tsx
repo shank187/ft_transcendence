@@ -8,6 +8,7 @@ import ProfileActions from "../features/profile/ProfileActions"
 import { useWebSocket } from "./WebSocketContext"
 import ProfileFriends from "../features/profile/ProfileFriends"
 import PendingRequests from "../features/profile/PendingRequests"
+import SearchBar from "../features/chat/SearchBar"
 
 export default function Profile() {
     const { username } = useParams<{ username: string }>()
@@ -98,7 +99,9 @@ export default function Profile() {
         )
 
     return (
+        
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:p-4 md:p-6">
+            <SearchBar hideOnMobile={false}/>
             {/* Profile card */}
             <div className="rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
                 <div className="flex flex-col gap-7 sm:gap-6">
