@@ -18,6 +18,7 @@ export default function WebSocketProvider({
     const { accessToken } = useAuth();
     const [connectionStatus , setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" >("disconnected")
     const wsRef = useRef<WebSocket | null>(null);
+    const [onlineFriendsRefreshFailed, setOnlineFriendsRefreshFailed] = useState(false)
 
     const [lastMessage, setLastMessage] =
         useState<ServerMessage | null>(null);
@@ -57,7 +58,6 @@ export default function WebSocketProvider({
                 };
 
                 connection.send(JSON.stringify(message));
-                // console.log(`${accessToken}`)
             };
 
             connection.onmessage = async (event) => {
@@ -68,6 +68,7 @@ export default function WebSocketProvider({
                     setConnectionStatus("connected");
                 }
                 else if (message.type === "presence_snapshot") {
+                    setOnlineFriendsRefreshFailed(false)
                     setOnlineUserIds(message.onlineUserIds);                    
                 }
                 else if (message.type === "presence") {
@@ -95,8 +96,9 @@ else if (message.type === "friendship_updated") {
         setOnlineUserIds(current =>
             current.filter(id => friendIds.has(id))
         )
-    } catch (error) {
-        console.error("Failed to update online friends:", error)
+        setOnlineFriendsRefreshFailed(false)
+    } catch {
+        setOnlineFriendsRefreshFailed(true)
     }
 }
             };
@@ -111,11 +113,6 @@ else if (message.type === "friendship_updated") {
                 retryTimer = setTimeout(connect, 3000);
             };
 
-            connection.onerror = () => {
-                // onclose normally follows a failed connection.
-                // Reconnection is handled there.
-                console.error("WebSocket connection error");
-            };
         }
 
         connect();
@@ -145,7 +142,7 @@ return () => {
 
     return (
         <WebSocketContext.Provider
-            value={{ wsRef, lastMessage, onlineUserIds, connectionStatus }}
+            value={{ wsRef, lastMessage, onlineUserIds, connectionStatus, onlineFriendsRefreshFailed }}
         >
             {children}
         </WebSocketContext.Provider>

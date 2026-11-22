@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom"
 import SearchBar from "../features/chat/SearchBar"
 
 function Social() {
-    const { wsRef, lastMessage: wsMessage, onlineUserIds } = useWebSocket()
+    const { wsRef, lastMessage: wsMessage, onlineUserIds, connectionStatus, onlineFriendsRefreshFailed } = useWebSocket()
 
     const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(null)
     const [friends, setFriends] = useState<FriendData[]>([])
@@ -39,9 +39,7 @@ function Social() {
             try {
                 const response = await api.get<FriendData[]>("/api/friends")
                 setFriends(response.data)
-            } catch (error) {
-                console.error("Failed to refresh friends:", error)
-            }
+            } catch (error) {}
         }
 
         refreshFriends()
@@ -53,9 +51,7 @@ function Social() {
             try {
                 const response = await api.get<FriendData[]>("/api/friends")
                 setFriends(response.data)
-            } catch (error) {
-                console.error("Failed to get friends:", error)
-            }
+            } catch (error) {}
         }
 
         getFriends()
@@ -117,6 +113,11 @@ function Social() {
                         md:bg-app-surface
                         "
                         >
+                        {connectionStatus === "connected" && onlineFriendsRefreshFailed && (
+                            <p className="mb-2 text-center text-sm text-red-500">
+                                Couldn’t refresh online friends.
+                            </p>
+                        )}
                         <FriendsList
                             friends={onlineFriends}
                             onSelectFriend={setSelectedFriend}
