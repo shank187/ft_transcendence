@@ -26,8 +26,6 @@ const mobile_nav_items = [
 const more_nav_items = [
     { to: "/progress", label: "Progress" },
     { to: "/profile", label: "Profile" },
-    { to: '/privacy', label: 'privacy' },
-    { to: '/terms', label: 'terms' },
     { to: "/profile/settings", label: "Settings" },
 ];
 
@@ -100,10 +98,6 @@ function MainLayout() {
                     <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
                         {is_logging_out ? 'Logging out...' : 'Log out'}
                     </Button>
-                    <div className="flex gap-2  text-xs text-app-text-secondary">
-                        <Link to="/privacy" className="hover:underline">Privacy</Link>
-                        <Link to="/terms" className="hover:underline">Terms</Link>
-                    </div>
                 </div>
             </div>
             <div className={`min-w-0 md:flex-1 md:p-8 ${isSocial ? '' : 'p-4 pb-24'}`}>
