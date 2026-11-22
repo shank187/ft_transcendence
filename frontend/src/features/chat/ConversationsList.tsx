@@ -7,7 +7,8 @@ import { formatMessageDate } from "./Message"
 export function ConversationsList({
     onSelectFriend,
 }: ConversationsListProps) {
-    const { lastMessage } = useWebSocket()
+    const { lastMessage, connectionStatus } = useWebSocket()
+    const isSocketAuthenticated = connectionStatus === "connected"
 
     const [conversations, setConversations] = useState<ConversationData[]>([])
     const [getError, setGetError] = useState(false)
@@ -72,7 +73,6 @@ export function ConversationsList({
                 }
             } catch (error) {
                 if (!cancelled) {
-                    console.error("Failed to load conversations:", error)
                     setGetError(true)
                 }
             }
@@ -83,7 +83,7 @@ export function ConversationsList({
         return () => {
             cancelled = true
         }
-    }, [newMessageId])
+    }, [newMessageId, isSocketAuthenticated])
 
     function handleSelectConversation(conversation: ConversationData) {
         setConversations(current =>
