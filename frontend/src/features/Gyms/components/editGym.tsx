@@ -72,9 +72,9 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
         try{
             const res = await api.patch(`/api/gyms/${gym.id}`, {
                 name : name.trim(),
-                city : city || undefined,
-                address : address || undefined,
-                phone : phoneNumber || undefined,
+                city : city || null,
+                address : address || null,
+                phone : phoneNumber || null,
                 equipment : formattedEquip,
             });
             onSuccess("Gym updated successfully");
