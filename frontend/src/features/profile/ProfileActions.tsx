@@ -14,29 +14,40 @@ export default function ProfileActions({
     onUpdate
 }: ProfileActionsProps) {
     const [loading, setLoading] = useState(false)
-const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(null)
+    const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(null)
+    const [actionError, setActionError] = useState("")
+
+    function openConfirmation(action: "block" | "remove") {
+        setActionError("")
+        setConfirmAction(action)
+    }
 
     async function handleAction(
         method: "post" | "delete",
         endpoint: string
     ) {
         if (loading)
-            return
+            return false
 
         setLoading(true)
+        setActionError("")
 
+        let actionCompleted = false
         try {
             if (method === "post")
                 await api.post(endpoint)
             else
                 await api.delete(endpoint)
 
+            actionCompleted = true
             await onUpdate()
-        } catch (error) {
-            console.error("Profile action failed:", error)
+        } catch {
+            if (!actionCompleted)
+                setActionError("Couldn’t complete the action. Try again.")
         } finally {
             setLoading(false)
         }
+        return actionCompleted
     }
     const userId = profile.id
 
@@ -130,7 +141,7 @@ const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(nu
                     </Link>
                     <button
                         disabled={loading}
-                        onClick={() => (setConfirmAction("remove"))}
+                        onClick={() => openConfirmation("remove")}
                         className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
                     >
                         Remove Friend
@@ -143,13 +154,16 @@ const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(nu
                 profile.relationship !== "BLOCKED_BY_THEM" && (
                     <button
                         disabled={loading}
-                        onClick={() => {setConfirmAction("block")}}
+                        onClick={() => openConfirmation("block")}
                         className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
                     >
                         Block user
                     </button>
                 )}
 
+            {!confirmAction && actionError && (
+                <p role="alert" className="text-sm text-red-500">{actionError}</p>
+            )}
             {confirmAction && (
     <Dialog
         title={confirmAction === "block" ? "Block User" : "Remove Friend"}
@@ -163,12 +177,18 @@ const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(nu
                 : "Are you sure you want to remove this friend?"
             }
         </p>
+        {actionError && (
+            <p role="alert" className="text-sm text-red-500">{actionError}</p>
+        )}
 
         <div className="flex justify-end gap-3">
             <button
                 type="button"
                 disabled={loading}
-                onClick={() => setConfirmAction(null)}
+                onClick={() => {
+                    setActionError("")
+                    setConfirmAction(null)
+                }}
                 className="rounded-lg border border-app-border px-4 py-2"
             >
                 Cancel
@@ -178,19 +198,12 @@ const [confirmAction, setConfirmAction] = useState<"block" | "remove" | null>(nu
                 type="button"
                 disabled={loading}
                 onClick={async () => {
-                    if (confirmAction === "block") {
-                        await handleAction(
-                            "post",
-                            `/api/friends/${userId}/block`
-                        )
-                    } else {
-                        await handleAction(
-                            "delete",
-                            `/api/friends/${userId}/delete`
-                        )
-                    }
+                    const completed = confirmAction === "block"
+                        ? await handleAction("post", `/api/friends/${userId}/block`)
+                        : await handleAction("delete", `/api/friends/${userId}/delete`)
 
-                    setConfirmAction(null)
+                    if (completed)
+                        setConfirmAction(null)
                 }}
                 className="w-full rounded-lg border border-red-600 px-4 py-2 text-center text-sm text-red-500 disabled:opacity-50 sm:w-auto"
             >
