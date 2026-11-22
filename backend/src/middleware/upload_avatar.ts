@@ -3,6 +3,8 @@ import multer from "multer";
 import { randomUUID } from "node:crypto";
 
 import type { RequestHandler } from "express";
+import sharp from "sharp";
+import { unlink } from "node:fs/promises";
 
 
 
@@ -48,9 +50,39 @@ const upload = multer({
 const uploadSingle = upload.single("avatar");
 
 export const upload_avatar: RequestHandler = (req, res, next) => {
-    uploadSingle(req, res, (error) => {
+    uploadSingle(req, res, async(error) => {
         if (!error)
         {
+            if (!req.file) {
+                res.status(400).json({ message: "Please select an image." });
+                return;
+            }
+
+            try {
+                const image = sharp(req.file.path);
+
+                const metadata = await image.metadata();
+
+                if ((metadata.format !== "jpeg" && metadata.format !== "png") || req.file.mimetype !== `image/${metadata.format}`)
+                    throw new Error("Invalid image format.");
+
+                // Force Sharp to decode the image, not just read its headers.
+                await image.toBuffer();
+            } catch {
+                try {
+                    await unlink(req.file.path);
+                } catch (delete_error) {
+                    if (typeof delete_error !== "object" || delete_error === null || !("code" in delete_error) || delete_error.code !== "ENOENT") {
+                        console.log("error :", delete_error);
+                        res.status(500).json({message: "Could not remove the invalid upload."});
+                        return;
+                    }
+                }
+
+                res.status(400).json({message: "Choose a valid JPG or PNG image."});
+                return;
+            }
+
             next();
             return;
         }
