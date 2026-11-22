@@ -98,7 +98,7 @@ function Social() {
 
             try {
                 const response = await api.get<SearchResponse>(
-                    "/api/gyms/name",
+                    "/api/users/name",
                     {
                         params: { name: query }
                     }
@@ -139,7 +139,7 @@ function Social() {
 
         try {
             const response = await api.get<SearchResponse>(
-                "/api/gyms/name",
+                "/api/users/name",
                 {
                     params: {
                         name: query,
@@ -201,55 +201,53 @@ function Social() {
     )
 
     return (
-        <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full flex-col md:h-[calc(100dvh-4rem)]">
-                <div     className={`
-        relative z-20 shrink-0 p-5
-        ${selectedFriend ? "hidden md:block" : "block"}
-    `}>
+        <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col bg-app-surface md:h-[calc(100dvh-4rem)] md:bg-transparent">
+                <div
+                    className={`relative z-20 shrink-0 px-4 pt-2 md:px-0 md:pb-5 ${selectedFriend ? "hidden md:block" : "block"}`}
+                >
                     <SearchBar
                         searchTerm={name}
                         onSearchChange={setName}
+                        style="border border-app-border bg-app-surface-raised focus-within:border-app-primary [&>input]:min-w-0 [&>input]:bg-transparent [&>input]:text-base md:[&>input]:text-sm"
+                        placeholder="Search for users..."
                     />
 
                     {name.trim() && (
                         <div
                             className="
-                                absolute left-0 right-0 top-full
-                                z-30
-                                max-h-64
-                                overflow-y-auto
-                                rounded-xl
-                                border border-zinc-700
+                                absolute inset-x-4 top-full md:inset-x-0
+                                z-30 mt-1
+                                max-h-[min(16rem,40dvh)] md:max-h-64
+                                overflow-y-auto overscroll-contain
+                                rounded-2xl
+                                border border-app-border
                                 bg-app-surface
-                                p-2
+                                p-1.5
                                 shadow-xl
                                 [scrollbar-width:none]
                                 [&::-webkit-scrollbar]:hidden
                             "
                         >
                             {loading ? (
-                                <p className="p-3 text-center text-sm text-app-text-secondary">
+                                <p role="status" className="px-4 py-5 text-center text-sm text-app-text-secondary">
                                     Searching...
                                 </p>
                             ) : listUser.length === 0 ? (
-                                <p className="p-3 text-center text-sm text-app-text-secondary">
+                                <p role="status" className="px-4 py-5 text-center text-sm text-app-text-secondary">
                                     No users found.
                                 </p>
                             ) : (
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-0.5">
                                     {listUser.map(user => (
                                         <Link
                                             key={user.id}
                                             to={`/profile/${encodeURIComponent(user.username)}`}
                                             className="
-                                                flex items-center gap-3
-                                                rounded-lg
-                                                border border-zinc-700
-                                                bg-zinc-800
-                                                p-3
+                                                flex min-w-0 items-center gap-3
+                                                rounded-xl px-3 py-2.5
                                                 transition-colors
-                                                hover:border-zinc-500
-                                                hover:bg-zinc-700
+                                                hover:bg-app-surface-hover
+                                                focus-visible:bg-app-surface-hover
                                             "
                                         >
                                             <img
@@ -261,16 +259,16 @@ function Social() {
                                                         ).href
                                                         : "/default-avatar.png"
                                                 }
-                                                alt={user.username}
-                                                className="h-11 w-11 shrink-0 rounded-full object-cover"
+                                                alt=""
+                                                className="h-10 w-10 shrink-0 rounded-full border border-app-border object-cover"
                                             />
 
-                                            <div className="min-w-0">
-                                                <p className="truncate font-medium text-app-text">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-app-text">
                                                     {user.displayName || user.username}
                                                 </p>
 
-                                                <p className="truncate text-sm text-app-muted">
+                                                <p className="truncate text-xs text-app-text-secondary">
                                                     @{user.username}
                                                 </p>
                                             </div>
@@ -284,13 +282,12 @@ function Social() {
                                             onClick={loadMore}
                                             disabled={loadingMore}
                                             className="
-                                                w-full rounded-lg
-                                                border border-zinc-700
-                                                bg-zinc-800
-                                                p-2 text-sm
-                                                text-app-text
+                                                mt-1 w-full rounded-xl
+                                                border border-app-border
+                                                bg-app-surface-raised
+                                                px-3 py-2.5 text-sm font-medium text-app-text
                                                 transition-colors
-                                                hover:bg-zinc-700
+                                                hover:bg-app-surface-hover
                                                 disabled:cursor-not-allowed
                                                 disabled:opacity-50
                                             "
@@ -322,9 +319,6 @@ function Social() {
                     md:bg-transparent
                     `}
             >
-                {/* User search */}
-
-
                 {/* Online friends */}
                 <div
                     className="
