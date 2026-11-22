@@ -94,7 +94,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
             return;
         }
 
-        if (!city.trim()){
+        if (!isPrivate && !city.trim()){
             alert("Please select a city.");
             return;
         }
@@ -114,7 +114,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
 
             if (!urlBack && imageBInary)
                 return;
-            
+
             const res = await api.post("/api/gyms", {
                 name : name.trim(),
                 city : city,

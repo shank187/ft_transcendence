@@ -102,23 +102,17 @@ function GymsearchPage(){
     },[bannerFailedMessage]);
 
 
-    if (activeTab == "add"){
-        return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>/////
-    }
-    if (activeTab == "submission"){
-        return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>
-    }
+    // if (activeTab == "add"){
+    //     return <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>/////
+    // }
+    // if (activeTab == "submission"){
+    //     return <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>
+    // }
 
 
     return (
         
         <div className="min-h-screen text-[#ffffff]">
-            <GymNavbar currentTab={activeTab} onTabChange={setActiveTab}/>
-                    
-            <div className="p-4">
-            <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
-
-
             {bannerMessage && (
                 <div className="fixed top-6 left-1/2 z-50 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-[#CCFF00] border border-[#B8E600] shadow-2xl text-xs font-bold text-black transition-all">
                     <span>{bannerMessage}</span>
@@ -128,48 +122,58 @@ function GymsearchPage(){
                             </button>
                 </div>
             )} 
-
             {bannerFailedMessage && (
                 <div className="fixed top-6 left-1/2 z-50 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-red-500 border border-red-900 shadow-2xl text-xs font-bold text-white transition-all">
-                    <span>{bannerMessage}</span>
+                    <span>{bannerFailedMessage}</span>
                     <button onClick={function(){setBannerFailedMessage(null)}}
-                            className="text-re-400 hover:text-white font-bold px-2 py-1">
+                            className="text-red-400 hover:text-white font-bold px-2 py-1">
                                 <X className="text-white"/>
                             </button>
                 </div>
             )} 
+            {activeTab === "add" && (
+                <AddGym onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>
+            )}
 
+            {activeTab === "submission" && (
+                <MySub onTabChange={setActiveTab} onSuccess={setBannerMessage} onFailure={setBannerFailedMessage}/>
+            )}
+            {activeTab === "search" && (
+                <>
+                    <GymNavbar currentTab={activeTab} onTabChange={setActiveTab}/>
+                            
+                    <div className="p-4">
+                        <h1 className="text-xl font-semibold mb-3">Find the perfect <span className="text-[#CCFF00]">gym</span></h1>
+                        <div className="flex justify-between  items-center gap-4 mb-6">
+                            <SearchBar searchTerm={textSearched} 
+                                        onSearchChange={setTextSearched} 
+                                        style="bg-black border border-[#CCFF00]/70 "
+                                        placeholder="search for gym by name"/>
+                        </div>
+                        <GymFilters setCityProps={setCity} setverifiedProps={setVerified} setSortProps={setSort}></GymFilters>
 
-            <div className="flex justify-between  items-center gap-4 mb-6">
-                <SearchBar searchTerm={textSearched} 
-                            onSearchChange={setTextSearched} 
-                            style="bg-black border border-[#CCFF00]/70 "
-                            placeholder="search for gym by name"/>
-            </div>
-            <GymFilters setCityProps={setCity} setverifiedProps={setVerified} setSortProps={setSort}></GymFilters>
-
-
-        {loading ? 
-            (<LoadingState message="Loading gyms..." />) 
-            : GymList.length === 0 && textSearched!= "" ? (
-                <div className="text-[#ffffff] text-center mt-4">
-                    <p>No gyms found for "{textSearched}".</p>
-                </div>)
-            :(<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-                {GymList.map((gym) =>(
-                    <GymCard key={gym.id} gym={gym}/>
-                ))}
-            </div>)
-        }
-        <div>
-            <PaginationButtons 
-                currentPage={page} 
-                onPageChange={setPage}
-                hasNextPage={hasNextPage}
-                totalPage={paginPage}/>
-        </div>
-
-            </div>
+                        {loading ? 
+                            (<LoadingState message="Loading gyms..." />) 
+                            : GymList.length === 0 && textSearched!= "" ? (
+                                <div className="text-[#ffffff] text-center mt-4">
+                                    <p>No gyms found for "{textSearched}".</p>
+                                </div>)
+                            :(<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+                                {GymList.map((gym) =>(
+                                    <GymCard key={gym.id} gym={gym}/>
+                                ))}
+                            </div>)
+                        }
+                        <div>
+                            <PaginationButtons 
+                                currentPage={page} 
+                                onPageChange={setPage}
+                                hasNextPage={hasNextPage}
+                                totalPage={paginPage}/>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     )
 }
