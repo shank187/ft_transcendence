@@ -56,7 +56,7 @@ function GymsearchPage(){
                     }
                 });
                 if (ignore === false){
-                    setGymList(res.data.data);
+                    setGymList(res.data.data || []);
                     setHasNextPage(res.data.hasNextPage);
                     setPaginPage(res.data.totalPage);
                 }
