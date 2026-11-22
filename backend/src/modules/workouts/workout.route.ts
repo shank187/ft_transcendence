@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
-import { createWorkoutDayController, createWorkoutPlanController, deleteWorkoutDayController, deleteWorkoutPlanController, getWorkoutDayController, getWorkoutPlanController, getWorkoutPlansController, putWorkoutDayController, renameWorkoutDayController, updateWorkoutPlanController } from "./workout.controller";
+import { createWorkoutDayController, createWorkoutPlanController, deleteWorkoutDayController, deleteWorkoutPlanController, getNextDayController, getWorkoutDayController, getWorkoutPlanController, getWorkoutPlansController, putWorkoutDayController, renameWorkoutDayController, updateWorkoutPlanController } from "./workout.controller";
 
 const router = Router();
 
 router.get('/', authenticate, getWorkoutPlansController);
+router.get('/nextday', authenticate, getNextDayController);
 router.post('/', authenticate, createWorkoutPlanController);
 
 router.get('/:planId', authenticate, getWorkoutPlanController);

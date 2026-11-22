@@ -25,7 +25,7 @@ One shared database. Features extend the existing schema; they do not create par
 See [Database relationship maps](database-relationships.md) for focused planning, execution, and catalog diagrams, foreign keys, cardinality, and deletion rules.
 
 ```text
-Identity        User, Session, Role, UserRole
+Identity        User, PendingRegistration, Session, Role, UserRole
 Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, GymSubmission, GymSubmissionEquipment,
                 GymSubmissionPhoto, Facility*, GymFacility*, GymReview*
 Exercises (S3)  MuscleGroup, Exercise, ExerciseSecondaryMuscle, ExerciseEquipment
@@ -56,9 +56,11 @@ Shared          Media, Notification*, ApiKey*
 Planning (reusable intent)                 Execution (history)
 WorkoutPlan                                WorkoutSession  (userId, status, startedAt, completedAt)
   └─ WorkoutDay      (dayOrder)              └─ WorkoutSessionExercise  (order, restSeconds, supersetGroup)
-       └─ WorkoutExercise (order)                 └─ WorkoutSet  (planned* snapshot + performed values)
+       └─ WorkoutExercise (order, restSeconds)    └─ WorkoutSet  (planned* snapshot + performed values)
             └─ WorkoutExerciseSet (target*)
 ```
+
+`restSeconds` on `WorkoutExercise` and `WorkoutSessionExercise` (unused since 18 Nov: rest removed from S3).
 
 Enforced by the Prisma schema / PostgreSQL:
 
@@ -66,7 +68,7 @@ Enforced by the Prisma schema / PostgreSQL:
 - Ordering is unique per parent: `(workoutPlanId, dayOrder)`, `(workoutDayId, order)`, `(workoutExerciseId, setNumber)`, `(workoutSessionId, order)`, `(workoutSessionExerciseId, setNumber)`.
 - Deleting a plan cascades its days/exercises/sets, but `WorkoutSession.workoutDayId` is `SetNull`, so the session rows survive.
 - `WorkoutSet` has separate columns for planned values (`plannedWeight/Reps/Duration/Distance`) and performed values (`weight/reps/duration/distance`), plus a nullable `completedAt`.
-- `WorkoutSession.status` is limited to `IN_PROGRESS`, `COMPLETED`, or `CANCELLED`, and `(userId, status)` is indexed.
+- `WorkoutSession.status` is limited to `IN_PROGRESS`, `COMPLETED`, or `CANCELLED`, and `(userId, status)` is indexed. `CANCELLED` is no longer written: discarding a workout deletes it; only older rows keep that status.
 - `WorkoutSession.bodyWeightKg` is a nullable column for a body-weight snapshot.
 
 Service/application rules (not schema constraints):
@@ -77,7 +79,11 @@ Service/application rules (not schema constraints):
 - at most one `IN_PROGRESS` session per user (check inside the start transaction);
 - starting a planned workout copies targets and configuration into the session atomically;
 - `completedAt = null` is treated as "set not done";
-- repeated completion must not double-count S5 rewards.
+- discarding a workout in progress deletes the session (its exercises and sets go with it, Cascade);
+- `WorkoutSet.isPr` is written once, when the workout is finished, and never recomputed;
+- repeated completion does not double-count S5 rewards (`XpEvent` is unique on `(reason, sourceId)`).
+
+The S2/S3/S5 rules built on these tables are in [contracts.md](contracts.md).
 
 ## Migrations
 
@@ -94,6 +100,7 @@ Current migrations, in order:
 20261020104210_add_pending_registration
 20261030150319_make_pending_email_unique
 20261031221446_gym_expansion_and_rewards
+20261104015710_add_gym_image_url
 ```
 
 - Never edit an applied migration; add a new one.

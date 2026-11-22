@@ -99,14 +99,8 @@ Use AI for bounded explanation/review and verify its output. Do not merge code a
 - **Should finish:** work directly supporting validation, integration, documentation, or evaluation evidence
 - **Defer:** bonuses and polish that do not remove a core blocker
 
-## Current S3 order — dated 30 September 2026
+## S3 status — 16 November 2026
 
-1. ~~Protected `/workouts` page and route bridge~~ — merged (PR #8)
-2. Working Workouts entry points and smallest owned custom-plan flow — plan list UI merged (PR #9); `GET /api/workout-plans` on `feature/workout-plans-get`; next close out `GET /api/workout-plans` verification (non-empty plan, real day count, null description, cross-user isolation), then `POST /api/workout-plans` / Create Plan
-3. Plan/day/exercise/set planning vertical slice
-4. Empty/planned session start with snapshot and ownership
-5. Type-aware set logging/completion
-6. History/basic PR completion contract with S5
-7. Required catalog recovery/search hardening before final validation
+The planned S3 order is done on `main`: plan list and create, plan detail and days, day editor, exercise picker with search, filters, sort, gym filter and pagination, empty and planned workout start, set logging, finish with PRs and the S5 award, and the catalog failure handling. The final S3 PR (#84) adds the contracts, the README part, break-it test results and a refactor that shares the set UI between the day editor and the workout.
 
-Re-estimate from live GitHub/Trello evidence; this order is not permission to implement multiple steps at once.
+Known S3 gaps are listed in the README ("Known gaps").

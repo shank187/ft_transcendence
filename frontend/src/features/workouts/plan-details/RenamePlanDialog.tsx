@@ -4,7 +4,7 @@ import { renamePlan } from "./plan-details.api"
 import Form_input from "../../../components/ui/Form_input"
 import Button from "../../../components/ui/Button"
 import Dialog from "../../../components/ui/Dialog"
-import { CONTROL_CHARACTER, PLAN_DESCRIPTION_MAX, PLAN_NAME_MAX, VISIBLE_CHARACTER } from "../shared/limits"
+import { planInputError } from "../shared/limits"
 
 export default function RenamePlanDialog(props: {
     planId: string
@@ -22,11 +22,8 @@ export default function RenamePlanDialog(props: {
     const submitRename = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (submitting) return
-        if (!VISIBLE_CHARACTER.test(name)) { setError("Plan name is required."); return }
-        if ([...name.trim()].length > PLAN_NAME_MAX) { setError(`Plan name can't be more than ${PLAN_NAME_MAX} characters.`); return }
-        if (CONTROL_CHARACTER.test(name)) { setError("Plan name can't contain line breaks or tabs."); return }
-        if ([...description.trim()].length > PLAN_DESCRIPTION_MAX) { setError(`Description can't be more than ${PLAN_DESCRIPTION_MAX} characters.`); return }
-        if (CONTROL_CHARACTER.test(description)) { setError("Description can't contain line breaks or tabs."); return }
+        const inputError = planInputError(name, description)
+        if (inputError) { setError(inputError); return }
         setSubmitting(true)
         setError(null)
         try {
