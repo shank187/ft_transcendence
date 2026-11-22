@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import { sign_access_token } from './token.service';
 import {
     find_session_by_raw_token,
     revoke_session,
@@ -14,14 +14,6 @@ const refresh_cookie_options = {
     sameSite: 'strict' as const,
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
-
-function sign_access_token(user_id: string)
-{
-    return jwt.sign({ userId: user_id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-}
-
-
-
 
 export const refresh = async (req: Request, res: Response) => {
     let raw_token: string | undefined;

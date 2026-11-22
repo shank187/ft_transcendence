@@ -15,7 +15,7 @@ export const validate_profile = (req: Request, res: Response, next: NextFunction
     if (typeof user.displayName !== "string" || user.displayName.trim() === "")
         return res.status(400).json({ message: "Display name is required." });
 
-    if (typeof user.displayName !== "string" || user.displayName.trim().length < 1 || user.displayName.trim().length > 50)
+    if (user.displayName.trim().length > 50)
     return res.status(400).json({ message: "Display name must be between 1 and 50 characters." });
 
     if (user.bio !== null && (typeof user.bio !== "string" || user.bio.length > 300))

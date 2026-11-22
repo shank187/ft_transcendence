@@ -4,7 +4,7 @@ import { renameWorkoutDay } from "./plan-details.api"
 import Form_input from "../../../components/ui/Form_input"
 import Button from "../../../components/ui/Button"
 import Dialog from "../../../components/ui/Dialog"
-import { CONTROL_CHARACTER, DAY_NAME_MAX, VISIBLE_CHARACTER } from "../shared/limits"
+import { dayNameError } from "../shared/limits"
 
 export default function RenameDayDialog(props: {
     planId: string
@@ -22,9 +22,8 @@ export default function RenameDayDialog(props: {
         e.preventDefault()
         if (submitting) return
         const name = renameName.trim()
-        if (!VISIBLE_CHARACTER.test(name)) { setRenameError("Day name is required."); return }
-        if ([...name].length > DAY_NAME_MAX) { setRenameError(`Day name can't be more than ${DAY_NAME_MAX} characters.`); return }
-        if (CONTROL_CHARACTER.test(name)) { setRenameError("Day name can't contain line breaks or tabs."); return }
+        const inputError = dayNameError(name)
+        if (inputError) { setRenameError(inputError); return }
         setSubmitting(true)
         setRenameError(null)
         try {
