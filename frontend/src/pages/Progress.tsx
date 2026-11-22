@@ -15,7 +15,6 @@ const XP_PER_LEVEL = 500;
 
 export default function Progress() {
     const { user } = useAuth();
-    console.log("My username:", user?.username);
 
     const [activeTab, setActiveTab] = useState("progress");
     const [summary, setSummary] = useState<ProgressSummary | null>(null);

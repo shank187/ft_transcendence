@@ -1,4 +1,4 @@
-import { Moon, Sunrise, Trophy, Zap } from "lucide-react";
+import { Moon, Sunrise, Trophy } from "lucide-react";
 import Card from "../../components/ui/Card";
 import { achievements } from "../progress/achievements.data";
 import type { PublicProfile } from "./profile.types";
