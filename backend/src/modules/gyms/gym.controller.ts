@@ -1,220 +1,172 @@
-import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
+import { Request, Response } from "express";
+import {searchForGyms} from "./gym.service"
+import {getGymById} from "./gym.service";
+import {getALLEquip} from "./gym.service"
+import {createGym} from "./gym.service";
+import {getSubmissions} from "./gym.service"
 import { prisma } from "../../lib/prisma";
+import {selectCurrentGym} from "./gym.service";
+import {getCurrentGym} from "./gym.service";
+import {resetCurrent} from "./gym.service"
+import {getPrivate} from "./gym.service"
+import {RMPrivateGym} from "./gym.service";
+import {getUserSubmissions} from "./gym.service";
+import {EditGym} from "./gym.service";
+import {rejectSubmission, approveSubmission} from "./gym.service";
 import { GymRejectReason } from "@prisma/client";
-import {
-    approveSubmission,
-    createGym,
-    EditGym,
-    getALLEquip,
-    getCurrentGym,
-    getGymById,
-    getPrivate,
-    getSubmissions,
-    getUserSubmissions,
-    rejectSubmission,
-    resetCurrent,
-    RMPrivateGym,
-    searchForGyms,
-    selectCurrentGym,
-} from "./gym.service";
 
-export async function searchGymsController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
+
+export async function searchGymsController(req : AuthenticatedRequest, res : Response){
+    if (!req.userId){
+        return res.status(401).json({message :  "unauthorized"});
     }
-    try {
-        const search =
-            typeof req.query.textSearched === "string"
-                ? req.query.textSearched
-                : undefined;
-        const city =
-            typeof req.query.city === "string" ? req.query.city : undefined;
-        const page = Number(req.query.page) || 1;
+    try{
+        const search = typeof req.query.textSearched === "string" ? req.query.textSearched : undefined;
+        const city  = typeof req.query.city === "string" ? req.query.city : undefined ;
+        const page = Number(req.query.page) || 1 ;
 
-        const sort =
-            typeof req.query.sort === "string" ? req.query.sort : undefined;
+        const sort = typeof req.query.sort === "string" ? req.query.sort : undefined;
 
-        let isVerified: boolean | undefined = undefined;
-        if (req.query.verified === "true") isVerified = true;
-        if (req.query.verified === "false") isVerified = false;
+        let isVerified : boolean | undefined = undefined;
+        if (req.query.verified === "true")
+                isVerified = true;
+        if (req.query.verified === "false")
+                isVerified = false;
 
         const gyms = await searchForGyms(search, city, isVerified, sort, page);
-        return res.status(200).json(gyms);
-    } catch (e) {
-        console.log("error fetching gyms", e);
-        return res.status(500).json({ error: "server error" });
+        res.status(200).json(gyms);
+    }
+    catch(e){
+        console.log("error fetching gyms",e);
+        res.status(500).json({error : "server error"})
     }
 }
 
-export async function getGymByIdController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+export async function getGymByIdController(req :AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
 
-    try {
+    try{
         const id = req.params.id;
         const userId = req.userId;
 
-        if (typeof id !== "string") {
-            return res.status(400).json({ error: "Invalid or missing gym ID" });
-        }
 
+        if (typeof id != "string")
+            return res.status(400).json({ error: "Invalid or missing gym ID" });
         const gym = await getGymById(id, userId);
 
-        if (!gym) {
-            return res.status(404).json({ message: "Gym not found" });
-        }
+        if (!gym)
+            return res.status(404).json({message: "Gym not found"});
 
-        if (gym.visibility === "PRIVATE" && gym.createdById !== userId) {
+        if (gym.visibility === "PRIVATE" && gym.createdById !== userId){
             return res.status(403).json({ message: "Access denied" });
         }
 
-        return res.status(200).json(gym);
-    } catch (e) {
+        res.status(200).json(gym);
+    }
+    catch(e){
         console.log("error fetching this gym", e);
-        return res.status(500).json({ error: "server error" });
+        res.status(500).json({error : "server error"});
     }
 }
 
-export async function getALLEquipController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
 
-    try {
+export async function getALLEquipController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
+
+    try{
         const equip = await getALLEquip();
-        return res.status(200).json(equip);
-    } catch (e) {
+        res.status(200).json(equip);
+    }
+    catch(e){
         console.log(e);
-        return res.status(500).json({ e: "server error" });
+        res.status(500).json({e: "server error"});
     }
 }
 
-export async function createGymController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
 
-    const {
-        name,
-        city,
-        address,
-        phone,
-        website,
-        description,
-        imageUrl,
-        isPrivate,
-        equipment,
-    } = req.body;
+export async function createGymController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
 
-    if (!name || typeof name !== "string" || name.trim() === "") {
-        return res.status(400).json({ e: "gym name is required" });
-    }
+    const {name , city , address, phone ,website, description, imageUrl, isPrivate, equipment} = req.body;
+
+    if (!name  || typeof name != "string" || name.trim() === "")
+        return res.status(400).json({e: "gym name is required"});
 
     const data = {
-        userID: req.userId,
-        dataName: name.trim(),
-        dataCity:
-            typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
-        dataAddress:
-            typeof address === "string" && address.trim() !== ""
-                ? address.trim()
-                : undefined,
-        dataPhone:
-            typeof phone === "string" && phone.trim() !== ""
-                ? phone.trim()
-                : undefined,
-        dataWebsite:
-            typeof website === "string" && website.trim() !== ""
-                ? website.trim()
-                : undefined,
-        dataDescription:
-            typeof description === "string" && description.trim() !== ""
-                ? description.trim()
-                : undefined,
-        dataImageUrl: typeof imageUrl === "string" ? imageUrl.trim() : undefined,
-        dataIsPrivate: isPrivate === true,
-        dataEquip: Array.isArray(equipment)
-            ? equipment.filter(function (item) {
-                  return (
-                      typeof item.equipmentId === "string" &&
-                      item.equipmentId.trim() !== ""
-                  );
-              })
-            : [],
-    };
+        userID : req.userId,
+        dataName : name.trim(),
+        dataCity : typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
+        dataAddress : typeof address === "string" && address.trim() !== "" ? address.trim() :  undefined,
+        dataPhone : typeof phone === "string" && phone.trim() !== "" ? phone.trim() : undefined,
+        dataWebsite: typeof website === "string" && website.trim() !== "" ? website.trim()  : undefined,
+        dataDescription : typeof description === "string" &&  description.trim() !== "" ? description.trim() : undefined,
+        dataImageUrl : typeof imageUrl === "string" ? imageUrl.trim() : undefined,
+        dataIsPrivate : isPrivate === true,
 
+
+        dataEquip : Array.isArray(equipment) ? equipment.filter(function(item){
+            return typeof item.equipmentId === "string" && item.equipmentId.trim() !== ""
+        }) : [],
+    };
+    
     try {
         const result = await createGym(data);
 
-        const msg = isPrivate
-            ? "Private gym created successfully"
-            : "Gym submitted for admin approval";
-        return res.status(201).json({ msg, result });
-    } catch (e) {
+        const msg  = isPrivate 
+        ? "Private gym created successfully" 
+        :"Gym submitted for admin approval";
+        res.status(201).json({msg, result});
+    }catch(e){
         console.log(e);
-        return res.status(500).json({ e: "server error" });
+        res.status(500).json({e: "server error"});
     }
 }
 
-export async function getSubmissionsController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+export async function getSubmissionsController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message :  "unauthorized"});
 
-    try {
+    try{
         const isAdmin = await prisma.userRole.findFirst({
-            where: {
-                userId: req.userId,
-                role: {
-                    name: "ADMIN",
-                },
-            },
+            where : {
+                userId : req.userId,
+                role : {
+                    name : "ADMIN"
+                }}
         });
-        if (!isAdmin) {
-            return res
-                .status(403)
-                .json({ message: "Forbidden: admin access required." });
+        if (!isAdmin){
+            return res.status(403).json({message: "Forbidden: admin access required."});
         }
         const submissions = await getSubmissions();
-        return res.status(200).json(submissions);
-    } catch (e) {
+        res.status(200).json(submissions);
+    }
+    catch(e){
         console.log(e);
-        return res.status(500).json({ e: "server error" });
+        res.status(500).json({e: "server error"});
     }
 }
 
-export async function uploadGymImageController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
+export async function uploadGymImageController(req: AuthenticatedRequest, res: Response) {
+    // 1. Safety check: Is user logged in?
     if (!req.userId) {
         return res.status(401).json({ message: "unauthorized" });
     }
 
+    // 2. Safety check: Did Multer actually find an image file?
     if (!req.file) {
         return res.status(400).json({ message: "Please select an image." });
     }
 
-    // Multer saves the file. Return the URL the browser can use to display it.
+    // 3. Multer saved the file to /public/uploads/gyms/ filename.jpg
+    // We create the URL that the browser can visit:
     const imageUrl = "/uploads/gyms/" + req.file.filename;
-    return res.status(200).json({ imageUrl });
+
+    // 4. Send that URL back to the frontend!
+    res.status(200).json({ imageUrl });
 }
 
 export async function rejectSubmissionController(
@@ -223,19 +175,14 @@ export async function rejectSubmissionController(
 ) {
     const reviewerId = req.userId;
     const submissionId = req.params.id;
-    const reason = Object.values(GymRejectReason).find(
-        (value) => value === req.body?.reason,
-    );
-    const detail =
-        typeof req.body?.detail === "string" ? req.body.detail.trim() || null : null;
+    const reason = Object.values(GymRejectReason).find((value) => value === req.body?.reason,);
+    const detail = typeof req.body?.detail === "string" ? req.body.detail.trim() || null: null;
     if (!reviewerId) {
         return res.status(401).json({ message: "Sign in first." });
     }
 
     if (typeof submissionId !== "string" || !submissionId.trim() || !reason) {
-        return res
-            .status(400)
-            .json({ message: "A submission ID and reason are required." });
+        return res.status(400).json({ message: "A submission ID and reason are required." });
     }
 
     try {
@@ -247,12 +194,7 @@ export async function rejectSubmissionController(
             return res.status(403).json({ message: "Admin access required." });
         }
 
-        const result = await rejectSubmission(
-            submissionId,
-            reviewerId,
-            reason,
-            detail,
-        );
+        const result = await rejectSubmission(submissionId, reviewerId, reason, detail);
 
         switch (result) {
             case "REJECTED":
@@ -260,13 +202,9 @@ export async function rejectSubmissionController(
             case "not-found":
                 return res.status(404).json({ message: "Submission not found." });
             case "self-review":
-                return res
-                    .status(403)
-                    .json({ message: "You can’t review your own submission." });
+                return res.status(403).json({ message: "You can’t review your own submission." });
             case "conflict":
-                return res
-                    .status(409)
-                    .json({ message: "This submission was already reviewed." });
+                return res.status(409).json({ message: "This submission was already reviewed." });
         }
     } catch (error) {
         console.error("Could not reject gym submission", error);
@@ -307,17 +245,11 @@ export async function approveSubmissionController(
             case "not-found":
                 return res.status(404).json({ message: "Submission not found." });
             case "self-review":
-                return res
-                    .status(403)
-                    .json({ message: "You can’t review your own submission." });
+                return res.status(403).json({ message: "You can’t review your own submission." });
             case "conflict":
-                return res
-                    .status(409)
-                    .json({ message: "This submission was already reviewed." });
+                return res.status(409).json({ message: "This submission was already reviewed." });
             case "unsupported":
-                return res
-                    .status(409)
-                    .json({ message: "This submission type cannot be approved yet." });
+                return res.status(409).json({ message: "This submission type cannot be approved yet." });
         }
     } catch (error) {
         console.error("Could not approve gym submission", error);
@@ -325,149 +257,148 @@ export async function approveSubmissionController(
     }
 }
 
-export async function CurrentGymCOntroller(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
-
+export async function CurrentGymCOntroller(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+            return res.status(401).json({message: "unauthorized"});
     const gymId = req.body.gymId;
 
-    if (gymId === null) {
+
+    if (gymId === null){
         await resetCurrent(req.userId);
-        return res.status(200).json({ message: "Gym reset successfully" });
+        return res.status(200).json({message: "Gym reset successfully"});
     }
-    if (typeof gymId !== "string") {
+    if (typeof gymId !== "string")
         return res.status(400).json({ message: "gymId is required" });
-    }
 
-    try {
+    try{
         await selectCurrentGym(gymId, req.userId);
-        return res.status(200).json({ message: "Gym selected successfully" });
-    } catch (e: any) {
+        res.status(200).json({ message: "Gym selected successfully" });
+
+    }catch(e : any){
         if (e.message === "Gym not found")
-            return res.status(404).json({ error: "Gym not found" });
+            return res.status(404).json({error: "Gym not found"});
         if (e.message === "Access denied")
-            return res.status(403).json({ error: "Access denied" });
+            return res.status(403).json({error: "Access denied"});
         if (e.message === "Gym is unverified")
-            return res.status(422).json({ error: "Cannot select an unverified gym" });
+            return res.status(422).json({error : "Cannot select an unverified gym"});
         if (e.message === "Gym is closed")
-            return res.status(422).json({ error: "Cannot select a closed gym" });
+            return res.status(422).json({error: "Cannot select a closed gym"});
         console.log(e);
-        return res.status(500).json({ error: "server error" });
+        res.status(500).json({ error: "server error" });
     }
 }
 
-export async function getCurrentGymCOntroller(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+
+export async function getCurrentGymCOntroller(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
 
     const userId = req.userId;
-    try {
+    try{
         const currentGym = await getCurrentGym(userId);
-        return res.status(200).json(currentGym);
-    } catch (e) {
+        res.status(200).json(currentGym)
+    }catch(e){
         console.log(e);
-        return res.status(500).json({ e: "server error" });
+        res.status(500).json({e: "server error"});
     }
 }
-
-export async function getPrivateController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+export async function getPrivateController(req : AuthenticatedRequest, res:Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
 
     const userId = req.userId;
-    try {
-        const privateList = await getPrivate(userId);
-        return res.status(200).json(privateList);
-    } catch (e) {
+    try{
+        const privateList  = await getPrivate(userId);
+        res.status(200).json(privateList);
+    }catch(e){
         console.log(e);
-        return res.status(500).json({ e: "server error" });
+        res.status(500).json({e: "server error"});   
     }
 }
 
-export async function RMPrivateGymController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
 
+export async function RMPrivateGymController(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
+    
     const userId = req.userId;
     const gymId = req.params.id;
 
-    if (typeof gymId !== "string") {
-        return res.status(400).json({ error: "Invalid gym ID" });
-    }
-    try {
+    if (typeof gymId !== "string")
+        return res.status(400).jsonp({error: "Invalid gym ID"});
+    try{
         await RMPrivateGym(gymId, userId);
-        return res.status(200).json({ message: "Gym deleted successfully" });
-    } catch (e: any) {
+        res.status(200).json({message : "Gym deleted successfully"});
+    }catch(e : any){
         if (e.message === "gym not found")
-            return res.status(404).json({ error: "gym not found" });
+            return res.status(404).json({error : "gym not found"});
         if (e.message === "access denied")
-            return res.status(403).json({ error: "access denied" });
+            return res.status(403).json({error : "access denied"});
+
 
         console.log(e);
-        return res.status(500).json({ error: "server error" });
+        res.status(500).json({error : "server error"});
     }
 }
 
-export async function getUserSubmissionsController(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+
+export async function getUserSubmissionsController(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
 
     const userId = req.userId;
 
-    try {
+    try{
         const gymList = await getUserSubmissions(userId);
-        return res.status(200).json(gymList);
-    } catch (e) {
+        res.status(200).json(gymList);
+    }catch(e){
         console.log(e);
-        return res.status(500).json({ error: "server error" });
+        res.status(500).json({error : "server error"});
     }
 }
 
-export async function EditGymCOntroller(
-    req: AuthenticatedRequest,
-    res: Response,
-) {
-    if (!req.userId) {
-        return res.status(401).json({ message: "unauthorized" });
-    }
+
+export async function EditGymCOntroller(req : AuthenticatedRequest, res : Response){
+    if (!req.userId)
+        return res.status(401).json({message: "unauthorized"});
 
     const useId = req.userId;
     const gymId = req.params.id;
 
-    if (typeof gymId !== "string") {
-        return res.status(400).json({ error: "invalid gym ID" });
+    if (typeof gymId !== "string"){
+        return res.status(400).json({error : "invalid gym ID"});
     }
     const data = req.body;
-    try {
+    try{
         await EditGym(useId, gymId, data);
-        return res.status(200).json({ message: "Gym updated successfully" });
-    } catch (e: any) {
+        res.status(200).json({message : "Gym updated successfully"});
+    }
+    catch(e : any){
         if (e.message === "gym not found")
-            return res.status(404).json({ error: "gym not found" });
+            return res.status(404).json({error : "gym not found"});
         if (e.message === "Acees denied")
-            return res.status(403).json({ error: "Access denied" });
+            return res.status(403).json({error : "Access denied"});
 
         console.log(e);
-        return res.status(500).json({ error: "server error" });
+        res.status(500).json({error :"server error"});
     }
 }
+
+// export async function getGymEquipController(req : AuthenticatedRequest, res : Response){
+//     if (!req.userId)
+//         return res.status(401).json({message: "unauthorized"});
+
+//     const userId  = req.userId;
+//     const gymId = req.params.gymId;
+
+//     if (typeof gymId != "string"){
+//         return res.status(400).json({error : "invalid gym ID"});
+//     }
+
+//     try{
+//         const equipList = await getGymEquip(userId, gymId);
+//         res.status(200).json(equipList);
+//     }catch(e){
+//         console.log(e);
+//     }
+// }
