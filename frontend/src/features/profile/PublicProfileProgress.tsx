@@ -2,6 +2,8 @@ import { Moon, Sunrise, Trophy, Zap } from "lucide-react";
 import Card from "../../components/ui/Card";
 import { achievements } from "../progress/achievements.data";
 import type { PublicProfile } from "./profile.types";
+import ProfileXpCard from "./ProfileXpCard";
+import ProfileAchievementsCard from "./ProfileAchievementsCard";
 
 type PublicProfileProgressProps = {
     profile: PublicProfile;
@@ -31,39 +33,16 @@ export default function PublicProfileProgress({
     return (
         <div className="mt-5 space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-                <Card className="min-w-0 space-y-2 border border-app-border">
-                    <h2 className="text-sm text-app-text-secondary">
-                        Level
-                    </h2>
+                    <ProfileXpCard
+                        totalXp={profile.totalXp}
+                        level={profile.level}
+                    />
 
-                    <p className="flex items-center gap-2 text-3xl font-bold">
-                        <Zap
-                            className="h-6 w-6 text-app-primary"
-                            aria-hidden="true"
-                        />
-                        {profile.level}
-                    </p>
-
-                    <p className="text-sm text-app-text-secondary">
-                        {profile.totalXp.toLocaleString()} XP
-                    </p>
-                </Card>
-
-                <Card className="min-w-0 space-y-2 border border-app-border">
-                    <h2 className="text-sm text-app-text-secondary">
-                        Achievements
-                    </h2>
-
-                    <p className="text-3xl font-bold">
-                        {unlockedAchievements.length} / {achievements.length}
-                    </p>
-
-                    <p className="text-sm text-app-text-secondary">
-                        {latestAchievement
-                            ? `Latest: ${latestAchievement.title}`
-                            : "No achievements unlocked yet"}
-                    </p>
-                </Card>
+                    <ProfileAchievementsCard
+                        unlocked={unlockedAchievements.length}
+                        total={achievements.length}
+                        latestTitle={latestAchievement?.title}
+                    />
             </div>
 
             <Card className="space-y-4 border border-app-border">
