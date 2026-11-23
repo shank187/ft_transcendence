@@ -3,6 +3,9 @@ import { prisma } from "../../lib/prisma";
 import type { GymRejectReason } from "@prisma/client";
 
 
+export const MAX_PRIVATE_GYM_PER_USER = 5;
+export const MAX_PENDING_GYM_PER_USER = 5;
+
 
 interface CreateGymData {
     userID: string;
@@ -114,6 +117,13 @@ export async function getALLEquip(){
 
 export async function createGym(data : CreateGymData){
     if (data.dataIsPrivate){
+
+        const count = await prisma.gym.count({
+            where : {createdById : data.userID, visibility: "PRIVATE"}
+        });
+
+        if (count >= MAX_PRIVATE_GYM_PER_USER)
+            throw new Error("MAX_PRIVATE_GYMS");
         // add the gym data directly to gym table 
         return await prisma.gym.create({
             data : {
@@ -143,6 +153,12 @@ export async function createGym(data : CreateGymData){
     }
     else{
         //add gym data to submussion table 
+        const count = await prisma.gymSubmission.count({
+            where : {submitterId : data.userID, status: "PENDING"}
+        });
+        if (count >= MAX_PENDING_GYM_PER_USER){
+            throw  new Error("MAX_PENDING_SUBMISSIONS");
+        }
         return  await prisma.gymSubmission.create({
             data : {
                 kind : "NEW_GYM",

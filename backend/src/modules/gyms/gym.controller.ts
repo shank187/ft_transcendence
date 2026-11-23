@@ -93,8 +93,38 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
 
     const {name , city , address, phone ,website, description, imageUrl, isPrivate, equipment} = req.body;
 
-    if (!name  || typeof name != "string" || name.trim() === "")
-        return res.status(400).json({e: "gym name is required"});
+    if (!name  || typeof name != "string" || name.trim().length < 2 || name.trim().length > 80)
+        return res.status(400).json({e: "Gym name must be between 2 and 80 characters."});
+
+    if (!isPrivate && (!city || typeof city !== "string" || !city.trim()))
+        return res.status(400).json({ message: "City is required for public gyms." });
+
+
+    if (isPrivate){
+        const privateCount = await prisma.gym.count({
+            where : {createdById : req.userId, visibility : "PRIVATE"}
+        });
+        if (privateCount >= 5){
+            return res.status(422).json({ message: "You can have at most 5 private gyms." });
+        }
+    }
+    else{
+        const pendingCount = await prisma.gymSubmission.count({
+            where : {submitterId : req.userId, status:"PENDING"}
+        });
+        if (pendingCount >= 5) {
+            return res.status(422).json({ message: "You can have at most 5 pending submissions." });
+        }
+    }
+        const  validArrayEquip = Array.isArray(equipment)?  equipment : [];
+        const uniqueEquipIds : string[] = [];
+        for(const item of validArrayEquip){
+            const id = item.equipmentId;
+            if (typeof id === "string" && id.trim() !== "" && !uniqueEquipIds.includes(id)){
+                uniqueEquipIds.push(id);
+            }
+        }
+
 
     const data = {
         userID : req.userId,
@@ -108,10 +138,13 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
         dataIsPrivate : isPrivate === true,
 
 
-        dataEquip : Array.isArray(equipment) ? equipment.filter(function(item){
-            return typeof item.equipmentId === "string" && item.equipmentId.trim() !== ""
-        }) : [],
-    };
+        dataEquip : uniqueEquipIds.map(function(id){
+            return {
+                equipmentId : id,
+                quantity : 1,
+            };
+        }),
+    }
     
     try {
         const result = await createGym(data);
