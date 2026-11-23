@@ -120,7 +120,8 @@ function estimateOneRepMax(weight: number, reps: number): number
 }
 
 // Weight types are scored by their estimated one-rep max. A reps-only bodyweight exercise
-// is scored by its reps: the user's body weight is never stored, so there is no load to estimate.
+// is scored by its reps: the body weight on the day of each workout is not recorded
+// (WorkoutSession.bodyWeightKg is never written; User.weightKg is only today's profile value).
 // ASSISTED_BODYWEIGHT is left out: there, less weight is the better set.
 const ONE_REP_MAX_TYPES: ExerciseType[] = ["WEIGHT_REPS", "WEIGHTED_BODYWEIGHT"]
 const REPS_ONLY_TYPES: ExerciseType[] = ["BODYWEIGHT_REPS"]
