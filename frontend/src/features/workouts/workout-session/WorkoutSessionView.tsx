@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
+import { Plus } from "lucide-react";
 import type { PerformedValues } from "./workout-session.types";
 import type { AwardResult, SetType } from "../shared/workouts.types";
 import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, removeSessionExercise, updateSessionSet } from "./workout-session.api";
@@ -25,7 +26,11 @@ function errorMessage(err: unknown, fallback: string): string
     return err instanceof Error ? err.message : fallback
 }
 
-export default function WorkoutSessionView(props: {sessionId: string})
+interface WorkoutSessionViewProps {
+    sessionId: string
+}
+
+export default function WorkoutSessionView(props: WorkoutSessionViewProps)
 {
     const { sessionId } = props
     const [state, dispatch] = useReducer(sessionReducer, { status: "loading" })
@@ -212,36 +217,47 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const loaded = state.session
     const sets = loaded.exercises.flatMap(e => e.sets)
     const doneCount = sets.filter(s => s.completedAt !== null).length
+    const nextSetId = sets.find(s => s.completedAt === null)?.id ?? null
 
     const requestFinish = () =>
     doneCount < sets.length
         ? setIncompleteFinish(true)
         : void finish()
 
-    const addExercisesButton = <Button variant="secondary" onClick={() => setShowPicker(true)}>Add exercises</Button>
+    const addExercisesButton =
+        <button type="button" onClick={() => setShowPicker(true)} className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-dashed px-5 border-app-primary text-[15px] font-semibold text-app-primary hover:bg-app-primary/10">
+            <Plus aria-hidden="true" className="size-4.5" />
+            Add exercises
+        </button>
 
     return(
         <WorkoutSessionContext.Provider value={actions}>
-        <div className="flex flex-col gap-5">
-            <SessionHeader
-            name={loaded.name}
-            startedAt={loaded.startedAt}
-            finishedAt={loaded.completedAt}
-            status={loaded.status}
-            doneCount={doneCount}
-            totalCount={sets.length}
-            isReadOnly={isReadOnly}
-            finishing={finishing}
-            onFinish={requestFinish}
-            onDiscard={() => setShowDiscard(true)}
-            />
-            {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
-            {loaded.status === "COMPLETED" && loaded.summary &&
-                <SessionSummaryCard summary={loaded.summary} award={award}/>
+        {/* pb-24 keeps the last card above the phone action bar. */}
+        <div className={`flex flex-col gap-4 ${isReadOnly ? "" : "pb-24 md:pb-0"}`}>
+            {/* A finished workout opens on its summary; the summary has its own title. */}
+            {loaded.status === "COMPLETED" && loaded.summary
+                ? <>
+                    <SessionSummaryCard name={loaded.name} summary={loaded.summary} exercises={loaded.exercises} award={award}/>
+                    <h2 className="mt-2 text-lg font-semibold">Sets logged</h2>
+                </>
+                : <SessionHeader
+                name={loaded.name}
+                startedAt={loaded.startedAt}
+                finishedAt={loaded.completedAt}
+                status={loaded.status}
+                doneCount={doneCount}
+                totalCount={sets.length}
+                isReadOnly={isReadOnly}
+                finishing={finishing}
+                onFinish={requestFinish}
+                onDiscard={() => setShowDiscard(true)}
+                onAddExercise={loaded.exercises.length < MAX_EXERCISES ? () => setShowPicker(true) : null}
+                />
             }
+            {finishError && !incompleteFinish && <p role="alert" className="text-sm text-app-danger">{finishError}</p>}
             {!isReadOnly && loaded.exercises.length === 0
                 ? <EmptyState title="No exercises yet" action={addExercisesButton}/>
-                : <ol className="flex flex-col gap-5">
+                : <ol className="flex flex-col gap-4">
                     {loaded.exercises.map((exercise, i)=>
                         <li key={exercise.id}>
                             <ExerciseSessionCard
@@ -249,12 +265,12 @@ export default function WorkoutSessionView(props: {sessionId: string})
                             position={i + 1}
                             isFirst={i === 0}
                             isLast={i === loaded.exercises.length - 1}
+                            nextSetId={nextSetId}
                             />
                         </li>
                     )}
                 </ol>
             }
-            {!isReadOnly && loaded.exercises.length > 0 && loaded.exercises.length < MAX_EXERCISES && addExercisesButton}
             {!isReadOnly && loaded.exercises.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A workout can have at most ${MAX_EXERCISES} exercises.`}</p>}
             {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
             {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
@@ -267,7 +283,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 onClose={() => setShowPicker(false)}
                 >
                     {addError && <p role="alert" className="text-app-danger">{addError}</p>}
-                    <ExercisePicker onAdd={addSelectedExercises} />
+                    <ExercisePicker onAdd={addSelectedExercises} addedIds={loaded.exercises.map(exercise => exercise.exerciseSummary.id)} addedLabel="In this workout" />
                 </Dialog>
             }
         </div>

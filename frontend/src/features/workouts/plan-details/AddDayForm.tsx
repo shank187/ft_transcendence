@@ -5,12 +5,14 @@ import Form_input from "../../../components/ui/Form_input"
 import Button from "../../../components/ui/Button"
 import { MAX_DAYS_PER_PLAN, dayNameError } from "../shared/limits"
 
-export default function AddDayForm(props: {
+interface AddDayFormProps {
     planId: string
     dayCount: number
     onAdded: (day: PlanDay) => void
     onClose: () => void
-})
+}
+
+export default function AddDayForm(props: AddDayFormProps)
 {
     const [dayname, setDayName] = useState("")
     const [nameError, setErrorForm] = useState<string | null>(null)
@@ -46,7 +48,7 @@ export default function AddDayForm(props: {
     }
 
     return (
-        <form onSubmit={submitDay} onKeyDown={cancelOnEscape} noValidate>
+        <form onSubmit={submitDay} onKeyDown={cancelOnEscape} noValidate className="flex flex-col gap-3 rounded-2xl border border-app-border bg-app-surface p-4">
             <Form_input
                 id="day-name"
                 label="Enter a day name."
@@ -55,13 +57,12 @@ export default function AddDayForm(props: {
                 type="text"
             />
             {nameError && (<p className="text-sm text-app-danger">{nameError}</p>)}
-            <Button
-            type="submit"
-            disabled = {submitting}
-            >
-                Save
-            </Button>
-            {!submitting && (<Button variant="secondary"  onClick={props.onClose}>Cancel</Button>)}
+            <div className="flex gap-2">
+                <Button type="submit" className="min-h-11 flex-1 font-semibold" disabled={submitting}>
+                    {submitting ? "Saving..." : "Save"}
+                </Button>
+                {!submitting && <Button variant="secondary" className="min-h-11 flex-1 border border-app-border" onClick={props.onClose}>Cancel</Button>}
+            </div>
         </form>
     )
 }

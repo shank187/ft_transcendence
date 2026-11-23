@@ -1,19 +1,25 @@
 import type { ExerciseType } from "./exercise-picker/exercise.types"
 import type { SetType } from "./workouts.types"
-import { FIELDS, type FieldKey } from "./set-values"
+import { FIELDS_BY_UNIT, type FieldKey, type UnitSystem } from "./set-values"
 
-export interface SetField { key: FieldKey; label: string }
+// sign: "+" for added weight, "−" for assistance, shown before the unit (+KG, −LB).
+export interface SetField { key: FieldKey; sign: "" | "+" | "−" }
 
-function column(key: FieldKey, label = FIELDS[key].label): SetField
+function column(key: FieldKey, sign: SetField["sign"] = ""): SetField
 {
-    return { key, label }
+    return { key, sign }
+}
+
+export function columnLabel(field: SetField, units: UnitSystem): string
+{
+    return `${field.sign}${FIELDS_BY_UNIT[units][field.key].label}`
 }
 
 export const EXERCISE_FIELDS: Record<ExerciseType, SetField[]> = {
     WEIGHT_REPS:         [column("weight"), column("reps")],
     BODYWEIGHT_REPS:     [column("reps")],
-    WEIGHTED_BODYWEIGHT: [column("weight", "+KG"), column("reps")],
-    ASSISTED_BODYWEIGHT: [column("weight", "−KG"), column("reps")],
+    WEIGHTED_BODYWEIGHT: [column("weight", "+"), column("reps")],
+    ASSISTED_BODYWEIGHT: [column("weight", "−"), column("reps")],
     DURATION:            [column("duration")],
     WEIGHT_DURATION:     [column("weight"), column("duration")],
     DISTANCE_DURATION:   [column("distance"), column("duration")],
