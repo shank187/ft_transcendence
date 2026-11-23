@@ -35,6 +35,7 @@ export default function ChatWindow({
     const [sendError, setSendError] = useState("")
     const friendshipUpdate = wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
     const [historyRetry, setHistoryRetry] = useState(0)
+    const previousMessageIds = useRef<MessageData["id"][]>([])
     useEffect(() => {
         if (lastMessage?.type === "send_error") {
             setSendError(lastMessage.message)
@@ -137,7 +138,14 @@ export default function ChatWindow({
         const chatBody = chatBodyRef.current
         if (!chatBody)
             return
+        const currentIds = msgs.map(message => message.id)
+        const previousIds = previousMessageIds.current
+        previousMessageIds.current = currentIds
 
+        const sameMessages = currentIds.length === previousIds.length &&
+        currentIds.every((id, index) => id === previousIds[index])
+        if (sameMessages)
+            return
         if (previousScrollHeight.current !== null) {
             const difference = chatBody.scrollHeight - previousScrollHeight.current
             chatBody.scrollTop += difference
@@ -151,14 +159,19 @@ export default function ChatWindow({
         if (lastMessage?.type !== "readMessage")
             return
 
-        setMsgs(current =>
-            current.map(message =>
+        setMsgs(current => {
+            const index = current.findIndex(message =>
                 message.id === lastMessage.messageId &&
                 message.conversationId === lastMessage.conversationId
-                    ? { ...message, readAt: lastMessage.readAt }
-                    : message
             )
-        )
+
+            if (index === -1 || current[index].readAt === lastMessage.readAt)
+                return current
+
+            const updated = [...current]
+            updated[index] = { ...current[index], readAt: lastMessage.readAt }
+            return updated
+        })
     }, [lastMessage])
 
     useEffect(() => {
