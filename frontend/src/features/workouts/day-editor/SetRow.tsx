@@ -5,6 +5,7 @@ import { validateSet } from "../shared/set-values"
 import type { SetField } from "../shared/exercise-fields"
 import SetTypeMenu from "../shared/SetTypeMenu"
 import SetValueInput from "../shared/SetValueInput"
+import { useUnitSystem } from "../shared/use-unit-system"
 import type { DraftAction } from "./day-editor.draft"
 
 interface SetRowProps {
@@ -21,7 +22,8 @@ export default function SetRow(props: SetRowProps)
 {
     const {set, isMenuOpen, setOpenSetMenu, exKey, dispatch} = props
     const id = useId()
-    const errors = validateSet(set, props.fields)
+    const units = useUnitSystem()
+    const errors = validateSet(set, props.fields, units)
     const menuId = `${id}-set-menu`
 
     const chooseType = (setType: SetType) => {

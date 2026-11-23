@@ -1,12 +1,15 @@
 export type FieldKey = "weight" | "reps" | "duration" | "distance"
 
+// The profile's unit choice. The database always stores kg and meters; only the boxes convert.
+export type UnitSystem = "METRIC" | "IMPERIAL"
+
 export const FIELD_KEYS: FieldKey[] = ["weight", "reps", "duration", "distance"]
 
 type PlannedKey = "plannedWeight" | "plannedReps" | "plannedDuration" | "plannedDistance"
 type TargetKey = "targetWeight" | "targetReps" | "targetDuration" | "targetDistance"
 
 export interface FieldDef {
-    // Default title; the +KG and −KG overrides are in EXERCISE_FIELDS.
+    // Column title; EXERCISE_FIELDS adds the + and − signs.
     label: string
     planned: PlannedKey
     target: TargetKey
@@ -78,6 +81,37 @@ function parseDistance(text: string): number | null
     return Math.round(Number(text) * 10000) / 10
 }
 
+export const KG_PER_LB = 0.45359237
+const METERS_PER_MILE = 1609.344
+
+// Stored as kg, shown as lb rounded to 0.1, so 135 lb (saved as 61.23 kg) shows 135 again.
+function formatPounds(kg: number | null): string
+{
+    return kg === null ? "" : toText(Math.round(kg / KG_PER_LB * 10) / 10)
+}
+
+// Rounded to 0.01 kg, the precision the backend accepts.
+function parsePounds(text: string): number | null
+{
+    if (text.trim() === "") return null
+    if (!isPlainNumber(text)) return NaN
+    return Math.round(Number(text) * KG_PER_LB * 100) / 100
+}
+
+// Stored as meters, shown as miles.
+function formatMiles(meters: number | null): string
+{
+    return meters === null ? "" : toText(Math.round(meters / METERS_PER_MILE * 10000) / 10000)
+}
+
+// Rounded to 0.1 m, like parseDistance.
+function parseMiles(text: string): number | null
+{
+    if (text.trim() === "") return null
+    if (!isPlainNumber(text)) return NaN
+    return Math.round(Number(text) * METERS_PER_MILE * 10) / 10
+}
+
 export const FIELDS: Record<FieldKey, FieldDef> = {
     weight: {
         label: "KG", planned: "plannedWeight", target: "targetWeight",
@@ -105,6 +139,16 @@ export const FIELDS: Record<FieldKey, FieldDef> = {
     },
 }
 
+// isValid still checks the stored kg and meters, so the limits match the backend in both units.
+export const FIELDS_BY_UNIT: Record<UnitSystem, Record<FieldKey, FieldDef>> = {
+    METRIC: FIELDS,
+    IMPERIAL: {
+        ...FIELDS,
+        weight: { ...FIELDS.weight, label: "LB", format: formatPounds, parse: parsePounds, message: "Weight must be between 0 and 2204.6 lb." },
+        distance: { ...FIELDS.distance, label: "MI", format: formatMiles, parse: parseMiles, message: "Distance must be between 0 and 621 mi." },
+    },
+}
+
 export function mapFields<T>(make: (key: FieldKey) => T): Record<FieldKey, T>
 {
     return { weight: make("weight"), reps: make("reps"), duration: make("duration"), distance: make("distance") }
@@ -119,20 +163,21 @@ export function isPlainNumber(value: string): boolean
 }
 
 // An empty box is valid: every value is optional.
-export function fieldError(key: FieldKey, text: string): string | undefined
+export function fieldError(key: FieldKey, text: string, units: UnitSystem): string | undefined
 {
-    const value = FIELDS[key].parse(text)
-    if (value !== null && !FIELDS[key].isValid(value))
-        return FIELDS[key].message
+    const field = FIELDS_BY_UNIT[units][key]
+    const value = field.parse(text)
+    if (value !== null && !field.isValid(value))
+        return field.message
     return undefined
 }
 
 // Only reads the value fields, so the day editor rows and the workout rows both use it.
-export function validateSet(text: Record<FieldKey, string>, fields: { key: FieldKey }[]): Partial<Record<FieldKey, string>>
+export function validateSet(text: Record<FieldKey, string>, fields: { key: FieldKey }[], units: UnitSystem): Partial<Record<FieldKey, string>>
 {
     const errors: Partial<Record<FieldKey, string>> = {}
     for (const { key } of fields) {
-        const error = fieldError(key, text[key])
+        const error = fieldError(key, text[key], units)
         if (error)
             errors[key] = error
     }

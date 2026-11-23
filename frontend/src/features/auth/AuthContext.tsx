@@ -23,6 +23,7 @@ type User = {
     displayName?: string | null;
     onboardingCompletedAt: string | null;
     roles: string[];
+    unitSystem: "METRIC" | "IMPERIAL";
 };
 
 
