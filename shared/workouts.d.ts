@@ -108,7 +108,8 @@ export interface WorkoutSessionExercise
     id: string,
     order: number,
     exerciseSummary: ExerciseSummary,
-    // Best estimated one-rep max from earlier finished workouts.
+    // Best PR score from earlier finished workouts: estimated one-rep max (kg)
+    // for weight types, most reps in one set for BODYWEIGHT_REPS.
     // null when there is none or the exercise type is not eligible.
     previousBest: number | null,
     sets: WorkoutSessionSet[],
