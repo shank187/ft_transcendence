@@ -402,6 +402,26 @@ export async function EditGymCOntroller(req : AuthenticatedRequest, res : Respon
         return res.status(400).json({error : "invalid gym ID"});
     }
     const data = req.body;
+
+    if (!data.name || typeof data.name !== "string" || data.name.trim().length < 2 || data.name.trim().length > 80){
+        return res.status(400).json({ error: "Gym name must be between 2 and 80 characters." });
+    }
+
+    if (data.address && (typeof data.address !== "string" || data.address.trim().length > 200)) {
+        return res.status(400).json({ error: "Address can't exceed 200 characters." });
+    }
+    if (data.phone && (typeof data.phone !== "string" || data.phone.trim().length > 15)) {
+        return res.status(400).json({ error: "Phone can't exceed 15 characters." });
+    }
+    const  validArrayEquip = Array.isArray(data.equipment)?  data.equipment : [];
+    const uniqueEquipIds : string[] = [];
+        for(const item of validArrayEquip){
+            const id = item.equipmentId;
+            if (typeof id === "string" && id.trim() !== "" && !uniqueEquipIds.includes(id)){
+                uniqueEquipIds.push(id);
+            }
+        }
+    data.equipment = uniqueEquipIds.map(id => ({ equipmentId: id, quantity: 1 }));
     try{
         await EditGym(useId, gymId, data);
         res.status(200).json({message : "Gym updated successfully"});
@@ -416,22 +436,3 @@ export async function EditGymCOntroller(req : AuthenticatedRequest, res : Respon
         res.status(500).json({error :"server error"});
     }
 }
-
-// export async function getGymEquipController(req : AuthenticatedRequest, res : Response){
-//     if (!req.userId)
-//         return res.status(401).json({message: "unauthorized"});
-
-//     const userId  = req.userId;
-//     const gymId = req.params.gymId;
-
-//     if (typeof gymId != "string"){
-//         return res.status(400).json({error : "invalid gym ID"});
-//     }
-
-//     try{
-//         const equipList = await getGymEquip(userId, gymId);
-//         res.status(200).json(equipList);
-//     }catch(e){
-//         console.log(e);
-//     }
-// }

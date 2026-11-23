@@ -431,27 +431,29 @@ export async function EditGym(useId : string, gymId : string, data : any){
     if (gym.visibility !== "PRIVATE" || gym.createdById !== useId){
         throw new Error("Acees denied");
     }
-    await prisma.gymEquipment.deleteMany({
-        where : {gymId : gymId}
-    });
-
-    await prisma.gym.update({
-        where : {id : gymId},
-        data : {
-            name : data.name,
-            city : data.city,
-            address : data.address,
-            phone: data.phone,
-            equipment : {
-                create : data.equipment?.map(function(equip : any){
-                    return {
-                        equipmentId:equip.equipmentId,
-                        quantity: 1
-                    }
-                })
+    
+    await prisma.$transaction([
+        prisma.gymEquipment.deleteMany({
+            where : {gymId : gymId}
+        }),
+        prisma.gym.update({
+            where : {id : gymId},
+            data : {
+                name : data.name,
+                city : data.city,
+                address : data.address,
+                phone: data.phone,
+                equipment : {
+                    create : data.equipment?.map(function(equip : any){
+                        return {
+                            equipmentId:equip.equipmentId,
+                            quantity: 1
+                        }
+                    })
+                }
             }
-        }
-    });
+        })
+    ]);
 }
 
 
