@@ -46,26 +46,32 @@ export default function DayRow(props: DayRowProps)
 
     return (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-app-border bg-app-surface p-3.5 md:gap-4 md:px-5 md:py-4">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-app-surface-hover text-sm font-bold text-app-text-secondary md:size-10 md:text-[15px]">
-                {day.dayOrder}
-            </span>
-            {/* flex-basis 8rem: on a narrow phone the buttons wrap under the name instead of squeezing it. */}
-            <div className="flex min-w-0 flex-[1_1_8rem] flex-col gap-0.5">
-                <h3 className="truncate font-semibold md:text-[17px]">{day.name}</h3>
-                <p className="text-[13px] text-app-text-secondary md:text-sm">{day.exerciseCount > 0 ? `${exercises} · ${sets}` : "No exercises yet"}</p>
-            </div>
+            {/* Number and name open the editor, so phones need no separate Edit button and the row stays on one line. */}
+            <Link to={editUrl} className="flex min-w-0 flex-[1_1_7rem] items-center gap-3 md:gap-4">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-app-surface-hover text-sm font-bold text-app-text-secondary md:size-10 md:text-[15px]">
+                    {day.dayOrder}
+                </span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                    <h3 className="truncate font-semibold md:text-[17px]">{day.name}</h3>
+                    <span className="truncate text-[13px] text-app-text-secondary md:text-sm">
+                        {day.exerciseCount > 0 ? exercises : "No exercises yet"}
+                        {day.exerciseCount > 0 && <span className="hidden md:inline"> · {sets}</span>}
+                    </span>
+                </span>
+            </Link>
             <div className="flex shrink-0 items-center gap-2">
                 {day.exerciseCount > 0
                     ? <>
-                        <Link to={editUrl} aria-label={`Edit ${day.name}`} className={`${outlineLinkClasses} w-11 border-app-border hover:bg-app-surface-hover md:w-auto md:px-3.5`}>
+                        <Link to={editUrl} className={`${outlineLinkClasses} hidden border-app-border px-3.5 hover:bg-app-surface-hover md:flex`}>
                             <Pencil aria-hidden="true" className="size-4" />
-                            <span className="hidden md:inline">Edit</span>
+                            Edit
                         </Link>
                         <StartDayButton dayId={day.id} />
                     </>
-                    : <Link to={editUrl} className={`${outlineLinkClasses} border-app-primary px-3.5 text-app-primary hover:bg-app-primary/10`}>
+                    : <Link to={editUrl} aria-label={`Add exercises to ${day.name}`} className={`${outlineLinkClasses} border-app-primary px-3.5 text-app-primary hover:bg-app-primary/10`}>
                         <Plus aria-hidden="true" className="size-4" strokeWidth={2.5} />
-                        Add exercises
+                        <span className="md:hidden">Add</span>
+                        <span className="hidden md:inline">Add exercises</span>
                     </Link>
                 }
                 <div ref={menuWrapper} className="relative">
