@@ -162,10 +162,14 @@ export default function DayEditorView(props: DayEditorViewProps)
     const exerciseCount = `${draft.length} ${draft.length === 1 ? "exercise" : "exercises"}`
     const openPicker = () => setopenExecisePicker(true)
     const addedIds = draft.map(exercise => exercise.exerciseSummary.id)
+    const hasChanges = isDirty || !isValid
+    // From xl the docked catalog is the add button; an empty day has its own in the empty state.
+    const showAddInBar = !isDocked && canAddExercise && draft.length > 0
 
+    // Centred like the other S3 pages; from xl the row widens so the cards fill the space beside the catalog.
     return(
-        <div className="flex w-full gap-6">
-            <div className="flex w-full min-w-0 max-w-[640px] flex-col gap-4">
+        <div className="mx-auto flex w-full max-w-[640px] gap-6 xl:max-w-6xl">
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
                 <header className="flex flex-col gap-1">
                     <Link onClick={handleBackClick} to={planPath} className="-ml-1.5 flex h-11 items-center gap-1 self-start text-sm font-medium text-app-text-secondary hover:text-app-text">
                         <ChevronLeft aria-hidden="true" className="size-5" />
@@ -211,25 +215,35 @@ export default function DayEditorView(props: DayEditorViewProps)
                         </ol>
                     </fieldset>
                 }
-                {draft.length > 0 && canAddExercise && !isDocked &&
-                    <button type="button" disabled={saving} onClick={openPicker} className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-dashed border-app-primary text-[15px] font-semibold text-app-primary hover:bg-app-primary/10 disabled:opacity-50">
-                        <Plus aria-hidden="true" className="size-4.5" strokeWidth={2.5} />
-                        Add exercises
-                    </button>
-                }
                 {!canAddExercise && <p className="text-sm text-app-text-secondary">{`A day can have at most ${MAX_EXERCISES} exercises.`}</p>}
                 {/* Sticks above the S1 bottom nav on phones. role=status reads the text when it changes. */}
-                {(isDirty || !isValid) &&
-                    <div role="status" className="sticky bottom-14 z-20 -mx-4 flex flex-wrap items-center gap-2.5 border-t border-app-border bg-app-surface-raised px-4 py-3 md:bottom-4 md:mx-0 md:rounded-2xl md:border">
-                        <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${isValid && !saveError ? "bg-amber-400" : "bg-app-danger"}`} />
-                        {saveError && isValid
-                            ? <p className="min-w-0 flex-1 text-sm font-semibold text-app-danger">{saveError}</p>
-                            : <p className={`min-w-0 flex-1 text-sm font-semibold ${isValid ? "" : "text-app-danger"}`}>
-                                {saving ? "Saving…" : isValid ? "Unsaved changes" : "Fix the fields in red to save"}
-                            </p>
+                {/* Sticks above the S1 bottom nav on phones. Below xl it always holds Add exercises;
+                    with unsaved changes it also holds Discard and Save day. */}
+                {(hasChanges || showAddInBar) &&
+                    <div className="sticky bottom-14 z-20 -mx-4 flex flex-wrap items-center gap-2.5 border-t border-app-border bg-app-surface-raised px-4 py-3 md:bottom-4 md:mx-0 md:rounded-2xl md:border">
+                        {showAddInBar &&
+                            <button
+                            type="button"
+                            aria-label="Add exercises"
+                            title="Add exercises"
+                            disabled={saving}
+                            onClick={openPicker}
+                            className={`flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-app-primary text-sm font-semibold text-app-primary hover:bg-app-primary/10 disabled:opacity-50 ${hasChanges ? "w-11" : "flex-1"}`}
+                            >
+                                <Plus aria-hidden="true" className="size-5" strokeWidth={2.5} />
+                                {!hasChanges && "Add exercises"}
+                            </button>
                         }
-                        <button type="button" disabled={saving} onClick={discardChanges} className="h-11 shrink-0 rounded-lg border border-app-border px-3.5 text-sm font-semibold hover:bg-app-surface-hover disabled:opacity-50">Discard</button>
-                        <Button disabled={saving || !isValid} onClick={()=> void saveDay()} className="min-h-11 shrink-0 font-bold">{saving ? "Saving..." : "Save day"}</Button>
+                        {hasChanges &&
+                            <>
+                                <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${isValid && !saveError ? "bg-amber-400" : "bg-app-danger"}`} />
+                                <p role="status" className={`min-w-0 flex-1 text-sm font-semibold ${saveError || !isValid ? "text-app-danger" : ""}`}>
+                                    {saving ? "Saving…" : saveError && isValid ? saveError : isValid ? "Unsaved changes" : "Fix the fields in red to save"}
+                                </p>
+                                <button type="button" disabled={saving} onClick={discardChanges} className="h-11 shrink-0 rounded-lg border border-app-border px-3.5 text-sm font-semibold hover:bg-app-surface-hover disabled:opacity-50">Discard</button>
+                                <Button disabled={saving || !isValid} onClick={()=> void saveDay()} className="min-h-11 shrink-0 font-bold">{saving ? "Saving..." : "Save day"}</Button>
+                            </>
+                        }
                     </div>
                 }
                 {isDialogOpen &&
