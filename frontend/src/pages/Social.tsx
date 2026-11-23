@@ -90,16 +90,17 @@ function Social() {
     return (
         <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col bg-app-surface md:h-[calc(100dvh-4rem)] md:bg-transparent">
             <SearchBar hideOnMobile={selectedFriend !== null} />
-        <div
-            className="
-                flex min-h-0 min-w-0 flex-1
-                overflow-hidden bg-app-surface
-                overscroll-none
-                md:gap-4 md:bg-transparent
+            <div
+                className="
+                    flex min-h-0 min-w-0 flex-1
+                    overflow-hidden bg-app-surface
+                    overscroll-none
+                    md:gap-4 md:bg-transparent
                 "
-                >
+            >
             {/* Friends and conversations */}
             <aside
+
                 className={`
                     ${selectedFriend ? "hidden" : "flex"}
                     min-h-0 w-full flex-col gap-0
@@ -109,6 +110,7 @@ function Social() {
                     md:bg-transparent
                     `}
             >
+
                 {/* Online friends */}
                 <div
                     className="

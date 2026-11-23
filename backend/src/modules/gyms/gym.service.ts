@@ -2,6 +2,11 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import type { GymRejectReason } from "@prisma/client";
 
+
+export const MAX_PRIVATE_GYM_PER_USER = 5;
+export const MAX_PENDING_GYM_PER_USER = 5;
+
+
 interface CreateGymData {
     userID: string;
     dataName: string;
@@ -17,30 +22,44 @@ interface CreateGymData {
 
 
 
-export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, page? : number){
+export async function searchForGyms(textSearched? : string , city? : string , verified? : boolean, sort? : string ,page? : number){
     let limit : number = 6;
     if (!page)
             page = 1;
         const gymskiped = (page - 1) * limit;
-        
-        const searchCondiions : Prisma.GymWhereInput = {visibility : "PUBLIC"};
 
-        if (textSearched)
-            searchCondiions.name = {contains: textSearched, mode: "insensitive"};
-        if (city)
-            searchCondiions.city = city.toLocaleLowerCase();
-        if (typeof verified == "boolean")
-            searchCondiions.verified = verified;
+        const where : Prisma.GymWhereInput = {
+            visibility : "PUBLIC",
+            closedAt : null,
+            name : textSearched ? {contains : textSearched, mode: "insensitive"} : undefined,
+            city : city ? city.toLocaleLowerCase() : undefined,
+            verified: typeof verified === "boolean" ? verified : undefined,
+        };
+
+        let orderBy: any = {verified : "desc"};
+        if (sort === "name_asc"){
+            orderBy = {name : "asc"};
+        }
+        else if (sort === "name_desc"){
+            orderBy = {name : "desc"};
+        }
+        else if (sort === "newest"){
+            orderBy = {createdAt : "desc"};
+        }
+
+        // if (textSearched)
+        //     searchCondiions.name = {contains: textSearched, mode: "insensitive"};
+        // if (city)
+        //     searchCondiions.city = city.toLocaleLowerCase();
+        // if (typeof verified == "boolean")
+        //     searchCondiions.verified = verified;
         
-        const totalGym = await prisma.gym.count({where : searchCondiions});
+        const totalGym = await prisma.gym.count({where : where});
         const totalPage =  Math.ceil(totalGym/limit);
     
         const gyms = await prisma.gym.findMany({
-            where : searchCondiions,
-            orderBy : [
-                {name : "asc"},
-                {id : "asc"}
-            ],
+            where : where,
+            orderBy : orderBy,
             skip : gymskiped,
             take : limit + 1,
             include : {
@@ -98,6 +117,13 @@ export async function getALLEquip(){
 
 export async function createGym(data : CreateGymData){
     if (data.dataIsPrivate){
+
+        const count = await prisma.gym.count({
+            where : {createdById : data.userID, visibility: "PRIVATE"}
+        });
+
+        if (count >= MAX_PRIVATE_GYM_PER_USER)
+            throw new Error("MAX_PRIVATE_GYMS");
         // add the gym data directly to gym table 
         return await prisma.gym.create({
             data : {
@@ -127,6 +153,12 @@ export async function createGym(data : CreateGymData){
     }
     else{
         //add gym data to submussion table 
+        const count = await prisma.gymSubmission.count({
+            where : {submitterId : data.userID, status: "PENDING"}
+        });
+        if (count >= MAX_PENDING_GYM_PER_USER){
+            throw  new Error("MAX_PENDING_SUBMISSIONS");
+        }
         return  await prisma.gymSubmission.create({
             data : {
                 kind : "NEW_GYM",
@@ -160,6 +192,7 @@ export async function createGym(data : CreateGymData){
     }
 }
 
+
 export async function getSubmissions(){
     return await prisma.gymSubmission.findMany({
         where : {status : "PENDING"},
@@ -169,7 +202,7 @@ export async function getSubmissions(){
                 select : {
                     id : true,
                     username :true,
-                    displayName: true,
+                    displayName : true,
                 },
             },
             equipment : {
@@ -185,6 +218,23 @@ export async function getSubmissions(){
         }
     });
 }
+
+export async function getUserSubmissions(userId : string){
+    const submissions = await prisma.gymSubmission.findMany({
+        where : {submitterId : userId},
+        orderBy : {createdAt : "desc"},
+        include : {
+            submitter : {
+                select : {
+                    email : true,
+                    username : true,
+                }
+            }
+        }
+    });
+    return submissions;
+}
+
 
 export async function rejectSubmission(
     submissionId: string,
@@ -223,7 +273,6 @@ export async function approveSubmission(
     submissionId: string,
     reviewerId: string,
 ): Promise<"approved" | "not-found" | "self-review" | "conflict" | "unsupported"> {
-    
     try {
         // Create the public gym and finalize the submission together so a partial approval is impossible.
         return await prisma.$transaction(async (tx) => {
@@ -302,6 +351,7 @@ export async function approveSubmission(
     }
 }
 
+
 export async function selectCurrentGym(gymId : string, userId : string){
     const gym = await prisma.gym.findUnique({
         where : {id : gymId},
@@ -311,9 +361,12 @@ export async function selectCurrentGym(gymId : string, userId : string){
 
     if (gym.visibility === "PRIVATE" && gym.createdById !== userId)
         throw new Error("Access denied");
-
+    
     if (!gym.verified && gym.visibility !== "PRIVATE")
         throw new Error("Gym is unverified");
+    if (gym.closedAt){
+        throw new Error("Gym is closed");
+    }
     await prisma.user.update({
         where : {id : userId},
         data :{currentGymId:gymId}
@@ -321,4 +374,92 @@ export async function selectCurrentGym(gymId : string, userId : string){
 }
 
 
+export async function getCurrentGym(userId : string){
+    const user  = await prisma.user.findUnique({
+        where : {id : userId},
+        select : {currentGym : true}
+    });
+    if (!user?.currentGym)
+        return null;
+    return user.currentGym;
+}
 
+
+export async function resetCurrent(userId : string){
+    await prisma.user.update({
+        where : {id :userId},
+        data : {currentGymId : null}
+    });
+}
+
+
+export async function getPrivate(userId : string){
+    const list =  await prisma.gym.findMany({
+        where : {visibility : "PRIVATE", createdById : userId},
+        include : {
+            equipment  : true
+        },
+        orderBy : {createdAt : "desc"}
+    });
+
+    return list;
+}
+
+export async function RMPrivateGym(gymId : string, userId : string){
+    const gym = await prisma.gym.findUnique({
+        where : {id : gymId}
+    });
+    if (!gym)
+        throw new Error("gym not found");
+
+    if (gym.visibility !== "PRIVATE" || gym.createdById !== userId)
+        throw new Error("access denied");
+
+    await prisma.gym.delete({
+        where : {id : gymId}
+    });
+}
+
+export async function EditGym(useId : string, gymId : string, data : any){
+
+    const gym=  await prisma.gym.findUnique({
+        where : {id : gymId}
+    });
+
+    if (!gym)
+        throw new Error("gym not found");
+    if (gym.visibility !== "PRIVATE" || gym.createdById !== useId){
+        throw new Error("Acees denied");
+    }
+    
+    await prisma.$transaction([
+        prisma.gymEquipment.deleteMany({
+            where : {gymId : gymId}
+        }),
+        prisma.gym.update({
+            where : {id : gymId},
+            data : {
+                name : data.name,
+                city : data.city,
+                address : data.address,
+                phone: data.phone,
+                equipment : {
+                    create : data.equipment?.map(function(equip : any){
+                        return {
+                            equipmentId:equip.equipmentId,
+                            quantity: 1
+                        }
+                    })
+                }
+            }
+        })
+    ]);
+}
+
+
+// export async function getGymEquip(useId : string, gymId : string){
+//     const euipList = await prisma.gym.findUnique({
+//         where : {id : gymId},
+//         select :
+//     });
+// }
