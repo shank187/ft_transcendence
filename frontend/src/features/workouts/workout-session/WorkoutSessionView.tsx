@@ -234,22 +234,26 @@ export default function WorkoutSessionView(props: WorkoutSessionViewProps)
         <WorkoutSessionContext.Provider value={actions}>
         {/* pb-24 keeps the last card above the phone action bar. */}
         <div className={`flex flex-col gap-4 ${isReadOnly ? "" : "pb-24 md:pb-0"}`}>
-            <SessionHeader
-            name={loaded.name}
-            startedAt={loaded.startedAt}
-            finishedAt={loaded.completedAt}
-            status={loaded.status}
-            doneCount={doneCount}
-            totalCount={sets.length}
-            isReadOnly={isReadOnly}
-            finishing={finishing}
-            onFinish={requestFinish}
-            onDiscard={() => setShowDiscard(true)}
-            />
-            {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
-            {loaded.status === "COMPLETED" && loaded.summary &&
-                <SessionSummaryCard summary={loaded.summary} award={award}/>
+            {/* A finished workout opens on its summary; the summary has its own title. */}
+            {loaded.status === "COMPLETED" && loaded.summary
+                ? <>
+                    <SessionSummaryCard name={loaded.name} summary={loaded.summary} exercises={loaded.exercises} award={award}/>
+                    <h2 className="mt-2 text-lg font-semibold">Sets logged</h2>
+                </>
+                : <SessionHeader
+                name={loaded.name}
+                startedAt={loaded.startedAt}
+                finishedAt={loaded.completedAt}
+                status={loaded.status}
+                doneCount={doneCount}
+                totalCount={sets.length}
+                isReadOnly={isReadOnly}
+                finishing={finishing}
+                onFinish={requestFinish}
+                onDiscard={() => setShowDiscard(true)}
+                />
             }
+            {finishError && !incompleteFinish && <p role="alert" className="text-sm text-app-danger">{finishError}</p>}
             {!isReadOnly && loaded.exercises.length === 0
                 ? <EmptyState title="No exercises yet" action={addExercisesButton}/>
                 : <ol className="flex flex-col gap-4">
