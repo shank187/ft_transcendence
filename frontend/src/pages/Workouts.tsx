@@ -1,8 +1,8 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import Button from "../components/ui/Button"
+import { ChevronRight, Plus } from "lucide-react"
 import WorkoutPlanCatalog from "../features/workouts/plans/WorkoutPlanCatalog"
 import { ActiveWorkoutError, startEmptyWorkout } from "../features/workouts/shared/start-workout"
-import  { useState } from "react"
 import ActiveWorkoutDialog from "../features/workouts/shared/ActiveWorkoutDialog"
 
 function Workouts()
@@ -27,20 +27,41 @@ function Workouts()
             setStartingEmptyState(false)
         }
     }
+
+    const startEmpty = async () => {
+        const url = await createEmptySessionUrl()
+        if(url)
+            navigate(url)
+    }
+
     return (
-        <div>
-            <Button
-            variant="secondary"
-            disabled={startingEmptyState}
-            onClick={async ()=>{
-                const url = await createEmptySessionUrl();
-                if(url)
-                    navigate(url)
-            }}
-            >
-                {startingEmptyState ? "Starting..." : emptySessionError ? "Retry" : "Start empty workouts"}
-            </Button>
-            {emptySessionError && <p className="text-app-danger">{emptySessionError}</p>}
+        <div className="mx-auto flex max-w-5xl flex-col gap-6 md:gap-7">
+            <header className="flex flex-col gap-1">
+                <h1 className="text-[28px] font-bold tracking-tight md:text-[32px]">Workouts</h1>
+                <p className="text-sm text-app-text-secondary md:text-[15px]">Pick a plan, or start lifting right away.</p>
+            </header>
+
+            <div className="flex flex-col gap-2">
+                <button
+                type="button"
+                disabled={startingEmptyState}
+                onClick={() => void startEmpty()}
+                className="flex items-center gap-3.5 rounded-2xl border border-app-primary bg-app-primary/8 p-4 text-left hover:bg-app-primary/12 disabled:cursor-wait disabled:opacity-70 md:px-6 md:py-5"
+                >
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-app-primary text-app-canvas">
+                        <Plus aria-hidden="true" className="size-5.5" strokeWidth={2.5} />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <strong className="font-semibold">
+                            {startingEmptyState ? "Starting..." : emptySessionError ? "Retry empty workout" : "Start empty workout"}
+                        </strong>
+                        <span className="text-[13px] text-app-text-secondary md:text-sm">Add exercises as you go</span>
+                    </span>
+                    <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-app-primary" />
+                </button>
+                {emptySessionError && <p role="alert" className="text-sm text-app-danger">{emptySessionError}</p>}
+            </div>
+
             {activeSessionId &&
                 <ActiveWorkoutDialog
                 activeSessionId={activeSessionId}
