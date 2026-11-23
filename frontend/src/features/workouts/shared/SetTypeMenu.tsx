@@ -21,12 +21,13 @@ const SET_TYPE_DOT: Record<SetType, string> = {
     FAILURE: "bg-app-set-failure",
 }
 
+// The badge shows the set number or the type letter, tinted with the type's colour.
 const SET_TYPE_CLASSES: Record<SetType, string> = {
-    NORMAL: "border-app-border bg-app-surface-hover text-app-text",
-    HEAVY: "border-app-set-heavy/60 bg-app-set-heavy/10 text-app-set-heavy",
-    WARMUP: "border-app-set-warmup/60 bg-app-set-warmup/10 text-app-set-warmup",
-    DROP: "border-app-set-drop/60 bg-app-set-drop/10 text-app-set-drop",
-    FAILURE: "border-app-set-failure/60 bg-app-set-failure/10 text-app-set-failure",
+    NORMAL: "bg-app-surface-hover text-app-text",
+    HEAVY: "bg-app-set-heavy/15 text-app-set-heavy",
+    WARMUP: "bg-app-set-warmup/15 text-app-set-warmup",
+    DROP: "bg-app-set-drop/15 text-app-set-drop",
+    FAILURE: "bg-app-set-failure/15 text-app-set-failure",
 }
 
 const menuItemClasses = "flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 text-left text-sm font-medium hover:bg-app-surface-hover focus-visible:bg-app-surface-hover"
@@ -94,7 +95,7 @@ export default function SetTypeMenu(props: SetTypeMenuProps)
             aria-controls={isOpen ? props.id : undefined}
             disabled={disabled}
             onClick={toggleSetMenu}
-            className={`flex size-11 items-center justify-center rounded-lg border text-sm font-bold hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
+            className={`flex size-11 items-center justify-center rounded-lg text-sm font-bold hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
             >
                 {props.label}
             </button>

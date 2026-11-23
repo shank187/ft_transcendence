@@ -7,16 +7,17 @@ import SetTypeMenu from "../shared/SetTypeMenu"
 import SetValueInput from "../shared/SetValueInput"
 import type { DraftAction } from "./day-editor.draft"
 
-export default function SetRow(props:
-    {
-        label: string
-        set: DraftSet
-        fields: SetField[]
-        exKey: string,
-        dispatch: Dispatch<DraftAction>
-        isMenuOpen: boolean
-        setOpenSetMenu: (setKey: string | null) => void
-    })
+interface SetRowProps {
+    label: string
+    set: DraftSet
+    fields: SetField[]
+    exKey: string
+    dispatch: Dispatch<DraftAction>
+    isMenuOpen: boolean
+    setOpenSetMenu: (setKey: string | null) => void
+}
+
+export default function SetRow(props: SetRowProps)
 {
     const {set, isMenuOpen, setOpenSetMenu, exKey, dispatch} = props
     const id = useId()
@@ -50,7 +51,7 @@ export default function SetRow(props:
                 inputId={`${id}-${field.key}`}
                 field={field}
                 labelText={`Set ${props.label} ${field.key}`}
-                placeholder="–"
+                placeholder="—"
                 value={set[field.key]}
                 error={errors[field.key]}
                 onChange={(value)=> dispatch({ type: "setFieldChanged", exKey, setKey: set.key, field: field.key, value })}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import Dialog from "../../../components/ui/Dialog";
 import Button from "../../../components/ui/Button";
 import type { WorkoutSessionExercise } from "../shared/workouts.types";
@@ -7,6 +7,7 @@ import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields";
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits";
 import ExerciseCardHeader from "../shared/ExerciseCardHeader";
 import SetColumnsHeader from "../shared/SetColumnsHeader";
+import ExerciseCardActions from "../shared/ExerciseCardActions";
 import SetRowSession from "./SetRowSession";
 import { useWorkoutSession } from "./WorkoutSessionContext";
 
@@ -18,8 +19,6 @@ interface ExerciseSessionCardProps {
     // The workout's first unticked set, or null.
     nextSetId: string | null
 }
-
-const iconButtonClasses = "flex size-11 items-center justify-center bg-app-surface-raised disabled:cursor-not-allowed disabled:text-app-text-muted/50"
 
 export default function ExerciseSessionCard(props: ExerciseSessionCardProps)
 {
@@ -61,19 +60,14 @@ export default function ExerciseSessionCard(props: ExerciseSessionCardProps)
             exercise={exercise.exerciseSummary}
             progress={`${loggedCount} / ${exercise.sets.length} sets`}
             aside={!isReadOnly &&
-                <div className="flex shrink-0 gap-2">
-                    <div role="group" aria-label={`Reorder ${name}`} className="flex overflow-hidden rounded-lg border border-app-border">
-                        <button type="button" aria-label={`Move ${name} up`} disabled={isMoving || props.isFirst} onClick={() => moveExercise(exercise.id, -1)} className={iconButtonClasses}>
-                            <ArrowUp aria-hidden="true" className="size-4.5" />
-                        </button>
-                        <button type="button" aria-label={`Move ${name} down`} disabled={isMoving || props.isLast} onClick={() => moveExercise(exercise.id, 1)} className={`${iconButtonClasses} border-l border-app-border`}>
-                            <ArrowDown aria-hidden="true" className="size-4.5" />
-                        </button>
-                    </div>
-                    <button type="button" aria-label={`Remove ${name}`} title="Remove exercise" disabled={isMoving} onClick={requestRemove} className={`${iconButtonClasses} rounded-lg border border-app-border text-app-text-secondary hover:border-app-danger hover:text-app-danger`}>
-                        <Trash2 aria-hidden="true" className="size-4.5" />
-                    </button>
-                </div>
+                <ExerciseCardActions
+                name={name}
+                isFirst={props.isFirst}
+                isLast={props.isLast}
+                disabled={isMoving}
+                onMove={direction => moveExercise(exercise.id, direction)}
+                onRemove={requestRemove}
+                />
             }
             />
             {moveError && <p role="alert" className="text-sm text-app-danger">{moveError}</p>}
