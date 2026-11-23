@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../middleware/authenticate";
-import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, finishWorkoutSession, getWorkoutSession, moveSessionExercise, startWorkoutSession, updateSessionSet } from "./workout-session.service";
+import { addSessionExercises, addSessionSet, deleteSessionSet, discardWorkoutSession, finishWorkoutSession, getWorkoutSession, moveSessionExercise, removeSessionExercise, startWorkoutSession, updateSessionSet } from "./workout-session.service";
 import { MAX_WORKOUTS_PER_DAY, addExercisesBody, moveExerciseBody, startSessionBody, updateSetBody } from "./workout-session.schema";
 import { MAX_EXERCISES, MAX_SETS_PER_EXERCISE, idParam } from "../../lib/validation";
 import type { FinishWorkoutResponse } from "./workout-session.types";
@@ -137,6 +137,27 @@ export async function deleteSessionSetController(req: SessionSetRequest, res: Re
         return res.status(204).send()
     }catch(error){
         console.error("DELETE /api/workout-sessions/:sessionId/sets/:setId failed:", error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export async function removeSessionExerciseController(req: SessionExerciseRequest, res: Response) {
+    if(!req.userId) return res.status(401).json({message: "Unauthorized"})
+    if(!idParam.safeParse(req.params.sessionId).success) return res.status(404).json({message: "Workout not found."})
+    if(!idParam.safeParse(req.params.exerciseId).success) return res.status(404).json({message: "Exercise not found."})
+    try{
+        const result = await removeSessionExercise(req.userId, req.params.sessionId, req.params.exerciseId)
+        if(!result.ok)
+        {
+            if(result.reason === "NOT_FOUND")
+                return res.status(404).json({message: "Workout not found."})
+            if(result.reason === "CLOSED")
+                return res.status(409).json({message: "This workout is finished or cancelled."})
+            return res.status(404).json({message: "Exercise not found."})
+        }
+        return res.status(204).send()
+    }catch(error){
+        console.error("DELETE /api/workout-sessions/:sessionId/exercises/:exerciseId failed:", error)
         return res.status(500).json({message: "Internal server error"})
     }
 }
