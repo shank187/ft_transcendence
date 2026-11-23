@@ -26,8 +26,6 @@ const mobile_nav_items = [
 const more_nav_items = [
     { to: "/progress", label: "Progress" },
     { to: "/profile", label: "Profile" },
-    { to: '/privacy', label: 'privacy' },
-    { to: '/terms', label: 'terms' },
     { to: "/profile/settings", label: "Settings" },
 ];
 
@@ -38,7 +36,7 @@ function MainLayout() {
     const [logout_error, set_logout_error] = useState('');
     const [is_logging_out, set_is_logging_out] = useState(false);
     const navigation_ref = useRef<HTMLDivElement>(null);
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const isSocial = useMatch('/social') !== null;
 
@@ -94,16 +92,17 @@ function MainLayout() {
                     {nav_items.map((item)=> (
                         <Link key={item.to} to={item.to} className="px-3 py-2 hover:bg-app-surface-hover focus-visible:bg-app-surface-hover focus-visible:outline-none!" >{item.label}</Link>
                     ))}
+                    {user?.roles.includes('ADMIN') && (
+                        <Link to="/admin" className="px-3 py-2 hover:bg-app-surface-hover focus-visible:bg-app-surface-hover focus-visible:outline-none!">
+                            Admin
+                        </Link>
+                    )}
                 </nav>
                 <div className="mt-auto pt-4">
                     {logout_error && <p role="alert" className="mb-2 text-sm text-app-danger">{logout_error}</p>}
                     <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
                         {is_logging_out ? 'Logging out...' : 'Log out'}
                     </Button>
-                    <div className="flex gap-2  text-xs text-app-text-secondary">
-                        <Link to="/privacy" className="hover:underline">Privacy</Link>
-                        <Link to="/terms" className="hover:underline">Terms</Link>
-                    </div>
                 </div>
             </div>
             <div className={`min-w-0 md:flex-1 md:p-8 ${isSocial ? '' : 'p-4 pb-24'}`}>
@@ -122,6 +121,11 @@ function MainLayout() {
                                 {item.label}
                             </Link>
                         ))}
+                        {user?.roles.includes('ADMIN') && (
+                            <Link to="/admin" onClick={() => set_more(false)} className="block px-3 py-3 text-sm hover:bg-app-surface-hover">
+                                Admin
+                            </Link>
+                        )}
                         {logout_error && <p role="alert" className="px-3 py-2 text-sm text-app-danger">{logout_error}</p>}
                         <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
                             {is_logging_out ? 'Logging out...' : 'Log out'}

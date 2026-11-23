@@ -14,7 +14,7 @@ function Navbar(){
 
                     </div>
                     <div className="flex items-center gap-3">
-                        <Link to="/login" className="rounded bg-[#ffffff] text-[13px] text-black hover:bg-gray-800 px-5 py-1">login in</Link>
+                        <Link to="/login" className="rounded bg-[#ffffff] text-[13px] text-black hover:bg-gray-800 px-5 py-1">log in</Link>
                     </div>
 
                 </div>
