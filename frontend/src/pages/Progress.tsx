@@ -7,16 +7,13 @@ import LoadingState from "../components/states/LoadingState";
 import ErrorState from "../components/states/ErrorState";
 import GymBroOfTheMonth from "../features/progress/GymBroOfTheMonth";
 import { useAuth } from "../features/auth/AuthContext";
-import ProgressTabs from "../features/progress/ProgressTabs";
-import Achievements from "../features/progress/Achievements";
+import ProgressTabs from "../components/ui/ProgressTabs";import Achievements from "../features/progress/Achievements";
 import { ChartLine } from "lucide-react"
-import { BrainCircuit } from "lucide-react"
 
 const XP_PER_LEVEL = 500;
 
 export default function Progress() {
     const { user } = useAuth();
-    console.log("My username:", user?.username);
 
     const [activeTab, setActiveTab] = useState("progress");
     const [summary, setSummary] = useState<ProgressSummary | null>(null);
@@ -29,7 +26,7 @@ export default function Progress() {
         if (!user?.id) return;
 
         let ignore = false;
-
+        ////////////
         Promise.all([
             getProgressSummary(),
             getLeaderboard(),
@@ -81,7 +78,7 @@ export default function Progress() {
                 <>
                     {/* PROGRESS HEADER*/}
                             <div className="mt-6 mb-6 flex items-center gap-4">
-                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 ">
                                     <ChartLine className="h-9 w-9 text-app-primary" />
                                 </div>
 
@@ -154,27 +151,6 @@ export default function Progress() {
                 <Achievements
                     savedAchievements={summary.achievements}
                 />
-            )}
-
-            {/* ANALYTICS TAB */}
-            <div className="mt-6 flex w-full flex-col gap-6"></div>
-            {activeTab === "Analytics" && (
-            <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
-                    <BrainCircuit className="h-9 w-9 text-app-primary" />
-                </div>
-
-                <div>
-                    <h1 className="text-3xl font-bold">
-                        Analytics
-                    </h1>
-
-                    <p className="mt-1 text-app-text-secondary">
-                        Unlock milestones. Earn your glory.
-                    </p>
-                </div>
-            </div>
-
             )}
         </section>
     );

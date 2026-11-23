@@ -41,7 +41,7 @@ export default function Achievements({
 
             {/* ACHIEVEMENTS HEADER */}
             <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60 shadow-lg shadow-teal-500/20">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-app-primary bg-teal-900/60">
                     <Trophy className="h-9 w-9 text-app-primary" />
                 </div>
 
@@ -57,7 +57,7 @@ export default function Achievements({
             </div>
 
             {/* ACHIEVEMENT SUMMARY CARD */}
-            <div className="w-full rounded-xl border border-app-border bg-app-surface p-6 shadow-lg shadow-teal-500/10 sm:p-8">
+            <div className="w-full rounded-xl border border-app-border bg-app-surface p-6 sm:p-8">
 
                 {/* TOP SECTION */}
                 <div className="flex items-center justify-between gap-4">
