@@ -283,7 +283,7 @@ export default function WorkoutSessionView(props: WorkoutSessionViewProps)
                 onClose={() => setShowPicker(false)}
                 >
                     {addError && <p role="alert" className="text-app-danger">{addError}</p>}
-                    <ExercisePicker onAdd={addSelectedExercises} />
+                    <ExercisePicker onAdd={addSelectedExercises} addedIds={loaded.exercises.map(exercise => exercise.exerciseSummary.id)} addedLabel="In this workout" />
                 </Dialog>
             }
         </div>
