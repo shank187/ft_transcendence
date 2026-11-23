@@ -56,9 +56,10 @@ Two finishes sent together: the second waits on the workout row lock (`lockOpenS
 
 Decided once, inside the finish transaction, and stored on the set as `WorkoutSet.isPr`.
 
-- Only exercises of type `WEIGHT_REPS` or `WEIGHTED_BODYWEIGHT` (`PR_EXERCISE_TYPES`).
-- Only ticked sets with both a weight and reps.
-- Score = estimated one-rep max, Epley formula: `weight × (1 + reps / 30)`; with 1 rep the score is the weight itself.
+- Only exercises of type `WEIGHT_REPS`, `WEIGHTED_BODYWEIGHT` or `BODYWEIGHT_REPS` (`PR_EXERCISE_TYPES`).
+- Only ticked sets with reps; `WEIGHT_REPS` and `WEIGHTED_BODYWEIGHT` sets also need a weight.
+- Score (`prScore`): for `WEIGHT_REPS` and `WEIGHTED_BODYWEIGHT`, the estimated one-rep max, Epley formula: `weight × (1 + reps / 30)`; with 1 rep the score is the weight itself. For `BODYWEIGHT_REPS`, the reps: the body weight on the day of each workout is not recorded (`WorkoutSession.bodyWeightKg` is never written; `User.weightKg` is only the current profile value), so there is no load to estimate.
+- `ASSISTED_BODYWEIGHT` has no PR: there, less weight is the better set, which needs its own rule.
 - For each exercise, the best set of this workout (on a tie, the first one by exercise order, then set number) is a PR when its score is strictly higher than the best score in the user's other finished workouts.
 - The first time an exercise is done is not a PR: there is nothing to beat.
 - At most one PR set per exercise per workout.
