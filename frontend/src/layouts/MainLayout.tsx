@@ -109,9 +109,6 @@ function MainLayout() {
 
 
                 <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-                    {/* {nav_items.map((item)=> (
-                        <Link key={item.to} to={item.to} className="px-3 py-2 hover:bg-app-surface-hover focus-visible:bg-app-surface-hover focus-visible:outline-none!" >{item.label}</Link>
-                    ))} */}
                     {nav_items.map(function(item){
                         const Icon = item.icon;
                         const isActive = item.to === "/profile" ? location.pathname === "/profile" 
@@ -163,15 +160,9 @@ function MainLayout() {
 
                         </Link>
                     )
-                    // <Link key={item.to} to={item.to} onClick={() => set_more(false)} className="min-w-0 py-4 text-center text-xs" >{item.label}</Link>
                 })}
 
                {more && (<div className="absolute bottom-full right-2 mb-2 w-44 rounded-lg border bg-app-surface p-2">
-                        {/* {more_nav_items.map((item) => (
-                            <Link key={item.to} to={item.to} onClick={() => set_more(false)} className="block  px-3 py-3 text-sm hover:bg-app-surface-hover">
-                                {item.label}
-                            </Link>
-                        ))} */}
                         {more_nav_items.map((item)=> {
                         const Icon = item.icon;
                         const isActive = location.pathname.startsWith(item.to);
