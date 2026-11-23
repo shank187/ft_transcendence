@@ -119,59 +119,75 @@ function estimateOneRepMax(weight: number, reps: number): number
     return weight * (1 + reps / 30)
 }
 
-type PrCandidate = { id: string; exerciseId: string; weight: number; reps: number };
+// Weight types are scored by their estimated one-rep max. A reps-only bodyweight exercise
+// is scored by its reps: the user's body weight is never stored, so there is no load to estimate.
+// ASSISTED_BODYWEIGHT is left out: there, less weight is the better set.
+const ONE_REP_MAX_TYPES: ExerciseType[] = ["WEIGHT_REPS", "WEIGHTED_BODYWEIGHT"]
+const REPS_ONLY_TYPES: ExerciseType[] = ["BODYWEIGHT_REPS"]
+const PR_EXERCISE_TYPES: ExerciseType[] = [...ONE_REP_MAX_TYPES, ...REPS_ONLY_TYPES]
 
-// The highest estimate per exercise. On a tie the first set in the list keeps it.
-function bestPerExercise(sets: PrCandidate[]): Map<string, { setId: string; estimate: number }>
+// null when the set can't be scored for its type.
+function prScore(type: ExerciseType, weight: number | null, reps: number | null): number | null
 {
-    const best = new Map<string, { setId: string; estimate: number }>()
+    if(reps === null)
+        return null
+    if(REPS_ONLY_TYPES.includes(type))
+        return reps
+    if(weight === null)
+        return null
+    return estimateOneRepMax(weight, reps)
+}
+
+type PrCandidate = { id: string; exerciseId: string; score: number };
+
+// The highest score per exercise. On a tie the first set in the list keeps it.
+function bestPerExercise(sets: PrCandidate[]): Map<string, { setId: string; score: number }>
+{
+    const best = new Map<string, { setId: string; score: number }>()
     for (const set of sets)
     {
-        const estimate = estimateOneRepMax(set.weight, set.reps)
         const current = best.get(set.exerciseId)
-        if(!current || estimate > current.estimate)
-            best.set(set.exerciseId, { setId: set.id, estimate })
+        if(!current || set.score > current.score)
+            best.set(set.exerciseId, { setId: set.id, score: set.score })
     }
     return best
 }
-
-// A one-rep max needs a weight and reps; only these types record both.
-const PR_EXERCISE_TYPES: ExerciseType[] = ["WEIGHT_REPS", "WEIGHTED_BODYWEIGHT"]
 
 // exerciseId comes from the saved row, never from the request.
 const prSetSelect = {
     id: true,
     weight: true,
     reps: true,
-    workoutSessionExercise: { select: { exerciseId: true } },
+    workoutSessionExercise: { select: { exerciseId: true, exercise: { select: { type: true } } } },
 } satisfies Prisma.WorkoutSetSelect;
 
 type PrSetRowDb = Prisma.WorkoutSetGetPayload<{ select: typeof prSetSelect }>;
 
-// Ticked sets with a weight and reps, of a type that can have a PR.
+// Ticked sets with reps, of a type that can have a PR; weight types also need a weight.
 // The caller says which workouts and exercises to look in.
 function prSetWhere(sessionExercise: Prisma.WorkoutSessionExerciseWhereInput)
 {
     return {
         completedAt: { not: null },
-        weight: { not: null },
         reps: { not: null },
         workoutSessionExercise: { ...sessionExercise, exercise: { type: { in: PR_EXERCISE_TYPES } } },
+        OR: [
+            { weight: { not: null } },
+            { workoutSessionExercise: { exercise: { type: { in: REPS_ONLY_TYPES } } } },
+        ],
     } satisfies Prisma.WorkoutSetWhereInput
 }
 
-// prSetWhere already drops null weight and reps; the check here is for the types.
+// prSetWhere already drops the sets that can't be scored; prScore narrows the types.
 function toPrCandidates(rows: PrSetRowDb[]): PrCandidate[]
 {
-    return rows.flatMap(row => row.weight === null || row.reps === null ? [] : [{
-        id: row.id,
-        exerciseId: row.workoutSessionExercise.exerciseId,
-        weight: row.weight,
-        reps: row.reps,
-    }])
+    return rows.flatMap(row => {
+        const score = prScore(row.workoutSessionExercise.exercise.type, row.weight, row.reps)
+        return score === null ? [] : [{ id: row.id, exerciseId: row.workoutSessionExercise.exerciseId, score }]
+    })
 }
 
-// Best estimate per exercise in this user's finished workouts, excludeSessionId left out.
+// Best score per exercise in this user's finished workouts, excludeSessionId left out.
 // One query for all the exercises. An exercise with no earlier set is not in the map.
 async function getPreviousBestByExercise(tx: Prisma.TransactionClient, userId: string, exerciseIds: string[], excludeSessionId: string): Promise<Map<string, number>>
 {
@@ -186,7 +202,7 @@ async function getPreviousBestByExercise(tx: Prisma.TransactionClient, userId: s
     })
     const previousBest = new Map<string, number>()
     for (const [exerciseId, best] of bestPerExercise(toPrCandidates(rows)))
-        previousBest.set(exerciseId, best.estimate)
+        previousBest.set(exerciseId, best.score)
     return previousBest
 }
 
@@ -534,7 +550,7 @@ export async function finishWorkoutSession(userId: string, sessionId: string): P
         for (const [exerciseId, best] of todayBest)
         {
             const previous = previousBest.get(exerciseId)
-            if(previous !== undefined && best.estimate > previous)
+            if(previous !== undefined && best.score > previous)
                 prSetIds.push(best.setId)
         }
         if(prSetIds.length > 0)

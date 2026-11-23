@@ -7,7 +7,7 @@
 - **Day editor**: pick the exercises of a day, reorder them, and add sets with a set type and targets (weight, reps, time or distance, depending on the exercise type). Up to 20 exercises per day and 20 sets per exercise. Save sends the whole day at once.
 - **Exercise picker**: search exercises by name, filter by primary muscle, by equipment and by what the current gym has, sort by name (A–Z or Z–A), and load the list page by page. Each exercise shows whether the current gym can do it.
 - **Active workout**: start an empty workout or start from a plan day (the day is copied, so later plan edits do not change it). One workout in progress at a time. Add exercises and sets, enter values, tick sets, reorder exercises, delete sets. A ticked set that beats the earlier best of its exercise is marked as a PR while you train. Discard deletes the workout.
-- **Finish**: needs at least one ticked set. Shows a summary (duration, sets, volume, exercises), marks personal records (best estimated one-rep max per exercise), and gives XP through the S5 award function. Finishing twice does not give XP twice.
+- **Finish**: needs at least one ticked set. Shows a summary (duration, sets, volume, exercises), marks personal records (best estimated one-rep max per weighted exercise, most reps per bodyweight exercise), and gives XP through the S5 award function. Finishing twice does not give XP twice.
 
 ## Modules S3 backs
 
