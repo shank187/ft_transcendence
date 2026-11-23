@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { Check, Trophy } from "lucide-react";
 import { formatElapsed } from "./workout-session.helpers";
 import { EXERCISE_FIELDS } from "../shared/exercise-fields";
-import { FIELDS } from "../shared/set-values";
+import { FIELDS_BY_UNIT, KG_PER_LB, type UnitSystem } from "../shared/set-values";
+import { useUnitSystem } from "../shared/use-unit-system";
 import type { AwardResult, WorkoutSessionExercise, WorkoutSessionSet, WorkoutSummary } from "../shared/workouts.types";
 
 interface SessionSummaryCardProps {
@@ -15,29 +16,34 @@ interface SessionSummaryCardProps {
 
 const volumeFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
 
-const UNIT = { weight: " kg", reps: "", duration: "", distance: " km" } as const
-
-// "82.5 kg × 6", "12 reps", "1:30".
-function setValueText(exercise: WorkoutSessionExercise, set: WorkoutSessionSet): string
+// "82.5 kg × 6", "180 lb × 6", "12 reps", "1:30". Weight and distance carry their unit.
+function setValueText(exercise: WorkoutSessionExercise, set: WorkoutSessionSet, units: UnitSystem): string
 {
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
+    const fieldDefs = FIELDS_BY_UNIT[units]
     if (fields.length === 1 && fields[0].key === "reps")
         return `${set.reps ?? 0} reps`
-    return fields.map(({ key }) => `${FIELDS[key].format(set[key])}${UNIT[key]}`).join(" × ")
+    return fields.map(({ key }) => {
+        const unit = key === "weight" || key === "distance" ? ` ${fieldDefs[key].label.toLowerCase()}` : ""
+        return `${fieldDefs[key].format(set[key])}${unit}`
+    }).join(" × ")
 }
 
 export default function SessionSummaryCard(props: SessionSummaryCardProps)
 {
+    const units = useUnitSystem()
     const { summary, award } = props
     const prIds = new Set(summary.prSetIds)
     const prs = props.exercises.flatMap(exercise =>
         exercise.sets
             .filter(set => prIds.has(set.id))
-            .map(set => ({ id: set.id, name: exercise.exerciseSummary.name, value: setValueText(exercise, set) })))
+            .map(set => ({ id: set.id, name: exercise.exerciseSummary.name, value: setValueText(exercise, set, units) })))
     const stats = [
         { label: "TIME", value: formatElapsed(summary.durationSeconds * 1000), unit: "" },
         { label: "SETS", value: String(summary.setsCompleted), unit: "" },
-        { label: "VOLUME", value: volumeFormat.format(summary.volumeKg), unit: " kg" },
+        units === "IMPERIAL"
+            ? { label: "VOLUME", value: volumeFormat.format(summary.volumeKg / KG_PER_LB), unit: " lb" }
+            : { label: "VOLUME", value: volumeFormat.format(summary.volumeKg), unit: " kg" },
         { label: "EXERCISES", value: String(summary.exerciseCount), unit: "" },
     ]
 

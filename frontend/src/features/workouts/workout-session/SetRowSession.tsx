@@ -1,11 +1,12 @@
 import { useId, useState } from "react";
 import { Check, Trophy } from "lucide-react";
-import { FIELDS, mapFields, validateSet, type FieldKey } from "../shared/set-values";
+import { FIELDS_BY_UNIT, mapFields, validateSet, type FieldKey } from "../shared/set-values";
 import type { SetField } from "../shared/exercise-fields";
 import type { WorkoutSessionSet } from "../shared/workouts.types";
 import SetTypeMenu from "../shared/SetTypeMenu";
 import SetValueInput from "../shared/SetValueInput";
 import { useWorkoutSession } from "./WorkoutSessionContext";
+import { useUnitSystem } from "../shared/use-unit-system";
 
 interface SetRowSessionProps {
     exerciseId: string
@@ -22,17 +23,19 @@ export default function SetRowSession(props: SetRowSessionProps)
     const { set, exerciseId } = props
     const { isReadOnly, prSetIds, completeSet, uncompleteSet, openSetMenuId, toggleSetMenu, changeSetType, removeSet, setMenu } = useWorkoutSession()
     const id = useId()
+    const units = useUnitSystem()
+    const fieldDefs = FIELDS_BY_UNIT[units]
 
     // The text stays in the row while typing; the page only gets numbers on tick.
-    const [text, setText] = useState<Record<FieldKey, string>>(() => mapFields(key => FIELDS[key].format(set[key])))
+    const [text, setText] = useState<Record<FieldKey, string>>(() => mapFields(key => fieldDefs[key].format(set[key])))
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState<string | null>(null)
 
-    const errors = validateSet(text, props.fields)
+    const errors = validateSet(text, props.fields, units)
     const hasErrors = Object.keys(errors).length > 0
     const done = set.completedAt !== null
     const highlight = props.isNext && !isReadOnly
-    const plannedText = (key: FieldKey) => FIELDS[key].format(set[FIELDS[key].planned])
+    const plannedText = (key: FieldKey) => fieldDefs[key].format(set[fieldDefs[key].planned])
     const menuError = setMenu.error?.id === set.id ? setMenu.error.message : null
     const tickClasses = done
         ? "border-app-primary bg-app-primary text-app-canvas"
@@ -55,14 +58,14 @@ export default function SetRowSession(props: SetRowSessionProps)
 
     function handleTick()
     {
-        if (props.fields.some(({ key }) => text[key].trim() === "" && set[FIELDS[key].planned] === null)) {
+        if (props.fields.some(({ key }) => text[key].trim() === "" && set[fieldDefs[key].planned] === null)) {
             setSaveError("Enter the empty values first.")
             return
         }
         // An empty box takes the planned value.
         const filled = mapFields(key => text[key].trim() || plannedText(key))
         setText(filled)
-        void save(() => completeSet(exerciseId, set.id, mapFields(key => FIELDS[key].parse(filled[key]))))
+        void save(() => completeSet(exerciseId, set.id, mapFields(key => fieldDefs[key].parse(filled[key]))))
     }
 
     return(

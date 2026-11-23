@@ -2,10 +2,11 @@ import type { ExerciseItem } from "../shared/exercise-picker/exercise.types";
 import type { DayExercise, DraftExercise, DraftSet, SaveDayBody, SetTargets } from "./day-editor.types";
 import type { SetType } from "../shared/workouts.types";
 import { EXERCISE_FIELDS } from "../shared/exercise-fields";
-import { FIELD_KEYS, FIELDS, mapFields, validateSet, type FieldKey } from "../shared/set-values";
+import { FIELD_KEYS, FIELDS_BY_UNIT, mapFields, validateSet, type FieldKey, type UnitSystem } from "../shared/set-values";
 
 export type DraftAction =
-    | { type: "reset", exercises: DayExercise[] }
+    // units: the draft holds the text as shown, so kg or lb is chosen when it is built.
+    | { type: "reset", exercises: DayExercise[], units: UnitSystem }
     | { type: "exercisesAdded", selected: ExerciseItem[] }
     | { type: "exerciseMoved", exKey: string, direction: 1 | -1 }
     | { type: "exerciseRemoved", exKey: string }
@@ -18,7 +19,7 @@ export function draftReducer(draft: DraftExercise[], action: DraftAction): Draft
 {
     switch (action.type) {
         case "reset":
-            return toDraft(action.exercises)
+            return toDraft(action.exercises, action.units)
         case "exercisesAdded":
             return appendExercises(draft, action.selected)
         case "exerciseMoved":
@@ -66,15 +67,16 @@ function updateDraftSet(draft: DraftExercise[], exKey: string, setKey: string, c
     return updateDraftExercise(draft, exKey, e => ({ ...e, sets: e.sets.map(s => s.key !== setKey ? s : change(s)) }))
 }
 
-export function toDraft(exercises: DayExercise[]): DraftExercise[]
+export function toDraft(exercises: DayExercise[], units: UnitSystem): DraftExercise[]
 {
+    const fieldDefs = FIELDS_BY_UNIT[units]
     return exercises.map(exercise => ({
         key: exercise.id,
         exerciseSummary: exercise.exerciseSummary,
         sets: exercise.sets.map<DraftSet>(set => ({
             key: set.id,
             setType: set.setType,
-            ...mapFields(key => FIELDS[key].format(set[FIELDS[key].target])),
+            ...mapFields(key => fieldDefs[key].format(set[fieldDefs[key].target])),
         })),
     }))
 }
@@ -90,26 +92,27 @@ function appendExercises(draft: DraftExercise[], selected: ExerciseItem[]): Draf
     return [...draft, ...added]
 }
 
-export function isDraftValid(draft: DraftExercise[]): boolean
+export function isDraftValid(draft: DraftExercise[], units: UnitSystem): boolean
 {
     return draft.every(e => e.sets.every(s =>
-        Object.keys(validateSet(s, EXERCISE_FIELDS[e.exerciseSummary.type])).length === 0))
+        Object.keys(validateSet(s, EXERCISE_FIELDS[e.exerciseSummary.type], units)).length === 0))
 }
 
-function toTargets(set: DraftSet): SetTargets
+function toTargets(set: DraftSet, units: UnitSystem): SetTargets
 {
+    const fieldDefs = FIELDS_BY_UNIT[units]
     const targets = { setType: set.setType } as SetTargets
     for (const key of FIELD_KEYS)
-        targets[FIELDS[key].target] = FIELDS[key].parse(set[key])
+        targets[fieldDefs[key].target] = fieldDefs[key].parse(set[key])
     return targets
 }
 
-export function toSaveBody(draft: DraftExercise[]): SaveDayBody
+export function toSaveBody(draft: DraftExercise[], units: UnitSystem): SaveDayBody
 {
     return {
         exercises: draft.map(e => ({
             exerciseId: e.exerciseSummary.id,
-            sets: e.sets.map(toTargets),
+            sets: e.sets.map(set => toTargets(set, units)),
         })),
     }
 }

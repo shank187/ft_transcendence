@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom"
 import Dialog from "../../../components/ui/Dialog"
 import { buttonClasses } from "../../../components/ui/button-classes"
 import { ExercisePicker } from "../shared/exercise-picker/ExercisePicker"
+import { useUnitSystem } from "../shared/use-unit-system"
 import type { ExerciseItem } from "../shared/exercise-picker/exercise.types"
 
 // Tailwind's xl: from here the picker is docked beside the cards instead of opening in a drawer.
@@ -43,6 +44,7 @@ export default function DayEditorView(props: DayEditorViewProps)
     const [isDocked, setIsDocked] = useState(() => window.matchMedia(DOCK_QUERY).matches)
 
     const navigate = useNavigate()
+    const units = useUnitSystem()
 
     const addSelectedExercises = (selected: ExerciseItem[])=>{
         dispatch({ type: "exercisesAdded", selected })
@@ -55,9 +57,9 @@ export default function DayEditorView(props: DayEditorViewProps)
         setSaveError(null)
         setSaving(true)
         try{
-            const result = await saveWorkoutDay(props.planId, props.dayId, toSaveBody(draft))
+            const result = await saveWorkoutDay(props.planId, props.dayId, toSaveBody(draft, units))
             setDay(result)
-            dispatch({ type: "reset", exercises: result.exercises })
+            dispatch({ type: "reset", exercises: result.exercises, units })
             setSaving(false)
             return true
         }catch(err){
@@ -74,7 +76,7 @@ export default function DayEditorView(props: DayEditorViewProps)
     const discardChanges = ()=>{
         if(!day) return
         setSaveError(null)
-        dispatch({ type: "reset", exercises: day.exercises })
+        dispatch({ type: "reset", exercises: day.exercises, units })
     }
 
     const reloadDay = () => {
@@ -92,7 +94,7 @@ export default function DayEditorView(props: DayEditorViewProps)
                 const result = await getWorkoutDay(props.planId, props.dayId)
                 if (ignore) return
                 setDay(result)
-                dispatch({ type: "reset", exercises: result?.exercises ?? [] })
+                dispatch({ type: "reset", exercises: result?.exercises ?? [], units })
             }catch(err){
                 if (ignore) return
                 setDayError(err instanceof Error ? err.message: "Failed to Load the workout's day.")
@@ -102,10 +104,10 @@ export default function DayEditorView(props: DayEditorViewProps)
         }
         void loadDayPlan()
         return () => { ignore = true }
-    },[props.planId, props.dayId, reloadCount])
+    },[props.planId, props.dayId, reloadCount, units])
 
     // Compare save bodies, not drafts, so typing a value back by hand counts as clean.
-    const isDirty = day ? JSON.stringify(toSaveBody(draft)) !== JSON.stringify(toSaveBody(toDraft(day.exercises))) : false
+    const isDirty = day ? JSON.stringify(toSaveBody(draft, units)) !== JSON.stringify(toSaveBody(toDraft(day.exercises, units), units)) : false
 
     const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>)=>{
         if(isDirty){
@@ -157,7 +159,7 @@ export default function DayEditorView(props: DayEditorViewProps)
             />
         )
 
-    const isValid = isDraftValid(draft)
+    const isValid = isDraftValid(draft, units)
     const canAddExercise = draft.length < MAX_EXERCISES
     const exerciseCount = `${draft.length} ${draft.length === 1 ? "exercise" : "exercises"}`
     const openPicker = () => setopenExecisePicker(true)
