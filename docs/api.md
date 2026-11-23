@@ -62,6 +62,7 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | POST | `/api/workout-sessions/:sessionId/finish` | Yes | Finish a workout: PRs and award |
 | POST | `/api/workout-sessions/:sessionId/exercises` | Yes | Add exercises to a workout in progress |
 | PATCH | `/api/workout-sessions/:sessionId/exercises/:exerciseId` | Yes | Move an exercise up or down |
+| DELETE | `/api/workout-sessions/:sessionId/exercises/:exerciseId` | Yes | Remove an exercise and its sets from a workout in progress |
 | POST | `/api/workout-sessions/:sessionId/exercises/:exerciseId/sets` | Yes | Add a set to an exercise of a workout in progress |
 | PATCH | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Update or tick a set of a workout in progress |
 | DELETE | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Delete a set and renumber the remaining sets |
@@ -911,6 +912,25 @@ Status codes:
 - `500` unexpected error
 
 Failure example: moving the first exercise up returns `422` `{ "message": "This exercise is already first." }`.
+
+### `DELETE /api/workout-sessions/:sessionId/exercises/:exerciseId`
+
+Removes one exercise from a workout in progress, with all its sets (logged ones too). The other exercises keep their `order`, so a gap can stay; moving and adding still work.
+
+- **Path:** `sessionId`, `exerciseId` (the workout exercise's `id`, not the catalog exercise). No body.
+- **Code:** `removeSessionExerciseController` → `removeSessionExercise`.
+
+Response `204` — no body.
+
+Status codes:
+
+- `204` exercise removed
+- `401` missing, invalid, or expired access token
+- `404` `{ "message": "Workout not found." }` or `{ "message": "Exercise not found." }`
+- `409` `{ "message": "This workout is finished or cancelled." }`
+- `500` unexpected error
+
+Failure example: removing the same exercise twice returns `404` `{ "message": "Exercise not found." }` the second time.
 
 ### `POST /api/workout-sessions/:sessionId/exercises/:exerciseId/sets`
 

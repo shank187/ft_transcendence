@@ -462,6 +462,32 @@ export async function deleteSessionSet(userId: string, sessionId: string, setId:
     }
 }
 
+type RemoveExerciseResult =
+    | { ok: true }
+    | { ok: false; reason: "NOT_FOUND" | "CLOSED" | "EXERCISE_NOT_FOUND" };
+
+// Deletes the exercise with its sets (Cascade). The later exercises keep their order:
+// move picks the neighbour by position and add uses the highest order + 1, so a gap breaks neither.
+export async function removeSessionExercise(userId: string, sessionId: string, exerciseId: string): Promise<RemoveExerciseResult>
+{
+    const state = await getSessionState(userId, sessionId)
+    if(state !== "OPEN")
+        return { ok: false, reason: state }
+    return prisma.$transaction(async (tx): Promise<RemoveExerciseResult> => {
+        // Finished or discarded since the check above.
+        if(!await lockOpenSession(tx, userId, sessionId))
+            return { ok: false, reason: "NOT_FOUND" }
+        // The lock proved the workout is this user's; deleteMany with workoutSessionId
+        // deletes nothing for an exercise of another workout, instead of throwing.
+        const deleted = await tx.workoutSessionExercise.deleteMany({
+            where: { id: exerciseId, workoutSessionId: sessionId },
+        })
+        if(deleted.count === 0)
+            return { ok: false, reason: "EXERCISE_NOT_FOUND" }
+        return { ok: true }
+    })
+}
+
 type FinishSessionResult =
     | { ok: true; session: WorkoutSession; award: AwardResult | null }
     | { ok: false; reason: "NOT_FOUND" | "CANCELLED" | "NO_COMPLETED_SET" };
