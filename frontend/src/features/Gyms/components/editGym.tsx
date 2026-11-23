@@ -69,6 +69,14 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
             alert("Gym name cannot be empty");
             return ;
         }
+        if (address && address.trim().length > 200) {
+            alert("Address can't exceed 200 characters.");
+            return;
+        }
+        if (phoneNumber && phoneNumber.trim().length > 15) {
+            alert("Phone number is too long.");
+            return;
+        }
         try{
                 await api.patch(`/api/gyms/${gym.id}`, {
                 name : name.trim(),
