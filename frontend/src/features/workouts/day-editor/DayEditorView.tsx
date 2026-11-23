@@ -1,12 +1,11 @@
 import { useEffect, useReducer, useState } from "react"
+import { ChevronLeft, Dumbbell, Plus } from "lucide-react"
 import type { DayDetail } from "./day-editor.types"
 import getWorkoutDay, { saveWorkoutDay } from "./day-editor.api"
 import ErrorState from "../../../components/states/ErrorState"
 import NotFoundState from "../../../components/states/NotFoundState"
 import Button from "../../../components/ui/Button"
 import LoadingState from "../../../components/states/LoadingState"
-import EmptyState from "../../../components/states/EmptyState"
-import emptyStateIcon from "../../../assets/empty-icon.png"
 import { draftReducer, isDraftValid, toDraft, toSaveBody } from "./day-editor.draft"
 import { MAX_EXERCISES } from "../shared/limits"
 import WorkoutExerciseCard from "./WorkoutExerciseCard"
@@ -16,7 +15,12 @@ import { buttonClasses } from "../../../components/ui/button-classes"
 import { ExercisePicker } from "../shared/exercise-picker/ExercisePicker"
 import type { ExerciseItem } from "../shared/exercise-picker/exercise.types"
 
-export default function DayEditorView(props:{planId: string, dayId: string})
+interface DayEditorViewProps {
+    planId: string
+    dayId: string
+}
+
+export default function DayEditorView(props: DayEditorViewProps)
 {
     const [day, setDay] = useState<DayDetail| null>(null)
     const [dayError, setDayError] = useState<string|null>(null)
@@ -27,7 +31,6 @@ export default function DayEditorView(props:{planId: string, dayId: string})
 
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState<string|null>(null)
-    
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     // key of the set whose menu is open, so only one menu opens at a time
@@ -143,32 +146,32 @@ export default function DayEditorView(props:{planId: string, dayId: string})
         )
 
     const isValid = isDraftValid(draft)
-
+    const canAddExercise = draft.length < MAX_EXERCISES
+    const exerciseCount = `${draft.length} ${draft.length === 1 ? "exercise" : "exercises"}`
+    const openPicker = () => setopenExecisePicker(true)
 
     return(
         <div className="flex w-full max-w-[640px] flex-col gap-4">
-            <header className="flex flex-col gap-2">
-                <Link  onClick={handleBackClick} to={planPath} className="inline-flex min-h-11 items-center self-start text-sm text-app-text-secondary hover:text-app-text">‹ {day.planName}</Link>
-                <div className="flex justify-between">
-                    <h1 className="text-[28px] font-semibold">{day.name}</h1>
-                    {draft.length !== 0 && draft.length < MAX_EXERCISES && <Button variant="secondary" disabled={saving} onClick={()=>setopenExecisePicker(true)}>Add Exercises</Button>}
-                    {draft.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A day can have at most ${MAX_EXERCISES} exercises.`}</p>}
-                </div>
+            <header className="flex flex-col gap-1">
+                <Link onClick={handleBackClick} to={planPath} className="-ml-1.5 flex h-11 items-center gap-1 self-start text-sm font-medium text-app-text-secondary hover:text-app-text">
+                    <ChevronLeft aria-hidden="true" className="size-5" />
+                    {day.planName}
+                </Link>
+                <h1 className="text-[26px] font-bold tracking-tight wrap-break-word">{day.name}</h1>
+                <p className="text-sm text-app-text-secondary">{exerciseCount} · targets copy into the workout when you start</p>
             </header>
             {draft.length === 0 &&
-                    <EmptyState
-                    title="No exercises to show."
-                    icon={
-                        <img
-                        src={emptyStateIcon}
-                        alt=""
-                        className="w-32"
-                        />
-                    }
-                    action={
-                        <Button className="min-h-11" disabled={saving} onClick={()=> setopenExecisePicker(true)}>Add Exercises</Button>
-                    }
-                    />
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-app-border bg-app-surface px-6 py-10 text-center">
+                    <span className="flex size-16 items-center justify-center rounded-full bg-app-primary/10 text-app-primary">
+                        <Dumbbell aria-hidden="true" className="size-7.5" strokeWidth={1.75} />
+                    </span>
+                    <strong className="text-lg font-semibold">No exercises yet</strong>
+                    <p className="max-w-70 text-sm text-app-text-secondary">Pick the exercises for this day and set the targets you aim for.</p>
+                    <Button className="mt-1 min-h-12 gap-2 font-bold" disabled={saving} onClick={openPicker}>
+                        <Plus aria-hidden="true" className="size-4.5" strokeWidth={2.5} />
+                        Add exercises
+                    </Button>
+                </div>
             }
             {draft.length > 0 &&
                 <fieldset disabled={saving} className="min-w-0">
@@ -189,18 +192,26 @@ export default function DayEditorView(props:{planId: string, dayId: string})
                         }
                     </ol>
                 </fieldset>
-
             }
+            {draft.length > 0 && canAddExercise &&
+                <button type="button" disabled={saving} onClick={openPicker} className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-dashed border-app-primary text-[15px] font-semibold text-app-primary hover:bg-app-primary/10 disabled:opacity-50">
+                    <Plus aria-hidden="true" className="size-4.5" strokeWidth={2.5} />
+                    Add exercises
+                </button>
+            }
+            {!canAddExercise && <p className="text-sm text-app-text-secondary">{`A day can have at most ${MAX_EXERCISES} exercises.`}</p>}
+            {/* Sticks above the S1 bottom nav on phones. role=status reads the text when it changes. */}
             {(isDirty || !isValid) &&
-                <div className="sticky bottom-16 flex items-center gap-3 rounded-lg border border-app-border bg-app-surface-raised px-4 py-3 md:bottom-4">
+                <div role="status" className="sticky bottom-14 z-20 -mx-4 flex flex-wrap items-center gap-2.5 border-t border-app-border bg-app-surface-raised px-4 py-3 md:bottom-4 md:mx-0 md:rounded-2xl md:border">
+                    <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${isValid && !saveError ? "bg-amber-400" : "bg-app-danger"}`} />
                     {saveError && isValid
-                        ? <p role="alert" className="min-w-0 flex-1 text-sm font-medium text-app-danger">{saveError}</p>
-                        : <p className={`min-w-0 flex-1 text-sm font-medium ${isValid ? "text-app-text-secondary" : "text-app-danger"}`}>
+                        ? <p className="min-w-0 flex-1 text-sm font-semibold text-app-danger">{saveError}</p>
+                        : <p className={`min-w-0 flex-1 text-sm font-semibold ${isValid ? "" : "text-app-danger"}`}>
                             {saving ? "Saving…" : isValid ? "Unsaved changes" : "Fix the fields in red to save"}
                         </p>
                     }
-                    <Button variant="ghost" disabled={saving} onClick={discardChanges} className="min-h-11 shrink-0">Discard</Button>
-                    <Button disabled={saving || !isValid} onClick={()=> void saveDay()} className="min-h-11 shrink-0">{saving ? "Saving..." : "Save"}</Button>
+                    <button type="button" disabled={saving} onClick={discardChanges} className="h-11 shrink-0 rounded-lg border border-app-border px-3.5 text-sm font-semibold hover:bg-app-surface-hover disabled:opacity-50">Discard</button>
+                    <Button disabled={saving || !isValid} onClick={()=> void saveDay()} className="min-h-11 shrink-0 font-bold">{saving ? "Saving..." : "Save day"}</Button>
                 </div>
             }
             {isDialogOpen &&

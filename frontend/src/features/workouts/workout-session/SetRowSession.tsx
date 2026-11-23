@@ -92,7 +92,7 @@ export default function SetRowSession(props: SetRowSessionProps)
                     inputId={`${id}-${field.key}`}
                     field={field}
                     labelText={`Set ${props.position} ${field.key}`}
-                    placeholder={plannedText(field.key) || "-"}
+                    placeholder={plannedText(field.key) || "—"}
                     disabled={saving || done || isReadOnly}
                     done={done}
                     highlight={highlight}
