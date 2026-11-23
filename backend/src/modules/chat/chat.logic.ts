@@ -156,12 +156,16 @@ export function initializeChat(wss: WebSocketServer) {
                             }
 
                             ws.send(JSON.stringify(response))
-
-                            if (!connectedUsers.has(ws.userId))
-                                connectedUsers.set(ws.userId, new Set())
-
-                            connectedUsers.get(ws.userId)?.add(ws)
-
+                            const sockets = connectedUsers.get(ws.userId) ?? new Set()
+                            sockets.add(ws)
+                            connectedUsers.set(ws.userId, sockets)
+                            if (sockets.size > 5) {
+                                const oldestSocket = Array.from(sockets)[0]
+                                if (oldestSocket) {
+                                    sockets.delete(oldestSocket)
+                                    oldestSocket.close(4001, "Replaced by a newer chat connection")
+                                }
+                            }
                             if (connectedUsers.get(ws.userId)?.size === 1) {
                                 try {
                                     await handlePresence(ws, "online")

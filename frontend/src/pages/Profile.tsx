@@ -13,7 +13,7 @@ import SearchBar from "../features/chat/SearchBar"
 export default function Profile() {
     const { username } = useParams<{ username: string }>()
     const { user } = useAuth()
-    const { lastMessage } = useWebSocket()
+    const { lastMessage, connectionStatus } = useWebSocket()
 
     const [profile, setProfile] = useState<PublicProfile | null>(null)
     const [loading, setLoading] = useState(true)
@@ -34,7 +34,10 @@ export default function Profile() {
             setProfile(response.data)
         } catch (error) {}
     }
-
+useEffect(() => {
+    if (connectionStatus === "connected")
+        void refreshProfile()
+}, [connectionStatus])
     useEffect(() => {
         const targetUsername = username ?? user?.username
 

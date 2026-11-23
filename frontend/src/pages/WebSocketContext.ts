@@ -8,6 +8,8 @@ type WebSocketContextType = {
     onlineUserIds: string[]
     onlineFriendsRefreshFailed: boolean
     connectionStatus: "connecting" | "connected" | "disconnected";
+    wasReplaced: boolean
+    reconnect: () => void
 }
 
 export const WebSocketContext = createContext<WebSocketContextType | null>(null)
