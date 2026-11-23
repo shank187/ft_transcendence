@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import { formatElapsed } from "./workout-session.helpers";
 import type { WorkoutSessionStatus } from "../shared/workouts.types";
@@ -14,11 +15,14 @@ interface SessionHeaderProps {
     finishing: boolean
     onFinish: () => void
     onDiscard: () => void
+    // null when the workout is at its exercise limit.
+    onAddExercise: (() => void) | null
 }
 
 interface SessionActionsProps {
     className: string
     canFinish: boolean
+    onAddExercise: (() => void) | null
     finishing: boolean
     onFinish: () => void
     onDiscard: () => void
@@ -54,6 +58,7 @@ export default function SessionHeader(props: SessionHeaderProps)
         finishing: props.finishing,
         onFinish: props.onFinish,
         onDiscard: props.onDiscard,
+        onAddExercise: props.onAddExercise,
     }
 
     return(
@@ -101,6 +106,19 @@ function SessionActions(props: SessionActionsProps)
 {
     return(
         <div className={`gap-2.5 ${props.className}`}>
+            {/* Icon only on phones, where the bar also holds Discard and Finish. */}
+            {props.onAddExercise &&
+                <button
+                type="button"
+                aria-label="Add exercise"
+                title="Add exercise"
+                onClick={props.onAddExercise}
+                className="flex h-12 min-w-12 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-app-primary text-sm font-semibold text-app-primary hover:bg-app-primary/10 md:h-11 md:px-3.5"
+                >
+                    <Plus aria-hidden="true" className="size-5 md:size-4" strokeWidth={2.5} />
+                    <span className="hidden md:inline">Add exercise</span>
+                </button>
+            }
             {/* A plain button: every Button variant sets its own text colour. */}
             <button
             type="button"

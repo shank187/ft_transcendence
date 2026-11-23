@@ -251,6 +251,7 @@ export default function WorkoutSessionView(props: WorkoutSessionViewProps)
                 finishing={finishing}
                 onFinish={requestFinish}
                 onDiscard={() => setShowDiscard(true)}
+                onAddExercise={loaded.exercises.length < MAX_EXERCISES ? () => setShowPicker(true) : null}
                 />
             }
             {finishError && !incompleteFinish && <p role="alert" className="text-sm text-app-danger">{finishError}</p>}
@@ -270,7 +271,6 @@ export default function WorkoutSessionView(props: WorkoutSessionViewProps)
                     )}
                 </ol>
             }
-            {!isReadOnly && loaded.exercises.length > 0 && loaded.exercises.length < MAX_EXERCISES && addExercisesButton}
             {!isReadOnly && loaded.exercises.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A workout can have at most ${MAX_EXERCISES} exercises.`}</p>}
             {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
             {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}

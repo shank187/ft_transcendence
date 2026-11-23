@@ -162,7 +162,7 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
                     />
                 </div>
                 {/* One scrolling row on phones instead of several wrapped lines of pills. */}
-                <div role="group" aria-label="Muscle" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                <div role="group" aria-label="Muscle" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
                     {[{ id: "", name: "All" }, ...(filters?.muscles ?? [])].map(muscle => {
                         const isOn = (query.muscle ?? "") === muscle.id
                         return (
@@ -179,7 +179,8 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
                         )
                     })}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                {/* [&_select]:w-full: FilterSelect sizes to its longest option, which left gaps in a narrow panel. */}
+                <div className="grid grid-cols-2 gap-2 [&_select]:w-full [&_select]:truncate">
                     <FilterSelect
                         id="equipment-filter"
                         label="Equipment"
@@ -193,7 +194,6 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
                     <FilterSelect
                         id="sort-select"
                         label="Sort"
-                        showLabel
                         value={query.sort === "name_desc" ? "name_desc" : ""}
                         options={[{ id: "name_desc", name: "Name Z–A" }]}
                         onChange={(value) => setQuery((prev) => ({...prev, page: 1, sort: value === "name_desc" ? "name_desc" : "name_asc"}))}
@@ -203,6 +203,7 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
                         disabled={filterState.status !== "success" || !filters?.gym}
                         variant="outline"
                         size="pill"
+                        className="col-span-2"
                         aria-pressed={query.gym}
                         onClick={()=>setQuery((prev)=>({
                             ...prev,
