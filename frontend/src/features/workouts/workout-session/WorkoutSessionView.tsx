@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import type { PerformedValues } from "./workout-session.types";
 import type { AwardResult, SetType } from "../shared/workouts.types";
-import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
+import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, removeSessionExercise, updateSessionSet } from "./workout-session.api";
 import { livePrSetIds } from "./workout-session.helpers";
 import { sessionReducer } from "./workout-session.reducer";
 import { IDLE, WorkoutSessionContext, type RequestStatus, type WorkoutSessionActions } from "./WorkoutSessionContext";
@@ -45,6 +45,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [setMenu, setSetMenu] = useState<RequestStatus>(IDLE)
     const [addingSet, setAddingSet] = useState<RequestStatus>(IDLE)
     const [moving, setMoving] = useState<RequestStatus>(IDLE)
+    const [removing, setRemoving] = useState<RequestStatus>(IDLE)
 
     // The load lives inside the effect so its cleanup can ignore an answer for an
     // older sessionId or an older reload.
@@ -162,6 +163,17 @@ export default function WorkoutSessionView(props: {sessionId: string})
         }
     }, [sessionId])
 
+    const removeExercise = useCallback(async (exerciseId: string) => {
+        setRemoving({ busyId: exerciseId, error: null })
+        try {
+            await removeSessionExercise(sessionId, exerciseId)
+            dispatch({ type: "exerciseRemoved", exerciseId })
+            setRemoving(IDLE)
+        } catch (err) {
+            setRemoving({ busyId: null, error: { id: exerciseId, message: errorMessage(err, "Can't remove this exercise, try again.") } })
+        }
+    }, [sessionId])
+
     const session = state.status === "success" ? state.session : null
     const isReadOnly = session?.status !== "IN_PROGRESS"
     // In progress the badge follows the ticked sets; once finished, what the server stored wins.
@@ -179,8 +191,9 @@ export default function WorkoutSessionView(props: {sessionId: string})
         openSetMenuId, toggleSetMenu, changeSetType, removeSet, setMenu,
         addSet: addSessionSet, addingSet,
         moveExercise: moveSessionExercise, moving,
+        removeExercise, removing,
     }), [isReadOnly, prSetIds, completeSet, uncompleteSet, openSetMenuId, toggleSetMenu, changeSetType,
-        removeSet, setMenu, addSessionSet, addingSet, moveSessionExercise, moving])
+        removeSet, setMenu, addSessionSet, addingSet, moveSessionExercise, moving, removeExercise, removing])
 
     if (state.status === "loading") return <LoadingState message="Loading your session"/>
     if (state.status === "notFound") return <NotFoundState title="Session Not Found"/>

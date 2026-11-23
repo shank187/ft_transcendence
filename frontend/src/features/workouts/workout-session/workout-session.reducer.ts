@@ -17,6 +17,7 @@ export type SessionAction =
     | { type: "setSaved", exerciseId: string, setId: string, set: WorkoutSessionSet }
     | { type: "setAdded", exerciseId: string, set: WorkoutSessionSet }
     | { type: "setRemoved", exerciseId: string, setId: string }
+    | { type: "exerciseRemoved", exerciseId: string }
     | { type: "reordered", ids: string[] }
     | { type: "finished", session: WorkoutSession }
 
@@ -50,6 +51,8 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         case "setRemoved":
             return withExercises(state, updateExercise(session.exercises, action.exerciseId,
                 exercise => ({ ...exercise, sets: exercise.sets.filter(set => set.id !== action.setId) })))
+        case "exerciseRemoved":
+            return withExercises(state, session.exercises.filter(exercise => exercise.id !== action.exerciseId))
         // The server's order is the truth: rebuild from the ids it returns instead of swapping locally.
         case "reordered":
             return withExercises(state, orderExercises(session.exercises, action.ids))

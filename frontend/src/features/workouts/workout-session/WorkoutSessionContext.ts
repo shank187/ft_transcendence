@@ -33,6 +33,10 @@ export interface WorkoutSessionActions {
     moveExercise: (exerciseId: string, direction: -1 | 1) => void
     // By exercise id.
     moving: RequestStatus
+
+    removeExercise: (exerciseId: string) => void
+    // By exercise id.
+    removing: RequestStatus
 }
 
 export const WorkoutSessionContext = createContext<WorkoutSessionActions | null>(null)
