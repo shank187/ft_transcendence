@@ -254,7 +254,7 @@ export async function getWeeklyStats(userId: string) {
     const from = new Date();
 
     //first monday
-    const daySincemonday = (from.getUTCDate() + 6) % 7;
+    const daySincemonday = (from.getUTCDay() + 6) % 7;
     from.setUTCDate(from.getUTCDate() - daySincemonday);
     from.setUTCHours(0, 0, 0, 0);
 

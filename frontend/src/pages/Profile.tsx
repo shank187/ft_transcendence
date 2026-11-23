@@ -123,7 +123,7 @@ export default function Profile() {
                     {/* Profile information */}
                     <div className="min-w-0 flex-1 text-center sm:text-left">
                         <h1 className="break-words text-2xl font-bold text-app-text">
-                            {profile.displayName || profile.displayName}
+                            {profile.displayName || profile.username}
                         </h1>
 
                         <p className="mt-1 break-all text-sm text-app-muted">
