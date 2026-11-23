@@ -43,11 +43,11 @@ export default function EditProfile() {
         </div>
 
         <div className="flex flex-col-reverse gap-6 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1 rounded-xl border border-app-border p-4">
+            <div className="min-w-0 flex-1 rounded-xl border border-app-border bg-app-surface p-4">
                <Profile_fields user={user} on_user_updated={set_user}/>
             </div>
 
-            <div className="w-full rounded-xl border border-app-border p-4 lg:w-72 lg:shrink-0">
+            <div className="w-full rounded-xl border border-app-border bg-app-surface p-4 lg:w-72 lg:shrink-0">
                 <Avatar_upload
                 user={user}
                 on_avatar_updated={(avatarUrl) => {
