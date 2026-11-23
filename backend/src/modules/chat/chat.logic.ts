@@ -86,6 +86,9 @@ export async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
 
 export function initializeChat(wss: WebSocketServer) {
     wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
+        ws.on("error", error => {
+            console.error("Chat WebSocket error:", error.message)
+        })
         let messageQueue = Promise.resolve()
 
         console.log("client connected.")
