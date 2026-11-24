@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import api from "../auth/axiosInstance"
 import type { ConversationData, ConversationsListProps } from "./chat.types"
 import { useWebSocket } from "../../pages/WebSocketContext"
@@ -12,6 +12,7 @@ export function ConversationsList({
 
     const [conversations, setConversations] = useState<ConversationData[]>([])
     const [getError, setGetError] = useState(false)
+    const readReceipts = useRef(new Map<string, string>())
 
     const newMessageId =
         lastMessage?.type === "message"
@@ -21,6 +22,9 @@ export function ConversationsList({
     useEffect(() => {
         if (lastMessage?.type !== "readMessage")
             return
+
+        const key = `${lastMessage.conversationId}:${lastMessage.messageId}`
+        readReceipts.current.set(key, lastMessage.readAt)
 
         setConversations(current =>
             current.map(conversation =>
@@ -46,8 +50,21 @@ export function ConversationsList({
                 const response = await api.get<ConversationData[]>("/api/conversations")
 
                 if (!cancelled) {
+                    const receivedConversations = response.data.map(conversation => {
+                        const lastMessage = conversation.lastMessage
+                        if (!lastMessage)
+                            return conversation
+
+                        const key = `${conversation.conversationId}:${lastMessage.id}`
+                        const readAt = readReceipts.current.get(key)
+                        if (readAt === undefined || readAt === lastMessage.readAt)
+                            return conversation
+
+                        return { ...conversation, lastMessage: { ...lastMessage, readAt } }
+                    })
+
                     setConversations(current =>
-                        response.data.map(conversation => {
+                        receivedConversations.map(conversation => {
                             const existing = current.find(
                                 item => item.conversationId === conversation.conversationId
                             )
@@ -141,6 +158,7 @@ export function ConversationsList({
                             last.senderId === conversation.user.id
 
                         return (
+                            <>
                             <button
                                 key={conversation.conversationId}
                                 type="button"
@@ -175,8 +193,10 @@ export function ConversationsList({
                                     <span className="shrink-0 text-xs text-app-text-muted">
                                         {formatMessageDate(last.createdAt)}
                                     </span>
-                                )}
+                                )}                            
                             </button>
+                            <div className="border-t border-app-border" />
+</>
                         )
                     })
                 )}
