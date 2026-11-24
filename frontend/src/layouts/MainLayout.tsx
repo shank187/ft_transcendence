@@ -4,6 +4,7 @@ import { useState, useEffect , useRef} from 'react';
 import { isAxiosError } from 'axios';
 import { useAuth } from '../features/auth/AuthContext';
 import Button from '../components/ui/Button';
+import { useWebSocket } from "../pages/WebSocketContext"
 
 const nav_items = [
     { to: '/home', label: 'Home' },
@@ -30,8 +31,23 @@ const more_nav_items = [
 ];
 
 
-function MainLayout() {
+function LiveUpdatesNotice() {
+    const { wasReplaced, reconnect } = useWebSocket()
 
+    if (!wasReplaced)
+        return null
+
+    return (
+        <div className="fixed right-3 bottom-16 z-40 flex w-max max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-3 rounded-xl border border-app-border bg-app-surface p-4 shadow-lg md:right-6 md:bottom-6">
+            <p role="status" className="text-sm text-app-danger">you were disconnected</p>
+            <Button variant="outline" className="shrink-0 border" aria-label="Reconnect live updates" onClick={reconnect}>
+                Reconnect
+            </Button>
+        </div>
+    )
+}
+
+function MainLayout() {
     const [more , set_more] = useState(false);
     const [logout_error, set_logout_error] = useState('');
     const [is_logging_out, set_is_logging_out] = useState(false);
@@ -106,6 +122,7 @@ function MainLayout() {
                 </div>
             </div>
             <div className={`min-w-0 md:flex-1 md:p-8 ${isSocial ? '' : 'p-4 pb-24'}`}>
+                <LiveUpdatesNotice/>
                 <Outlet />
             </div>
 

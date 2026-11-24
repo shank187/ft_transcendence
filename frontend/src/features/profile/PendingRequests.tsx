@@ -29,8 +29,6 @@ export default function PendingRequests({
                 if (!cancelled)
                     setRequests(response.data)
             } catch (error) {
-                console.error("Failed to fetch requests:", error)
-
                 if (!cancelled)
                     setError("Failed to load friend requests")
             } finally {
@@ -65,7 +63,6 @@ export default function PendingRequests({
 
             onUpdate()
         } catch (error) {
-            console.error(error)
             setError(`Failed to ${action} friend request`)
         } finally {
             setProcessingId(null)

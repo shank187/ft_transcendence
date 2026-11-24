@@ -8,72 +8,60 @@ import ProfileActions from "../features/profile/ProfileActions"
 import { useWebSocket } from "./WebSocketContext"
 import ProfileFriends from "../features/profile/ProfileFriends"
 import PendingRequests from "../features/profile/PendingRequests"
+import SearchBar from "../features/chat/SearchBar"
 import PublicProfileProgress from "../features/profile/PublicProfileProgress"
 
 export default function Profile() {
     const { username } = useParams<{ username: string }>()
     const { user } = useAuth()
-    const { lastMessage } = useWebSocket()
+    const { lastMessage, connectionStatus } = useWebSocket()
 
     const [profile, setProfile] = useState<PublicProfile | null>(null)
     const [loading, setLoading] = useState(true)
     const [showFriends, setShowFriends] = useState(false)
     const [showRequests, setShowRequests] = useState(false)
+const targetUsername = username ?? user?.username
 
-    async function refreshProfile() {
-        const targetUsername = username ?? user?.username
+const [profileRefresh, setProfileRefresh] = useState(0)
 
-        if (!targetUsername)
-            return
+async function refreshProfile() {
+    setProfileRefresh(attempt => attempt + 1)
+}
+useEffect(() => {
+    if (connectionStatus === "connected")
+        refreshProfile()
+}, [connectionStatus])
+useEffect(() => {
+    setProfile(null)
+    setLoading(Boolean(targetUsername))
+}, [targetUsername])
+useEffect(() => {
+    if (!targetUsername)
+        return
 
+    const profileUrl = `/api/users/${encodeURIComponent(targetUsername)}/profile`
+    let cancelled = false
+
+    async function fetchProfile() {
         try {
-            const response = await api.get<PublicProfile>(
-                `/api/users/${encodeURIComponent(targetUsername)}/profile`
-            )
+            const response = await api.get<PublicProfile>(profileUrl)
 
-            setProfile(response.data)
-        } catch (error) {
-            console.error("Failed to refresh profile:", error)
+            if (!cancelled)
+                setProfile(response.data)
+        } catch {
+            // Keep the existing error behavior.
+        } finally {
+            if (!cancelled)
+                setLoading(false)
         }
     }
 
-    useEffect(() => {
-        const targetUsername = username ?? user?.username
+    void fetchProfile()
 
-        if (!targetUsername) {
-            setProfile(null)
-            setLoading(false)
-            return
-        }
-
-        let cancelled = false
-
-        async function fetchProfile() {
-            setLoading(true)
-            setProfile(null)
-
-            try {
-                const response = await api.get<PublicProfile>(
-                    `/api/users/${encodeURIComponent(targetUsername!)}/profile`
-                )
-
-                if (!cancelled)
-                    setProfile(response.data)
-            } catch (error) {
-                if (!cancelled)
-                    console.error("Failed to fetch profile:", error)
-            } finally {
-                if (!cancelled)
-                    setLoading(false)
-            }
-        }
-
-        fetchProfile()
-
-        return () => {
-            cancelled = true
-        }
-    }, [username, user?.username])
+    return () => {
+        cancelled = true
+    }
+}, [targetUsername, profileRefresh])
 
     useEffect(() => {
         if (lastMessage?.type !== "friendship_updated")
@@ -101,8 +89,9 @@ export default function Profile() {
 
     return (
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:p-4 md:p-6">
+            <SearchBar hideOnMobile={false}/>
             {/* Profile card */}
-            <div className="rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
+            <div className="mt-4 rounded-2xl border border-app-border bg-app-surface px-5 py-8 sm:p-6">
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
                     {/* Avatar */}
                     <div className="shrink-0 self-center sm:self-start">

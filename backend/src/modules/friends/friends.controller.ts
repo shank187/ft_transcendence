@@ -11,7 +11,6 @@ export const getFriends = async (req: AuthenticatedRequest, res: Response) => {
         const friendsList = await getFriendsForUser(userId)
         return res.status(200).json(friendsList)
     } catch (error) {
-        console.error(error)
         return res.status(500).json({message: "Internal server error"})
     }
 }
@@ -27,7 +26,6 @@ export const getUserFriends = async (req: AuthenticatedRequest, res: Response) =
         const friendsList = await getFriendsForUser(userId)
         return res.status(200).json(friendsList)
     } catch (error) {
-        console.error(error)
         return res.status(500).json({message: "Internal server error"})
     }
 }
@@ -52,7 +50,6 @@ export const canMessageUser = async (req: AuthenticatedRequest, res: Response) =
 
         return res.status(200).json({ canMessage })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" })
     }
 }
@@ -96,14 +93,8 @@ export const getPendingRequests = async (
 
         return res.status(200).json(usersList)
     } catch (error) {
-        console.error(error)
         return res.status(500).json({
             message: "Internal server error"
         })
     }
-}
-
-
-export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) => {
-
 }

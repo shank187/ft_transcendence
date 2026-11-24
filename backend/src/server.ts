@@ -6,7 +6,10 @@ import { initializeChat } from './modules/chat/chat.logic'
 
 const PORT = Number(process.env.PORT) || 3000;
 
-const wss = new WebSocketServer({ noServer:true })
+const wss = new WebSocketServer({
+    noServer: true,
+    maxPayload: 16 * 1024,
+})
 
 const server = app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

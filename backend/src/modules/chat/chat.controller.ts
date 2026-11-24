@@ -66,7 +66,6 @@ export async function getConversationsList(req: AuthenticatedRequest, res: Respo
         })
         return res.status(200).json(conversationsList)
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 } 
@@ -120,7 +119,6 @@ export const getMessageHistory = async (
         })
 
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" })
     }
 }

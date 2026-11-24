@@ -9,7 +9,6 @@ export const deleteFriendship = async (req: AuthenticatedRequest, res: Response)
 
     if (!deleterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const otherFriend = userId;
@@ -48,20 +47,6 @@ export const deleteFriendship = async (req: AuthenticatedRequest, res: Response)
         await notifyFriendshipUpdate(otherFriend, deleterId)
         return res.status(200).json({ message: "Friendship deleted" });
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
-
-
-// export const return_uses_id = async (req: AuthenticatedRequest, res: Response) => {
-//     const users = prisma.user.findMany({
-//         select: {
-//             id: true,
-//             email: true
-//         }
-//     })
-//     const users_Ids = (await users).map(user => user.id)
-//     const user_Emails = (await users).map(user => user.email)
-//     res.json({ users_Ids, user_Emails})
-// }

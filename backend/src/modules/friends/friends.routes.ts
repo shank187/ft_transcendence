@@ -17,5 +17,4 @@ router.get("/", authenticate, getFriends)
 router.get("/:userId/can-message", authenticate, canMessageUser)
 router.get("/pending_request", authenticate, getPendingRequests)
 
-// router.get("/usersIds", authenticate, return_uses_id)
 export default router;

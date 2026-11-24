@@ -10,7 +10,6 @@ export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response
 
     if (!requesterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const addresseeId = userId;
@@ -58,7 +57,6 @@ export const sendFriendRequest = async (req: AuthenticatedRequest, res: Response
         await notifyFriendshipUpdate(userId, requesterId)
         return res.status(201).json({ message: "Friendship Request created" })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -70,7 +68,6 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!accepterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const requestSenderId = userId;
@@ -121,7 +118,6 @@ export const acceptFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(userId, accepterId)
         return res.status(200).json({ message: "Friendship request accepted" })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -134,7 +130,6 @@ export const rejectFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!rejecterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const requestSenderId = userId;
@@ -169,7 +164,6 @@ export const rejectFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(userId, rejecterId)
         return res.status(200).json({ message: "Friendship request rejected" });
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -180,7 +174,6 @@ export const cancelFriendRequest = async (req: AuthenticatedRequest, res: Respon
 
     if (!deleterId)
         return res.status(401).json({ message: "Unauthorized" });
-    //type narrowing
     if (typeof userId !== 'string')
         return res.status(400).json({ message: "Invalid user ID" });
     const otherFriend = userId;
@@ -219,7 +212,6 @@ export const cancelFriendRequest = async (req: AuthenticatedRequest, res: Respon
         await notifyFriendshipUpdate(otherFriend, deleterId)
         return res.status(200).json({ message: "Friend request deleted" });
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }

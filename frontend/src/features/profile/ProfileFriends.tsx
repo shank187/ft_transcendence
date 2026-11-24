@@ -38,8 +38,6 @@ export default function ProfileFriends({
                 if (!cancelled)
                     setFriends(response.data)
             } catch (error) {
-                console.error("Failed to fetch friends:", error)
-
                 if (!cancelled)
                     setError(true)
             } finally {
