@@ -104,9 +104,9 @@ export const getMessageHistory = async (
             cursor
         )
 
-        const hasMore = messageHistory.length > 10
+        const hasMore = messageHistory.length > 20
 
-        const messages = messageHistory.slice(0, 10)
+        const messages = messageHistory.slice(0, 20)
 
         const nextCursor = hasMore ? messages[messages.length - 1].id : null
 

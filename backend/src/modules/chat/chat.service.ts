@@ -83,7 +83,7 @@ export async function getConversationMessages(
             { createdAt: "desc" },
             { id: "desc" }
         ],
-        take: 11,
+        take: 21,
         cursor: cursor ? { id: cursor } : undefined,
         skip: cursor ? 1 : undefined
     })
