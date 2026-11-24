@@ -20,60 +20,48 @@ export default function Profile() {
     const [loading, setLoading] = useState(true)
     const [showFriends, setShowFriends] = useState(false)
     const [showRequests, setShowRequests] = useState(false)
+const targetUsername = username ?? user?.username
 
-    async function refreshProfile() {
-        const targetUsername = username ?? user?.username
+const [profileRefresh, setProfileRefresh] = useState(0)
 
-        if (!targetUsername)
-            return
-
-        try {
-            const response = await api.get<PublicProfile>(
-                `/api/users/${encodeURIComponent(targetUsername)}/profile`
-            )
-
-            setProfile(response.data)
-        } catch (error) {}
-    }
+async function refreshProfile() {
+    setProfileRefresh(attempt => attempt + 1)
+}
 useEffect(() => {
     if (connectionStatus === "connected")
-        void refreshProfile()
+        refreshProfile()
 }, [connectionStatus])
-    useEffect(() => {
-        const targetUsername = username ?? user?.username
+useEffect(() => {
+    setProfile(null)
+    setLoading(Boolean(targetUsername))
+}, [targetUsername])
+useEffect(() => {
+    if (!targetUsername)
+        return
 
-        if (!targetUsername) {
-            setProfile(null)
-            setLoading(false)
-            return
+    const profileUrl = `/api/users/${encodeURIComponent(targetUsername)}/profile`
+    let cancelled = false
+
+    async function fetchProfile() {
+        try {
+            const response = await api.get<PublicProfile>(profileUrl)
+
+            if (!cancelled)
+                setProfile(response.data)
+        } catch {
+            // Keep the existing error behavior.
+        } finally {
+            if (!cancelled)
+                setLoading(false)
         }
+    }
 
-        let cancelled = false
+    void fetchProfile()
 
-        async function fetchProfile() {
-            setLoading(true)
-            setProfile(null)
-
-            try {
-                const response = await api.get<PublicProfile>(
-                    `/api/users/${encodeURIComponent(targetUsername!)}/profile`
-                )
-
-                if (!cancelled)
-                    setProfile(response.data)
-            } catch (error) {
-            } finally {
-                if (!cancelled)
-                    setLoading(false)
-            }
-        }
-
-        fetchProfile()
-
-        return () => {
-            cancelled = true
-        }
-    }, [username, user?.username])
+    return () => {
+        cancelled = true
+    }
+}, [targetUsername, profileRefresh])
 
     useEffect(() => {
         if (lastMessage?.type !== "friendship_updated")
