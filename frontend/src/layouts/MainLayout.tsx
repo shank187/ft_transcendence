@@ -99,14 +99,10 @@ function MainLayout() {
         <div className={`${isSocial ? 'min-h-dvh' : 'min-h-screen'} bg-app-canvas md:flex`}>
             <div className="hidden h-screen w-56 flex-col bg-app-surface p-4 md:sticky md:top-0 md:flex md:shrink-0">
 
-
                 <Link to="/home" className="flex items-center gap-3 px-1 mb-10">
-                    <div className="w-9 h-9 rounded-xl bg-[#CCFF00] flex items-center justify-center shrink-0">
-                        <Dumbbell className="w-5 h-5 text-black" />
-                    </div>
+                    <img src="/logo.png" alt="REPA Logo" className="w-9 h-9 object-contain shrink-0" />
                     <span className="text-xl font-extrabold text-white tracking-tight">REPA</span>
                 </Link>
-
 
                 <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                     {nav_items.map(function(item){

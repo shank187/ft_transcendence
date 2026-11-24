@@ -98,7 +98,7 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6">
             <div className="w-[780px] rounded-3xl bg-[#181818] border border-[#2C2C2C] p-6 text-white">
-                {/* header */}
+
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-bold text-white">Edit Gym</h2>
@@ -117,7 +117,6 @@ export default function EditGym({gym, onClose, onSuccess, refrech, onFailure} : 
 
                 </div>
 
-                {/* edit from */}
                 <form onSubmit={handleSubmit}
                         className="mt-5 space-y-4">
                     <div>
