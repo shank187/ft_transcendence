@@ -153,6 +153,11 @@ The executable sources remain authoritative for current implementation details:
 - Discord/team meetings: decisions and blocker escalation
 - Vertical slices: each owner delivers frontend → API → service → Prisma → PostgreSQL flows
 
+## Features List
+
+- **User Interaction (`mouarar`, S4).** Users can search for and view public profiles, send and respond to friend requests, view and remove friends, and block or unblock users. Friends can exchange direct messages and load previous messages from their conversation history.
+- **Real-Time Features (`mouarar`, S4, with S1 infrastructure).** The React app connects to the Node backend over WebSocket for live messages, read receipts, online presence, and friendship updates. The backend authenticates each socket and sends events to the affected users' connected sessions. HTTP endpoints load saved conversations and message history. Nginx handles HTTPS and forwards the WebSocket upgrade.
+
 ## Frozen modules — 14 points
 
 | Module | Size | Points | Primary ownership |
@@ -332,7 +337,7 @@ Taken from the merged commits and pull requests on `main`.
 - **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, next workout on Home, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
 - **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
 - **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
-- **mouarar (S4):** friends, friend requests and blocking, public profile, WebSocket chat with reconnection and presence, conversations and message history, Social page and the social part of Home.
+- **mouarar (S4):** Helped implement public profiles,Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.
 - **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
 
 ## Known gaps at this checkpoint
