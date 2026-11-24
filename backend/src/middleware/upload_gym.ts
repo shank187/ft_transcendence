@@ -2,6 +2,7 @@ import path from "node:path";
 import multer from "multer";
 import { randomUUID } from "node:crypto";
 import type { RequestHandler } from "express";
+import { handle_image_upload } from "./upload_avatar";
 
 
 
@@ -32,7 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize : 3*1024*1024, 
+        fileSize : 2*1024*1024, 
         files:1
     },
     fileFilter: (req, file, callback) => {
@@ -44,39 +45,8 @@ const upload = multer({
 });
 
 
-export const upload_gym_image = upload.single("image");
-
-
-
-const uploadSingle = upload.single("image");
-
-export const upload_avatar: RequestHandler = (req, res, next) => {
-    uploadSingle(req, res, (error) => {
-        if (!error)
-        {
-            next();
-            return;
-        }
-
-        if (error instanceof multer.MulterError)
-        {
-            if (error.code === "LIMIT_FILE_SIZE")
-            {
-                res.status(413).json({message: "Image must not exceed 2 MB."});
-                return;
-            }
-
-            res.status(400).json({message: "Invalid avatar upload."});
-            return;
-        }
-
-        if (error.message === "Choose a JPG or PNG image.")
-        {
-            res.status(400).json({message: error.message});
-            return;
-        }
-
-        console.log("error :", error);
-        res.status(500).json({message: "Could not upload your avatar."});
+export const upload_gym_image: RequestHandler = (req, res, next) => {
+    upload.single("image")(req, res, async (error) => {
+        await handle_image_upload(req, res, next, error);
     });
 };

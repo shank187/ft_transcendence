@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
+import { Plus } from "lucide-react";
 import type { PerformedValues } from "./workout-session.types";
 import type { AwardResult, SetType } from "../shared/workouts.types";
-import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, updateSessionSet } from "./workout-session.api";
+import { addExercises, addSet, deleteSet, finishWorkout, getWorkoutSession, moveExercise, removeSessionExercise, updateSessionSet } from "./workout-session.api";
 import { livePrSetIds } from "./workout-session.helpers";
 import { sessionReducer } from "./workout-session.reducer";
 import { IDLE, WorkoutSessionContext, type RequestStatus, type WorkoutSessionActions } from "./WorkoutSessionContext";
@@ -25,7 +26,11 @@ function errorMessage(err: unknown, fallback: string): string
     return err instanceof Error ? err.message : fallback
 }
 
-export default function WorkoutSessionView(props: {sessionId: string})
+interface WorkoutSessionViewProps {
+    sessionId: string
+}
+
+export default function WorkoutSessionView(props: WorkoutSessionViewProps)
 {
     const { sessionId } = props
     const [state, dispatch] = useReducer(sessionReducer, { status: "loading" })
@@ -45,6 +50,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const [setMenu, setSetMenu] = useState<RequestStatus>(IDLE)
     const [addingSet, setAddingSet] = useState<RequestStatus>(IDLE)
     const [moving, setMoving] = useState<RequestStatus>(IDLE)
+    const [removing, setRemoving] = useState<RequestStatus>(IDLE)
 
     // The load lives inside the effect so its cleanup can ignore an answer for an
     // older sessionId or an older reload.
@@ -162,6 +168,17 @@ export default function WorkoutSessionView(props: {sessionId: string})
         }
     }, [sessionId])
 
+    const removeExercise = useCallback(async (exerciseId: string) => {
+        setRemoving({ busyId: exerciseId, error: null })
+        try {
+            await removeSessionExercise(sessionId, exerciseId)
+            dispatch({ type: "exerciseRemoved", exerciseId })
+            setRemoving(IDLE)
+        } catch (err) {
+            setRemoving({ busyId: null, error: { id: exerciseId, message: errorMessage(err, "Can't remove this exercise, try again.") } })
+        }
+    }, [sessionId])
+
     const session = state.status === "success" ? state.session : null
     const isReadOnly = session?.status !== "IN_PROGRESS"
     // In progress the badge follows the ticked sets; once finished, what the server stored wins.
@@ -179,8 +196,9 @@ export default function WorkoutSessionView(props: {sessionId: string})
         openSetMenuId, toggleSetMenu, changeSetType, removeSet, setMenu,
         addSet: addSessionSet, addingSet,
         moveExercise: moveSessionExercise, moving,
+        removeExercise, removing,
     }), [isReadOnly, prSetIds, completeSet, uncompleteSet, openSetMenuId, toggleSetMenu, changeSetType,
-        removeSet, setMenu, addSessionSet, addingSet, moveSessionExercise, moving])
+        removeSet, setMenu, addSessionSet, addingSet, moveSessionExercise, moving, removeExercise, removing])
 
     if (state.status === "loading") return <LoadingState message="Loading your session"/>
     if (state.status === "notFound") return <NotFoundState title="Session Not Found"/>
@@ -199,36 +217,47 @@ export default function WorkoutSessionView(props: {sessionId: string})
     const loaded = state.session
     const sets = loaded.exercises.flatMap(e => e.sets)
     const doneCount = sets.filter(s => s.completedAt !== null).length
+    const nextSetId = sets.find(s => s.completedAt === null)?.id ?? null
 
     const requestFinish = () =>
     doneCount < sets.length
         ? setIncompleteFinish(true)
         : void finish()
 
-    const addExercisesButton = <Button variant="secondary" onClick={() => setShowPicker(true)}>Add exercises</Button>
+    const addExercisesButton =
+        <button type="button" onClick={() => setShowPicker(true)} className="flex h-13 items-center justify-center gap-2 rounded-2xl border border-dashed px-5 border-app-primary text-[15px] font-semibold text-app-primary hover:bg-app-primary/10">
+            <Plus aria-hidden="true" className="size-4.5" />
+            Add exercises
+        </button>
 
     return(
         <WorkoutSessionContext.Provider value={actions}>
-        <div className="flex flex-col gap-5">
-            <SessionHeader
-            name={loaded.name}
-            startedAt={loaded.startedAt}
-            finishedAt={loaded.completedAt}
-            status={loaded.status}
-            doneCount={doneCount}
-            totalCount={sets.length}
-            isReadOnly={isReadOnly}
-            finishing={finishing}
-            onFinish={requestFinish}
-            onDiscard={() => setShowDiscard(true)}
-            />
-            {finishError && !incompleteFinish && <p role="alert" className="text-app-danger">{finishError}</p>}
-            {loaded.status === "COMPLETED" && loaded.summary &&
-                <SessionSummaryCard summary={loaded.summary} award={award}/>
+        {/* Same width as the plan page it starts from. pb-24 keeps the last card above the phone action bar. */}
+        <div className={`mx-auto flex w-full max-w-[880px] flex-col gap-4 ${isReadOnly ? "" : "pb-24 md:pb-0"}`}>
+            {/* A finished workout opens on its summary; the summary has its own title. */}
+            {loaded.status === "COMPLETED" && loaded.summary
+                ? <>
+                    <SessionSummaryCard name={loaded.name} summary={loaded.summary} exercises={loaded.exercises} award={award}/>
+                    <h2 className="mt-2 text-lg font-semibold">Sets logged</h2>
+                </>
+                : <SessionHeader
+                name={loaded.name}
+                startedAt={loaded.startedAt}
+                finishedAt={loaded.completedAt}
+                status={loaded.status}
+                doneCount={doneCount}
+                totalCount={sets.length}
+                isReadOnly={isReadOnly}
+                finishing={finishing}
+                onFinish={requestFinish}
+                onDiscard={() => setShowDiscard(true)}
+                onAddExercise={loaded.exercises.length < MAX_EXERCISES ? () => setShowPicker(true) : null}
+                />
             }
+            {finishError && !incompleteFinish && <p role="alert" className="text-sm text-app-danger">{finishError}</p>}
             {!isReadOnly && loaded.exercises.length === 0
                 ? <EmptyState title="No exercises yet" action={addExercisesButton}/>
-                : <ol className="flex flex-col gap-5">
+                : <ol className="flex flex-col gap-4">
                     {loaded.exercises.map((exercise, i)=>
                         <li key={exercise.id}>
                             <ExerciseSessionCard
@@ -236,12 +265,12 @@ export default function WorkoutSessionView(props: {sessionId: string})
                             position={i + 1}
                             isFirst={i === 0}
                             isLast={i === loaded.exercises.length - 1}
+                            nextSetId={nextSetId}
                             />
                         </li>
                     )}
                 </ol>
             }
-            {!isReadOnly && loaded.exercises.length > 0 && loaded.exercises.length < MAX_EXERCISES && addExercisesButton}
             {!isReadOnly && loaded.exercises.length >= MAX_EXERCISES && <p className="text-sm text-app-text-secondary">{`A workout can have at most ${MAX_EXERCISES} exercises.`}</p>}
             {showDiscard && <DiscardWorkoutDialog onClose={()=>setShowDiscard(false)} sessionId={sessionId}/>}
             {incompleteFinish && <FinishingDialog onFinish={()=>finish()} error={finishError} saving={finishing} onClose={()=> setIncompleteFinish(false)} />}
@@ -254,7 +283,7 @@ export default function WorkoutSessionView(props: {sessionId: string})
                 onClose={() => setShowPicker(false)}
                 >
                     {addError && <p role="alert" className="text-app-danger">{addError}</p>}
-                    <ExercisePicker onAdd={addSelectedExercises} />
+                    <ExercisePicker onAdd={addSelectedExercises} addedIds={loaded.exercises.map(exercise => exercise.exerciseSummary.id)} addedLabel="In this workout" />
                 </Dialog>
             }
         </div>

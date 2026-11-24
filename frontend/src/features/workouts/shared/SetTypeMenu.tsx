@@ -2,6 +2,17 @@ import { useEffect, useRef } from "react"
 import type { SetType } from "./workouts.types"
 import { SET_TYPE_LABEL, SET_TYPES } from "./exercise-fields"
 
+interface SetTypeMenuProps {
+    id: string
+    label: string
+    currentSetType: SetType
+    isOpen: boolean
+    disabled?: boolean
+    toggleSetMenu: () => void
+    onChangeSetType: (toType: SetType) => void
+    onRemoveSet: () => void
+}
+
 const SET_TYPE_DOT: Record<SetType, string> = {
     NORMAL: "bg-app-text-muted",
     HEAVY: "bg-app-set-heavy",
@@ -10,27 +21,19 @@ const SET_TYPE_DOT: Record<SetType, string> = {
     FAILURE: "bg-app-set-failure",
 }
 
+// The badge shows the set number or the type letter, tinted with the type's colour.
 const SET_TYPE_CLASSES: Record<SetType, string> = {
-    NORMAL: "border-app-border bg-app-surface-hover text-app-text",
-    HEAVY: "border-app-set-heavy/60 bg-app-set-heavy/10 text-app-set-heavy",
-    WARMUP: "border-app-set-warmup/60 bg-app-set-warmup/10 text-app-set-warmup",
-    DROP: "border-app-set-drop/60 bg-app-set-drop/10 text-app-set-drop",
-    FAILURE: "border-app-set-failure/60 bg-app-set-failure/10 text-app-set-failure",
+    NORMAL: "bg-app-surface-hover text-app-text",
+    HEAVY: "bg-app-set-heavy/15 text-app-set-heavy",
+    WARMUP: "bg-app-set-warmup/15 text-app-set-warmup",
+    DROP: "bg-app-set-drop/15 text-app-set-drop",
+    FAILURE: "bg-app-set-failure/15 text-app-set-failure",
 }
 
-const menuItemClasses = "flex min-h-11 w-full items-center justify-between gap-3 rounded-sm px-3 text-left text-sm font-medium hover:bg-app-surface-hover focus-visible:bg-app-surface-hover"
+const menuItemClasses = "flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 text-left text-sm font-medium hover:bg-app-surface-hover focus-visible:bg-app-surface-hover"
 
-export default function SetTypeMenu(props:{
-    toggleSetMenu: () => void,
-    onChangeSetType: (toType: SetType) => void,
-    onRemoveSet: () => void,
-    label: string
-    id: string
-    currentSetType: SetType
-    isOpen: boolean
-    disabled?: boolean,
-}){
-
+export default function SetTypeMenu(props: SetTypeMenuProps)
+{
     const menuRef = useRef<HTMLDivElement>(null)
     const buttonRef = useRef<HTMLButtonElement>(null)
     const { disabled = false, isOpen, toggleSetMenu } = props
@@ -92,7 +95,7 @@ export default function SetTypeMenu(props:{
             aria-controls={isOpen ? props.id : undefined}
             disabled={disabled}
             onClick={toggleSetMenu}
-            className={`flex size-11 items-center justify-center rounded-md border text-sm font-medium hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
+            className={`flex size-11 items-center justify-center rounded-lg text-sm font-bold hover:brightness-125 aria-expanded:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 ${SET_TYPE_CLASSES[props.currentSetType]}`}
             >
                 {props.label}
             </button>
@@ -101,7 +104,7 @@ export default function SetTypeMenu(props:{
                 id={props.id}
                 role="menu"
                 aria-label={`Set ${props.label}`}
-                className="absolute left-0 top-full z-10 mt-1 flex w-44 flex-col rounded-md border border-app-border bg-app-surface-raised p-1"
+                className="absolute left-0 top-full z-10 mt-1 flex w-44 flex-col rounded-xl border border-app-border bg-app-surface-raised p-1.5 shadow-2xl shadow-black/50"
                 >
                     {SET_TYPES.map((setType)=>(                
                         <button

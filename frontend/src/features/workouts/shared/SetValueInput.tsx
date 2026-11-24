@@ -1,6 +1,6 @@
 import type { SetField } from "./exercise-fields"
 
-export default function SetValueInput(props: {
+interface SetValueInputProps {
     inputId: string
     field: SetField
     labelText: string
@@ -8,14 +8,24 @@ export default function SetValueInput(props: {
     error?: string
     placeholder: string
     disabled?: boolean
-    // A ticked set: the box is tinted.
+    // A ticked set: the box blends into the tinted row.
     done?: boolean
+    // The next set to do in a workout: teal ring.
+    highlight?: boolean
     onChange: (value: string) => void
-})
+}
+
+export default function SetValueInput(props: SetValueInputProps)
 {
     const errorId = `${props.inputId}-error`
+    const stateClasses = props.done
+        ? "border-transparent bg-transparent"
+        : props.highlight
+            ? "border-app-primary bg-app-surface-raised"
+            : "border-app-border bg-app-surface-raised"
+
     return (
-        <div className="flex w-22 shrink-0 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor={props.inputId} className="sr-only">
                 {props.labelText}
             </label>
@@ -29,7 +39,7 @@ export default function SetValueInput(props: {
             aria-describedby={props.error ? errorId : undefined}
             value={props.value}
             onChange={(e) => props.onChange(e.target.value)}
-            className={`h-11 w-full rounded-md border text-center text-sm font-medium placeholder:text-app-text-muted aria-invalid:border-app-danger ${props.done ? "border-app-primary/40 bg-app-primary/10" : "border-app-border bg-app-canvas"}`}
+            className={`h-11 w-full min-w-0 rounded-lg border text-center text-base font-semibold tabular-nums placeholder:font-normal placeholder:text-app-text-muted aria-invalid:border-app-danger ${stateClasses}`}
             />
             {props.error &&
                 <p id={errorId} className="text-xs text-app-danger">{props.error}</p>

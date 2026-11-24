@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma"
 import type { Prisma } from "@prisma/client"
+import { getWorkoutStats } from "../workout-sessions/workout-stats";
 
 import {
     XP_PER_WORKOUT,
@@ -43,39 +44,74 @@ const workoutMilestones = [
     { code: "WORKOUTS_100", requiredWorkouts: 100 },
 ];
 
+///// add prisma enum
+const WorkoutTimes = [
+    { code: "EARLY_BIRD", from: 5, to: 9 },
+    { code: "NIGHT_OWL", from: 22, to: 5 },
+];
+
 export async function unlockWorkoutAchievements(
     userId: string,
     tx: Prisma.TransactionClient = prisma
 ): Promise<string[]> {
-    // Read completed workouts using the supplied client.
-    const completedWorkouts = await tx.workoutSession.count({
+    const workouts = await tx.workoutSession.findMany({
         where: {
             userId,
             status: "COMPLETED",
         },
+        select: {
+            completedAt: true,
+        },
     });
+
+    const earnedCodes = workoutMilestones
+        .filter(
+            (achievement) =>
+                workouts.length >= achievement.requiredWorkouts
+        )
+        .map((achievement) => achievement.code);
+
+    for (const achievement of WorkoutTimes) {
+        const qualifies = workouts.some((workout) => {
+            if (!workout.completedAt) return false;
+
+            const hour = workout.completedAt.getUTCHours();
+
+            if (achievement.from < achievement.to) {
+                return (
+                    hour >= achievement.from &&
+                    hour < achievement.to
+                );
+            }
+
+            // A range crossing midnight, such as 22:00–05:00.
+            return (
+                hour >= achievement.from ||
+                hour < achievement.to
+            );
+        });
+
+        if (qualifies) {
+            earnedCodes.push(achievement.code);
+        }
+    }
 
     const unlocked: string[] = [];
 
-    for (const achievement of workoutMilestones) {
-        if (completedWorkouts < achievement.requiredWorkouts) {
-            continue;
-        }
-
-        // Try saving the earned achievement.
+    for (const code of earnedCodes) {
         const result = await tx.userAchievement.createMany({
             data: [{
                 userId,
-                code: achievement.code,
+                code,
             }],
             skipDuplicates: true,
         });
 
-        // Report it only if this call created the unlock.
         if (result.count > 0) {
-            unlocked.push(achievement.code);
+            unlocked.push(code);
         }
     }
+
     return unlocked;
 }
 
@@ -97,9 +133,10 @@ export async function getUnlockedAchievements(userId: string) {
 export async function getLeaderboardEntries(userId: string) {
     let users = await prisma.user.findMany({
         where: {
-            id: { not: userId },
             OR: [
+                { id: userId },
                 {
+                    //// ////
                     receivedFriendships: {
                         some: {
                             requesterId: userId,
@@ -124,19 +161,6 @@ export async function getLeaderboardEntries(userId: string) {
             username: true,
         },
     });
-
-// Handle zero friends.
-    if (users.length === 0) {
-        users = await prisma.user.findMany({
-            where: {
-                id: userId,
-            },
-            select: {
-                id: true,
-                username: true,
-            },
-        });
-    }
 
     // Calculate stored XP for these friends only.
     const xpTotals = await prisma.xpEvent.groupBy({
@@ -215,7 +239,6 @@ export async function award(
 
     // 4. Save newly earned achievement unlocks.
     const unlocked = await unlockWorkoutAchievements(userId, tx);
-
     // 5. Return feedback for the finish response.
     return {
         xpGained,
@@ -223,4 +246,21 @@ export async function award(
             getLevel(previousXp + xpGained) > getLevel(previousXp),
         unlocked,
     };
+}
+
+//////////////////stats from date to date
+
+export async function getWeeklyStats(userId: string) {
+    const from = new Date();
+
+    //first monday
+    const daySincemonday = (from.getUTCDay() + 6) % 7;
+    from.setUTCDate(from.getUTCDate() - daySincemonday);
+    from.setUTCHours(0, 0, 0, 0);
+
+    const to = new Date(from);
+    to.setUTCDate(to.getUTCDate() + 7);
+    
+    return getWorkoutStats(userId, from, to);
+
 }

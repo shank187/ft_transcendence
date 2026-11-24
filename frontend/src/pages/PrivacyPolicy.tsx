@@ -9,7 +9,7 @@ function PrivacyPolicy() {
     <div className="min-h-screen bg-app-bg px-6 py-12 text-app-text">
       <div className="mx-auto max-w-3xl">
 
-        <Button variant="secondary"  onClick={() => navigate("/home")}>
+        <Button variant="secondary"  onClick={() => navigate("/")}>
           ← Back
         </Button>
 

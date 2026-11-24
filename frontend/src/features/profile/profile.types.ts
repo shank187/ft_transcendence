@@ -16,4 +16,10 @@ export type PublicProfile = {
     lastSeenAt: string | null
     friendsCount: number
     relationship: RelationshipStatus
+    totalXp: number
+    level: number
+    achievements: {
+        code: string
+        unlockedAt: string
+    }[]
 }

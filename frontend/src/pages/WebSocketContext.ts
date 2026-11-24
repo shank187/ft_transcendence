@@ -6,7 +6,10 @@ type WebSocketContextType = {
     wsRef: RefObject<WebSocket | null>
     lastMessage: ServerMessage | null
     onlineUserIds: string[]
+    onlineFriendsRefreshFailed: boolean
     connectionStatus: "connecting" | "connected" | "disconnected";
+    wasReplaced: boolean
+    reconnect: () => void
 }
 
 export const WebSocketContext = createContext<WebSocketContextType | null>(null)

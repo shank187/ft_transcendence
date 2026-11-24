@@ -4,9 +4,10 @@ import { useState, useEffect , useRef} from 'react';
 import { isAxiosError } from 'axios';
 import { useAuth } from '../features/auth/AuthContext';
 import Button from '../components/ui/Button';
+import { useWebSocket } from "../pages/WebSocketContext"
 
 
-import { Home, Dumbbell, Zap, TrendingUp, Users, User, Settings, LogOut} from 'lucide-react';
+import { Home, Dumbbell, Zap, TrendingUp, Users, User, Settings, LogOut , ShieldUser} from 'lucide-react';
 
 
 const nav_items = [
@@ -36,13 +37,28 @@ const more_nav_items = [
 ];
 
 
-function MainLayout() {
+function LiveUpdatesNotice() {
+    const { wasReplaced, reconnect } = useWebSocket()
 
+    if (!wasReplaced)
+        return null
+
+    return (
+        <div className="fixed right-3 bottom-16 z-40 flex w-max max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-3 rounded-xl border border-app-border bg-app-surface p-4 shadow-lg md:right-6 md:bottom-6">
+            <p role="status" className="text-sm text-app-danger">you were disconnected</p>
+            <Button variant="outline" className="shrink-0 border" aria-label="Reconnect live updates" onClick={reconnect}>
+                Reconnect
+            </Button>
+        </div>
+    )
+}
+
+function MainLayout() {
     const [more , set_more] = useState(false);
     const [logout_error, set_logout_error] = useState('');
     const [is_logging_out, set_is_logging_out] = useState(false);
     const navigation_ref = useRef<HTMLDivElement>(null);
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const isSocial = useMatch('/social') !== null;
 
@@ -107,8 +123,9 @@ function MainLayout() {
                 <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                     {nav_items.map(function(item){
                         const Icon = item.icon;
-                        const isActive = item.to === "/profile" ? location.pathname === "/profile" 
-                                        : location.pathname.startsWith(item.to);
+                        const isActive = item.to === "/profile"
+                            ? location.pathname === "/profile" || (location.pathname.startsWith("/profile/") && !location.pathname.startsWith("/profile/settings"))
+                            : location.pathname.startsWith(item.to);
                         return (
                             <Link 
                                 key={item.to}
@@ -122,6 +139,15 @@ function MainLayout() {
                     })
 
                     }
+                    {user?.roles.includes('ADMIN') && (
+                        <Link 
+                            to="/admin" 
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${location.pathname.startsWith('/admin') ?
+                                        "bg-[#1E1E1E] text-[#CCFF00] border-r-2 border-[#CCFF00]" : "text-zinc-400 hover:text-white hover:bg-[#161616]"}`}>
+                            <ShieldUser className="w-5 h-5 shrink-0"/>
+                            <span>Admin</span>
+                        </Link>
+                    )}
                 </nav>
                 <div className="mt-auto pt-4">
                     {logout_error && <p role="alert" className="mb-2 text-sm text-app-danger">{logout_error}</p>}
@@ -129,13 +155,10 @@ function MainLayout() {
                         <LogOut className="w-4 h-4 shrink-0"/>
                         {is_logging_out ? 'Logging out...' : 'Log out'}
                     </Button>
-                    <div className="flex gap-2  text-xs text-app-text-secondary">
-                        <Link to="/privacy" className="hover:underline">Privacy</Link>
-                        <Link to="/terms" className="hover:underline">Terms</Link>
-                    </div>
                 </div>
             </div>
             <div className={`min-w-0 md:flex-1 md:p-8 ${isSocial ? '' : 'p-4 pb-24'}`}>
+                <LiveUpdatesNotice/>
                 <Outlet />
             </div>
 
@@ -161,7 +184,9 @@ function MainLayout() {
                {more && (<div className="absolute bottom-full right-2 mb-2 w-44 rounded-lg border bg-app-surface p-2">
                         {more_nav_items.map((item)=> {
                         const Icon = item.icon;
-                        const isActive = location.pathname.startsWith(item.to);
+                        const isActive = item.to === "/profile"
+                            ? location.pathname === "/profile" || (location.pathname.startsWith("/profile/") && !location.pathname.startsWith("/profile/settings"))
+                            : location.pathname.startsWith(item.to);
                         return (
                             <Link
                                 key={item.to}
@@ -176,6 +201,18 @@ function MainLayout() {
                             </Link>
                     )
                 })}
+                        {user?.roles.includes('ADMIN') && (
+                            <Link
+                                to="/admin"
+                                onClick={() => set_more(false)}
+                                className={`flex items-center justify-center py-4 gap-2 transition-colors ${
+                                    location.pathname.startsWith('/admin') ? "text-[#CCFF00]" : "text-zinc-400 hover:text-white"
+                                }`}
+                            >
+                                <ShieldUser className="w-5 h-5" />
+                                <span>Admin</span>
+                            </Link>
+                        )}
                         {logout_error && <p role="alert" className="px-3 py-2 text-sm text-app-danger">{logout_error}</p>}
                         <Button variant="secondary" className="w-full justify-start" onClick={handle_logout} disabled={is_logging_out}>
                             {is_logging_out ? 'Logging out...' : 'Log out'}

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
-import { addSessionExercisesController, addSessionSetController, deleteSessionSetController, discardWorkoutSessionController, finishWorkoutSessionController, getWorkoutSessionController, moveSessionExerciseController, startWorkoutSessionController, updateSessionSetController } from "./workout-session.controller";
+import { addSessionExercisesController, addSessionSetController, deleteSessionSetController, discardWorkoutSessionController, finishWorkoutSessionController, getWorkoutSessionController, moveSessionExerciseController, removeSessionExerciseController, startWorkoutSessionController, updateSessionSetController } from "./workout-session.controller";
 
 const router = Router();
 
@@ -10,6 +10,7 @@ router.delete('/:sessionId', authenticate, discardWorkoutSessionController)
 router.post('/:sessionId/finish', authenticate, finishWorkoutSessionController)
 router.post('/:sessionId/exercises', authenticate, addSessionExercisesController)
 router.patch('/:sessionId/exercises/:exerciseId', authenticate, moveSessionExerciseController)
+router.delete('/:sessionId/exercises/:exerciseId', authenticate, removeSessionExerciseController)
 router.post('/:sessionId/exercises/:exerciseId/sets', authenticate, addSessionSetController)
 router.patch('/:sessionId/sets/:setId', authenticate, updateSessionSetController)
 router.delete('/:sessionId/sets/:setId', authenticate, deleteSessionSetController)

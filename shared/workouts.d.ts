@@ -31,9 +31,23 @@ export interface PlanDay
 }
 
 // The next day shown on Home; activeSessionId is set while a workout of this day is in progress.
+// planId builds the day editor link when the day has no exercises yet.
+// lastTime is the last finished workout of this day, null when the day was never finished.
 export interface HomeDay extends PlanDay
 {
+    planId: string,
     activeSessionId: string | null,
+    lastTime: LastDayWorkout | null,
+}
+
+// Numbers from that workout's WorkoutSummary, so Home and the summary page agree.
+export interface LastDayWorkout
+{
+    sessionId: string,
+    completedAt: string,
+    durationSeconds: number,
+    setsCompleted: number,
+    volumeKg: number,
 }
 
 // GET /api/workout-plans/:planId
@@ -108,7 +122,8 @@ export interface WorkoutSessionExercise
     id: string,
     order: number,
     exerciseSummary: ExerciseSummary,
-    // Best estimated one-rep max from earlier finished workouts.
+    // Best PR score from earlier finished workouts: estimated one-rep max (kg)
+    // for weight types, most reps in one set for BODYWEIGHT_REPS.
     // null when there is none or the exercise type is not eligible.
     previousBest: number | null,
     sets: WorkoutSessionSet[],

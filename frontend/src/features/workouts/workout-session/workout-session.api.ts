@@ -63,6 +63,15 @@ export async function moveExercise(sessionId: string, exerciseId: string, direct
     }
 }
 
+// Its sets are deleted with it, ticked ones too.
+export async function removeSessionExercise(sessionId: string, exerciseId: string): Promise<void> {
+    try{
+        await api.delete(`/api/workout-sessions/${sessionId}/exercises/${exerciseId}`)
+    }catch(error){
+        throw toApiError(error, "Can't remove this exercise, try again.")
+    }
+}
+
 // Safe to repeat: finishing a finished workout returns it again, with award null.
 export async function finishWorkout(id: string): Promise<FinishWorkoutResponse> {
     try{

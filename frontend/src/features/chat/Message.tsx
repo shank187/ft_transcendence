@@ -51,7 +51,13 @@ export default function Message({ message, myUserId }: MessageProps) {
                     <span>
                         {formatMessageDate(message.createdAt)}
                     </span>
+                    {isMine && (
+                        <span>
+                            {message.readAt ? ", Read" : ", Sent"}
+                        </span>
+                    )}
                 </div>
+
             </div>
         </div>
     );

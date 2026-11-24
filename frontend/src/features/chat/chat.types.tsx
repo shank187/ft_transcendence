@@ -18,6 +18,7 @@ export type MessageData = {
     senderId: string
     content: string
     createdAt: string
+    readAt: string | null;
 }
 
 export type MessageProps = {
@@ -40,6 +41,8 @@ export type ChatWindowProps = {
     onSendMessage: (recipientId: string, content: string) => boolean;
     onBack?: () => void;
     lastMessage: ServerMessage | null;
+    onlineFriends: FriendData[];
+
 };
 
 export type ClientMessage =
@@ -51,6 +54,11 @@ export type ClientMessage =
         type: "message";
         to: string;
         content: string;
+    }
+    |{
+        type: "readMessage"
+        target: string
+        messageId: string
     }
 
 export type ServerMessage =
@@ -79,9 +87,18 @@ export type ServerMessage =
         type: "error";
         message: string;
     } | {
-    type: "friendship_updated"
-    userId: string
-};
+        type: "friendship_updated"
+        userId: string
+    }
+    |{
+        type: "readMessage"
+        readAt: string
+        conversationId: string
+        messageId: string
+    }|{
+        type: "send_error"
+        message: string
+    };
 
 export type MessageHistoryResponse = {
     messages: MessageData[]
