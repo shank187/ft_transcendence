@@ -88,7 +88,7 @@ Source: `backend/src/app.ts` and the module route files on `main` (`22062eb`). T
 | POST | `/api/friends/:userId/unblock` | Yes | Unblock a user |
 | GET | `/api/friends/:userId/can-message` | Yes | Whether the user can message this user |
 | GET | `/api/conversations` | Yes | The user's conversations |
-| GET | `/api/conversations/:target/messages` | Yes | Message history with a user (10 per page, `?cursor=`) |
+| GET | `/api/conversations/:target/messages` | Yes | Message history with a user (up to 20 per page, `?cursor=`) |
 | WS | `/chat` | Token in first frame | WebSocket: `authenticate`, `message`, `readMessage`; server sends messages, presence, read receipts and friendship updates |
 | GET | `/api/conversations` | Yes | List conversations |
 | GET | `/api/conversations/:target/messages` | Yes | Message history with a user |

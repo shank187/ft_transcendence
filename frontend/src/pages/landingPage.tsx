@@ -1,27 +1,31 @@
-// import { Link } from "react-router-dom";
-import NavBar from "./page_comp/Navbar"
-import Hero from "./page_comp/Hero"
-import MissonCard from "./page_comp/MissonCard"
-import GymsLogos from "./page_comp/gymLogos"
-import Feature from "./page_comp/feature"
-import About from "./page_comp/About"
-import Footer from "./page_comp/Footer"
+import Navbar from "./page_comp/Navbar";
+import Hero from "./page_comp/Hero";
+import Gyms from "./page_comp/Gyms";
+import HowItWorks from "./page_comp/HowItWorks";
+import LogSection from "./page_comp/LogSection";
+import Progress from "./page_comp/Progress";
+import Team from "./page_comp/Team";
+import ClosingCta from "./page_comp/ClosingCta";
+import Footer from "./page_comp/Footer";
 
-
-function LandingPage(){
+// The public home page (route "/"). One component per section, top to bottom.
+// The section ids (#gyms, #how, #progress, #team) are what the navbar links scroll to.
+function LandingPage() {
     return (
-        <>
-            {/* <Link to="/login">Log In</Link> */}
-            <NavBar/>
+        <div className="overflow-x-clip">
+            <Navbar />
             <main>
-                <Hero/>
-                <GymsLogos/>
-                <MissonCard/>
-                <Feature/>
-                <About/>
+                <Hero />
+                <Gyms />
+                <HowItWorks />
+                <LogSection />
+                <Progress />
+                <Team />
+                <ClosingCta />
             </main>
-            <Footer/>
-        </>
-    )
+            <Footer />
+        </div>
+    );
 }
+
 export default LandingPage;

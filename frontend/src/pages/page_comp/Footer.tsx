@@ -1,21 +1,20 @@
 import { Link } from "react-router-dom";
+import Container from "./Container";
+import { RepaLogo } from "./Logo";
 
 function Footer() {
     return (
-        <div className="mt-10 bg-[#131416] text-white">
-            <div className="mx-auto flex max-w-[1000px] flex-wrap justify-between gap-4 p-6">
-                <div>REPA</div>
-
-                <div className="flex flex-wrap gap-4">
-                    <Link to="/privacy">
-                        Privacy Policy
-                    </Link>
-                    <Link to="/terms">
-                        Terms of Service
-                    </Link>
-                </div>
-            </div>
-        </div>
+        <footer className="border-t border-app-border">
+            <Container className="flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+                <RepaLogo className="h-6 w-auto self-start" />
+                <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-app-text-secondary">
+                    <Link to="/privacy" className="hover:text-app-text">Privacy</Link>
+                    <Link to="/terms" className="hover:text-app-text">Terms</Link>
+                    <span>Photos: our campus dorm gym</span>
+                    <span>© 2026 Repa</span>
+                </nav>
+            </Container>
+        </footer>
     );
 }
 
