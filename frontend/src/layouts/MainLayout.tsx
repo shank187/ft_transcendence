@@ -172,11 +172,12 @@ function MainLayout() {
                             key={item.to}
                             to={item.to}
                             onClick={function(){set_more(false)}}
+                            aria-label={item.label}
                             className={`flex justify-around items-center py-4 transition-colors ${
                                         isActive ? "text-[#CCFF00]" : "text-zinc-400"
                             }`}>
-                                <Icon className="w-6 h-6"/>
-
+                                <Icon className="w-6 h-6" aria-hidden="true"/>
+                                <span className="sr-only">{item.label}</span>
                         </Link>
                     )
                 })}
