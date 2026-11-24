@@ -2,7 +2,7 @@
 
 ## Status rule
 
-This file separates implemented endpoints from frozen target contracts. `backend/src/app.ts` and module route files are authoritative for what currently exists.
+`backend/src/app.ts` and the module route files are authoritative for what exists.
 
 ## Base path and transport
 
@@ -11,9 +11,9 @@ This file separates implemented endpoints from frozen target contracts. `backend
 - External/browser traffic must use HTTPS in the validated deployment
 - Credentials/cookies are sent only according to the shared auth configuration
 
-## Implemented endpoint inventory — 16 November 2026
+## Implemented endpoint inventory — 24 November 2026
 
-Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). This file documents the S3 endpoints (exercises, equipment, workout plans, workout sessions) in detail; the other rows list what exists, and each slice owner documents their own contracts.
+Source: `backend/src/app.ts` and the module route files on `main` (`22062eb`). This file documents the S3 endpoints (exercises, equipment, workout plans, workout sessions) in detail; the other rows list what exists, and each slice owner documents their own contracts.
 
 | Method | Path | Auth | Purpose |
 |---|---|---:|---|
@@ -35,12 +35,20 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | POST | `/api/users/add_admin` | Yes (admin) | Give another user the admin role |
 | GET | `/api/users/:userId/friends` | Yes | List a user's friends |
 | GET | `/api/users/:username/profile` | Yes | Public profile |
+| GET | `/api/users/name` | Yes | Search users by name (`?name=`, cursor pagination with `?cursor=`) |
 | GET | `/api/gyms/search` | Yes | Search gyms |
 | GET | `/api/gyms/equip` | Yes | Equipment list for the gym forms |
 | GET | `/api/gyms/submissions` | Yes (admin) | Gym submissions to review |
+| PATCH | `/api/gyms/submissions/:id/approve` | Yes (admin) | Approve a new-gym submission: creates the public gym in one transaction; 409 if already reviewed |
+| PATCH | `/api/gyms/submissions/:id/reject` | Yes (admin) | Reject a submission with a reason and an optional detail; 409 if already reviewed |
+| GET | `/api/gyms/me/submissions` | Yes | The user's own submissions and their status |
 | POST | `/api/gyms` | Yes | Submit or create a gym |
 | POST | `/api/gyms/upload-image` | Yes | Upload a gym image |
 | PATCH | `/api/gyms/me/current` | Yes | Set the user's current gym (`{ "gymId" }`) |
+| GET | `/api/gyms/me/current` | Yes | The user's current gym |
+| GET | `/api/gyms/private` | Yes | The user's private gyms |
+| PATCH | `/api/gyms/:id` | Yes (creator) | Edit an own private gym |
+| DELETE | `/api/gyms/:id` | Yes (creator) | Delete an own private gym |
 | GET | `/api/gyms/:id` | Yes | Gym details |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
@@ -68,6 +76,7 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | DELETE | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Delete a set and renumber the remaining sets |
 | GET | `/api/progress/summary` | Yes | XP, level and unlocked achievements |
 | GET | `/api/progress/leaderboard` | Yes | XP leaderboard among friends |
+| GET | `/api/progress/week` | Yes | This week's workouts, sets, volume and PRs (Monday–Sunday, UTC) |
 | GET | `/api/friends` | Yes | List friends |
 | GET | `/api/friends/pending_request` | Yes | Pending friend requests |
 | POST | `/api/friends/:userId/request` | Yes | Send a friend request |
@@ -78,6 +87,9 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | POST | `/api/friends/:userId/block` | Yes | Block a user |
 | POST | `/api/friends/:userId/unblock` | Yes | Unblock a user |
 | GET | `/api/friends/:userId/can-message` | Yes | Whether the user can message this user |
+| GET | `/api/conversations` | Yes | The user's conversations |
+| GET | `/api/conversations/:target/messages` | Yes | Message history with a user (10 per page, `?cursor=`) |
+| WS | `/chat` | Token in first frame | WebSocket: `authenticate`, `message`, `readMessage`; server sends messages, presence, read receipts and friendship updates |
 | GET | `/api/conversations` | Yes | List conversations |
 | GET | `/api/conversations/:target/messages` | Yes | Message history with a user |
 
@@ -116,7 +128,7 @@ React action
 
 ## Error contract
 
-API error responses must use this JSON shape (still to align: some errors in `backend/src/modules/gyms/gym.controller.ts` return `{ "error": "..." }`):
+API error responses use this JSON shape:
 
 ```json
 {
@@ -1025,7 +1037,3 @@ All the S3 endpoints above are implemented. How each rule is kept:
 - **Closed workouts:** every write checks `status = IN_PROGRESS` again in its own `where`; finish and the set writes take the session row lock first.
 
 Checked on the dev stack on 16 November 2026 with two users (ownership, double finish, simultaneous starts, limits, pagination); results in PR #84.
-
-## Documentation completion gate
-
-For each merged endpoint record method/path, auth, request/query schema, response DTO, ownership rule, important status codes, and one failure example. Never document planned behavior as shipped.

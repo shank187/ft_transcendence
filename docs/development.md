@@ -19,7 +19,7 @@ git rev-parse --short HEAD
 
 - Start from the current shared base agreed by the team.
 - Preserve uncommitted and teammate work.
-- Confirm Trello ownership and dependencies.
+- Confirm ownership and dependencies in [`SCOPE_AND_VALIDATION.md`](SCOPE_AND_VALIDATION.md) (Trello was retired on 13 October 2026).
 - Inspect executable sources before trusting dated documentation.
 - Use a focused branch such as `feature/workouts-home`.
 
@@ -99,8 +99,8 @@ Use AI for bounded explanation/review and verify its output. Do not merge code a
 - **Should finish:** work directly supporting validation, integration, documentation, or evaluation evidence
 - **Defer:** bonuses and polish that do not remove a core blocker
 
-## S3 status — 16 November 2026
+## S3 status — 24 November 2026
 
 The planned S3 order is done on `main`: plan list and create, plan detail and days, day editor, exercise picker with search, filters, sort, gym filter and pagination, empty and planned workout start, set logging, finish with PRs and the S5 award, and the catalog failure handling. The final S3 PR (#84) adds the contracts, the README part, break-it test results and a refactor that shares the set UI between the day editor and the workout.
 
-Known S3 gaps are listed in the README ("Known gaps").
+Merged since: removing an exercise from a workout in progress (#97), metric/imperial units (#100), bodyweight PRs (#101). Open: #102, the Home next workout card with the last time and target to beat, and a phone/laptop layout pass.
