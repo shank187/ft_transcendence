@@ -22,7 +22,6 @@ Aymane (shank187): S3 owner and Tech Lead. Schema lane, the contracts between S2
 ## Known limitations
 
 - Week boundaries are computed by the caller: `getWorkoutStats` takes a `from` and a `to` and does not know about weeks or time zones.
-- Units are shown as stored: weight in kg. There is no unit setting.
-- No list of past workouts: a finished workout opens only from its link.
-- An exercise can't be removed from a workout in progress; its sets can.
+- Weight and distance are stored in kg and km. An imperial user sees and types lb and mi; the conversion happens in the frontend.
+- No list of past workouts: it moved to S5 (Progress) on 19 Nov and has not landed, so a finished workout opens only from its link.
 - Two workout starts sent at the same moment: one is saved, and the other gets `409` without the running workout's id (a later start gets the id).
