@@ -3,16 +3,20 @@ import api from "../../auth/axiosInstance";
 import type { Equipment } from "../type/gym";
 import { Check, ChevronLeft, X, Camera} from "lucide-react";
 import GymNavbar from "./gymNavBar";
+import { isAxiosError } from "axios";
 
 
 
 
 interface gymProps{
-    onClose : (bool : boolean)=>void;
+    onTabChange:(tab : "search" | "add" | "submission")=>void;
     onSuccess : (msg : string)=>void;
+    onFailure : (msg : string)=>void;
+
 }
 
-function AddGym({onClose, onSuccess} : gymProps){
+function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
+
     const [name, setName] = useState("");
     const [city, setCity] = useState("");
     const [address, setAddress] = useState("");
@@ -23,8 +27,10 @@ function AddGym({onClose, onSuccess} : gymProps){
     const [webSite, setWebSite] = useState("");
     const [description, setDescription] = useState("");
     const [phoneNumber, SetPhoneNumber] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const [imageUrl, setImageUrl] = useState("");
-
+    const [imageBInary, setImageBInary] = useState<File | null>(null);
 
     useEffect(function(){
         async function fetchEquip(){
@@ -32,19 +38,68 @@ function AddGym({onClose, onSuccess} : gymProps){
                 const res = await api.get("/api/gyms/equip");
                 setEquiList(res.data);
             }catch(e){
-                console.error("Failed to fetch equipment", e);
+                if (isAxiosError(e)) {
+                    onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to fetch equipment");
+                } else {
+                    onFailure("Failed to fetch equipment");
+                }
             }
         }
         fetchEquip();
     }, []);
 
     function handleClose(){
-        onClose(false);
+        onTabChange("search");
     }
+
+       async function handleImageUpload(){
+        if(!imageBInary)
+                return;
+
+
+        if (imageBInary.type !== "image/jpeg" && imageBInary.type !== "image/png") {
+                onFailure("Choose a JPG or PNG image.");
+                return;
+            }
+            if (imageBInary.size > 2 * 1024 * 1024)
+            {
+                onFailure("Image must not exceed 2 MB.");
+                return;
+            }
+            const fileToSend = new FormData();
+            fileToSend.append("image", imageBInary);
+    
+        try{
+            const res = await api.post("/api/gyms/upload-image", fileToSend);
+            setImageUrl(res.data.imageUrl);
+            return res.data.imageUrl;
+        }catch(e){
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to upload image");
+            } else {
+                onFailure("Failed to upload image");
+            }
+        }
+    }
+
     async function handleSubmit(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
-        if (!name.trim()){
-            alert("please enter a gym name");
+
+        if (isSubmitting)
+            return;
+
+        const trimmedName = name.trim();
+        if (trimmedName.length < 2 || trimmedName.length > 80){
+            alert("Gym name must be between 2 and 80 characters.");
+            return;
+        }
+
+        if (!isPrivate && !city.trim()){
+            alert("Please select a city.");
+            return;
+        }
+        if (!imageUrl){
+            alert("gyms require at least one photo for admin verification.");
             return;
         }
         const formattedEquip = selectedEquip.map(function(id){
@@ -53,7 +108,13 @@ function AddGym({onClose, onSuccess} : gymProps){
                 quantity : 1
             };
         })
+        setIsSubmitting(true);
         try{
+            const urlBack = await handleImageUpload();    
+
+            if (!urlBack && imageBInary)
+                return;
+
             const res = await api.post("/api/gyms", {
                 name : name.trim(),
                 city : city,
@@ -63,34 +124,24 @@ function AddGym({onClose, onSuccess} : gymProps){
                 description : description,
                 phone  : phoneNumber,
                 website : webSite,
-                imageUrl : imageUrl || undefined
+                imageUrl : urlBack || undefined
             });
             // console.log(res.data);§
             onSuccess(res.data.msg);
             handleClose();
         }
         catch(e){
-            console.error("Failed to create gym:",e);
-            alert("Failed to submit gym. Please try again.");
+            if (isAxiosError(e)) {
+                onFailure(e.response?.data?.message || e.response?.data?.error || "Failed to submit gym");
+            } else {
+                onFailure("Failed to submit gym. Please try again.");
+            }
+        }finally{
+            setIsSubmitting(false);
         }
     }
 
-    async function handleImageUpload(e : React.ChangeEvent<HTMLInputElement>){
-        if(!e.target.files || !e.target.files[0])
-                return;
 
-        const file = e.target.files[0];
-        const fileToSend = new FormData();
-
-        fileToSend.append("image", file);
-
-        try{
-            const res = await api.post("/api/gyms/upload-image", fileToSend);
-            setImageUrl(res.data.imageUrl);
-        }catch(e){
-            console.log(e);
-        }
-    }
 
     function removeEquip(id:string){
         setSelectedEquip(selectedEquip.filter(function(equip){
@@ -108,9 +159,7 @@ function AddGym({onClose, onSuccess} : gymProps){
 
     return(
         <>
-            <GymNavbar onSearchPage={function(){onClose(false)}}
-                       onAddPage={function() {}} 
-                       currentPage="add"/>
+            <GymNavbar currentTab="add" onTabChange={onTabChange}/>
         <div className="max-w-[780px] mx-auto px-4 sm:px-6 py-8 text-white bg-[#1f1f1e] rounded-2xl border border-[#CCFF00]/30">
             <button 
                 onClick={handleClose} 
@@ -301,7 +350,12 @@ function AddGym({onClose, onSuccess} : gymProps){
                                     <input type="file" 
                                             accept="image/png, image/jpeg"
                                             className="hidden"
-                                            onChange={handleImageUpload}/>
+                                            onChange={function(e){
+                                                if(!e.target.files || !e.target.files[0])
+                                                    return;
+                                                setImageBInary(e.target.files[0]);
+                                                setImageUrl(URL.createObjectURL(e.target.files[0]));
+                                            }}/>
                                 </label>
                             )}
                         </div>
@@ -310,7 +364,7 @@ function AddGym({onClose, onSuccess} : gymProps){
                                 <div className="relative h-48 w-48 rounded-xl overflow-hidden border border-[#2E2E2E]">
                                     <img src={imageUrl} alt="gym preview" 
                                             className="h-full w-full"/>
-                                    <button type="button" onClick={function(){setImageUrl("");}}
+                                    <button type="button" onClick={function(){setImageUrl("");setImageBInary(null)}}
                                             className="absolute top-1.5 right-1.5 bg-black/70 hover:bg-black text-white rounded-full p-1 transition-colors cursor-pointer">
                                                 <X className="w-3.5 h-3.5"/>
                                     </button>
@@ -352,12 +406,14 @@ function AddGym({onClose, onSuccess} : gymProps){
                         </div>
                         <div className="flex items-center gap-3">
                             <button type="button" onClick={handleClose}
+                                    
                                     className="px-4 py-2.5 text-xs font-bold text-zinc-400 hover:text-white transition-colors">
                                 <div>cancel</div>
                             </button>
                             <button type="submit"
+                                    disabled={isSubmitting}
                                     className="px-4 py-2.5 rounded-xl bg-[#CCFF00] hover:bg-[#d8ff33] text-xs font-extrabold text-[#0F0F0F] transition-all">
-                                <div>{isPrivate ? "Create Private Gym" : "Send for verification"}</div>
+                                <div>{isSubmitting ? "submitting..." : isPrivate ? "Create Private Gym" : "Send for verification"}</div>
                             </button>
                         </div>
 

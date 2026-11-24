@@ -36,6 +36,17 @@ export default function ChatWindow({
     const friendshipUpdate = wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
     const [historyRetry, setHistoryRetry] = useState(0)
     const previousMessageIds = useRef<MessageData["id"][]>([])
+    const readReceipts = useRef(new Map<string, string>())
+
+    function applyReadReceipt(message: MessageData): MessageData {
+        const key = `${message.conversationId}:${message.id}`
+        const readAt = readReceipts.current.get(key)
+
+        if (readAt === undefined || readAt === message.readAt)
+            return message
+
+        return { ...message, readAt }
+    }
     useEffect(() => {
         if (lastMessage?.type === "send_error") {
             setSendError(lastMessage.message)
@@ -98,7 +109,7 @@ export default function ChatWindow({
                     const messages = new Map<string, MessageData>()
 
                     response.data.messages.forEach(message => {
-                        messages.set(message.id, message)
+                        messages.set(message.id, applyReadReceipt(message))
                     })
 
                     current.forEach(message => {
@@ -158,7 +169,8 @@ export default function ChatWindow({
     useEffect(() => {
         if (lastMessage?.type !== "readMessage")
             return
-
+        const key = `${lastMessage.conversationId}:${lastMessage.messageId}`
+        readReceipts.current.set(key, lastMessage.readAt)
         setMsgs(current => {
             const index = current.findIndex(message =>
                 message.id === lastMessage.messageId &&
@@ -190,14 +202,14 @@ export default function ChatWindow({
             if (current.some(message => message.id === lastMessage.messageId))
                 return current
 
-            return [...current, {
+            return [...current,applyReadReceipt( {
                 id: lastMessage.messageId,
                 senderId: lastMessage.from,
                 content: lastMessage.content,
                 conversationId: lastMessage.conversationId,
                 createdAt: lastMessage.createdAt,
                 readAt: null
-            }].sort(
+            })].sort(
                 (a, b) =>
                     new Date(a.createdAt).getTime() -
                     new Date(b.createdAt).getTime()
@@ -251,7 +263,7 @@ export default function ChatWindow({
                 const messages = new Map<string, MessageData>()
 
                 response.data.messages.forEach(message => {
-                    messages.set(message.id, message)
+                    messages.set(message.id, applyReadReceipt(message))
                 })
 
                 current.forEach(message => {

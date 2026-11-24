@@ -7,6 +7,7 @@ import {
     getUnlockedAchievements,
 } from "./progress.service";
 
+import { getWeeklyStats } from "./progress.service";
 
 export async function getLeaderboard(
     req: AuthenticatedRequest,
@@ -62,6 +63,27 @@ export async function getProgressSummary(
 
         return res.status(500).json({
             message: "Could not load progress",
+        });
+    }
+}
+
+//// weekly stats 
+export async function getWeeklyStatus(
+    req: AuthenticatedRequest,
+    res: Response,
+) {
+    if (!req.userId) {
+        return res.status(401).json({ message: "Sign in first." });
+    }
+
+    try {
+        const stats = await getWeeklyStats(req.userId);
+        return res.status(200).json(stats);
+    } catch (error) {
+        console.error("Could not load weekly stats", error);
+
+        return res.status(500).json({
+            message: "Could not load your weekly stats.",
         });
     }
 }

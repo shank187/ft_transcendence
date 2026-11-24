@@ -14,7 +14,7 @@ export default function ProgressTabs({
                 onClick={() => onTabChange("progress")}
                 className={`rounded-md px-5 py-3 font-semibold transition-colors ${
                 activeTab === "progress"
-                    ? "bg-app-primary text-app-canvas shadow-lg shadow-teal-800"
+                    ? "bg-app-primary text-app-canvas "
                     : "bg-app-surface text-app-text-secondary "
             }`}> Progress</button>
 
@@ -22,18 +22,9 @@ export default function ProgressTabs({
                 onClick={() => onTabChange("Achievements")}
                 className={`rounded-md px-5 py-3 font-semibold transition-colors ${
                 activeTab === "Achievements"
-                    ? "bg-app-primary text-app-canvas shadow-lg shadow-teal-800"
+                    ? "bg-app-primary text-app-canvas "
                     : "bg-app-surface text-app-text-secondary"
             }`}> Achievements</button>
-
-            <button type="button"
-                onClick={() => onTabChange("Analytics")}
-                className={`rounded-md px-5 py-3 font-semibold transition-colors ${
-                activeTab === "Analytics"
-                    ? "bg-app-primary text-app-canvas shadow-lg shadow-teal-800"
-                    : "bg-app-surface text-app-text-secondary"
-            }`}> Analytics </button>
-
         </nav>
     );
 }
