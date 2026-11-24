@@ -43,7 +43,16 @@ interface Results {
     total: number
 }
 
-export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => void | Promise<void>})
+interface ExercisePickerProps {
+    onAdd: (exercises: ExerciseItem[]) => void | Promise<void>
+    // Exercises already in the day or workout get addedLabel as a badge.
+    addedIds?: string[]
+    addedLabel?: string
+}
+
+const pillClasses = "h-11 shrink-0 rounded-full border px-3.5 text-[13px] font-semibold"
+
+export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: ExercisePickerProps)
 {
     const [resultState, setResultState] = useState<LoadStateType>({status:"loading"})
     const [results, setResults] = useState<Results>({items:[], total:0})
@@ -65,6 +74,8 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
     }
 
     const isSelected = (id: string): boolean => selected.some((exercise) => id === exercise.id)
+    const added = new Set(addedIds)
+    const pickMuscle = (muscle: string) => setQuery((prev) => ({...prev, page: 1, muscle}))
 
     useEffect(()=>{
         const loadFilters = async ()=>{
@@ -117,7 +128,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
     }, [searchText])
 
     const loadMore = () => setQuery((prev)=> ({...prev, page: prev.page + 1}) )
-    const RetryButton = <Button variant="secondary" className="border border-app-border" onClick={() => setReloadCount(count => count + 1)}>Retry</Button>
+    const RetryButton = <Button variant="secondary" className="min-h-11 border border-app-border" onClick={() => setReloadCount(count => count + 1)}>Retry</Button>
 
     const isLoading = resultState.status === "loading"
     const isError = resultState.status === "error"
@@ -133,9 +144,10 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
     const errorMessage = resultState.status === "error" ? resultState.message : ""
 
     return(
-        <div className="flex flex-col min-h-0 gap-4">
-            <div className="flex flex-col gap-4">
-                <div className="flex h-10 items-center gap-2 rounded-lg border border-app-border bg-app-canvas px-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <div className="flex flex-col gap-3">
+                {/* A label, so a tap anywhere on the box (icon included) focuses the input. */}
+                <label className="flex h-11 items-center gap-2 rounded-lg border border-app-border bg-app-canvas px-3 focus-within:border-app-primary">
                     <img src={searchIcon} alt="" width={18} height={18}/>
                     <input
                         type="search"
@@ -143,14 +155,33 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         placeholder="Search exercises"
                         aria-label="Search Exercises"
                         maxLength={EXERCISE_SEARCH_MAX}
-                        className="w-full"
+                        className="h-full w-full bg-transparent text-[15px] outline-none"
                         value={searchText}
                         onChange={(e)=>{
                             setSearchText(e.target.value)
                         }}
                     />
+                </label>
+                {/* One scrolling row on phones instead of several wrapped lines of pills. */}
+                <div role="group" aria-label="Muscle" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
+                    {[{ id: "", name: "All" }, ...(filters?.muscles ?? [])].map(muscle => {
+                        const isOn = (query.muscle ?? "") === muscle.id
+                        return (
+                            <button
+                            key={muscle.id || "all"}
+                            type="button"
+                            aria-pressed={isOn}
+                            disabled={filterState.status !== "success"}
+                            onClick={() => pickMuscle(muscle.id)}
+                            className={`${pillClasses} ${isOn ? "border-app-primary bg-app-primary/10 text-app-primary" : "border-app-border bg-app-surface text-app-text-secondary hover:text-app-text"}`}
+                            >
+                                {muscle.name}
+                            </button>
+                        )
+                    })}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                {/* [&_select]:w-full: FilterSelect sizes to its longest option, which left gaps in a narrow panel. */}
+                <div className="grid grid-cols-2 gap-2 [&_select]:w-full [&_select]:truncate">
                     <FilterSelect
                         id="equipment-filter"
                         label="Equipment"
@@ -160,20 +191,10 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         onChange={(value) => setQuery((prev) => ({...prev, page: 1, equipment: value}))}
                         allLabel="All equipment"
                     />
-                    <FilterSelect
-                        id="muscle-filter"
-                        label="Muscle"
-                        disabled={filterState.status !== "success"}
-                        value={query.muscle ?? ""}
-                        options={filters?.muscles ?? []}
-                        onChange={(value) => setQuery((prev)=>({...prev, page: 1, muscle: value}))}
-                        allLabel="All muscles"
-                    />
                     {/* "" is FilterSelect's first option, used here for the default order. */}
                     <FilterSelect
                         id="sort-select"
                         label="Sort"
-                        showLabel
                         value={query.sort === "name_desc" ? "name_desc" : ""}
                         options={[{ id: "name_desc", name: "Name Z–A" }]}
                         onChange={(value) => setQuery((prev) => ({...prev, page: 1, sort: value === "name_desc" ? "name_desc" : "name_asc"}))}
@@ -183,6 +204,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         disabled={filterState.status !== "success" || !filters?.gym}
                         variant="outline"
                         size="pill"
+                        className="col-span-2"
                         aria-pressed={query.gym}
                         onClick={()=>setQuery((prev)=>({
                             ...prev,
@@ -195,7 +217,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                 </div>
                 {filterState.status === "error" && <p className="text-xs text-app-danger">Filters unavailable.</p>}
             </div>
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
                 {view === "loading" && <LoadingState message="Loading exercises..."/>}
 
                 {view === "error" && <ErrorState message={errorMessage} action={RetryButton}/>}
@@ -206,18 +228,18 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         action={
                             <Button
                                 variant="secondary"
-                                className="border border-app-border"
+                                className="min-h-11 border border-app-border"
                                 onClick={()=>{setSearchText(""); setQuery(INITIAL_QUERY)}}
                             >
-                                Back to Default
+                                Clear filters
                             </Button>
                         }
                     />
                 }
                 {view === "list" &&
                     <>
-                        <p>{`showed ${results.items.length} items of ${results.total}`}</p>
-                        <ul className="flex flex-col gap-1">
+                        <p className="px-1.5 text-xs text-app-text-secondary">{`Showing ${results.items.length} of ${results.total}`}</p>
+                        <ul className="flex flex-col gap-0.5">
                             {results.items.map((exercise)=>
                                 <li key={exercise.id}>
                                     <ExerciseRow
@@ -225,6 +247,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                                         onToggle={toggleSelected}
                                         exercise={exercise}
                                         gymName={filters?.gym?.name ?? null}
+                                        addedLabel={added.has(exercise.id) ? addedLabel : null}
                                     />
                                 </li>)
                             }
@@ -232,7 +255,7 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                         {isError && <p className="text-app-danger">{errorMessage}</p>}
                         {isError && RetryButton}
                         {hasMore && !isError &&
-                            <Button onClick={loadMore} variant="secondary" disabled={isLoading}>
+                            <Button onClick={loadMore} variant="secondary" className="min-h-11 border border-app-border" disabled={isLoading}>
                                 {isLoading ? "Loading..." : "Load more"}
                             </Button>
                         }
@@ -245,16 +268,19 @@ export function ExercisePicker({onAdd}: {onAdd: (exercises: ExerciseItem[]) => v
                 </p>
                 {selected.length > 0 &&
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" onClick={() => setSelected([])}>Reset</Button>
+                        <Button variant="ghost" className="min-h-11" onClick={() => setSelected([])}>Reset</Button>
                         <Button
                             onClick={async () => {
                                 setAddGuard(true)
                                 try {
                                     await onAdd(selected)
+                                    // The docked picker stays open, so it starts over after an add.
+                                    setSelected([])
                                 } finally {
                                     setAddGuard(false)
                                 }
                             }}
+                            className="min-h-11 font-bold"
                             disabled={addGuard}
                         >
                             Add {selected.length}

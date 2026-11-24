@@ -21,6 +21,8 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
     const [hasMore, setHasMore] = useState(false)
     const [loading, setLoading] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
+    const [searchError, setSearchError] = useState(false)
+    const [loadMoreError, setLoadMoreError] = useState(false)
 
     const searchVersion = useRef(0)
     const loadingMoreRef = useRef(false)
@@ -35,6 +37,8 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
         setHasMore(false)
         setLoading(false)
         setLoadingMore(false)
+        setSearchError(false)
+        setLoadMoreError(false)
         loadingMoreRef.current = false
 
         if (!query)
@@ -57,9 +61,9 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
                 setListName(response.data.users)
                 setNextCursor(response.data.nextCursor)
                 setHasMore(response.data.hasMore)
-            } catch (error) {
+            } catch {
                 if (version === searchVersion.current)
-                    console.error("Failed to search users:", error)
+                    setSearchError(true)
             } finally {
                 if (version === searchVersion.current)
                     setLoading(false)
@@ -83,6 +87,7 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
 
         loadingMoreRef.current = true
         setLoadingMore(true)
+        setLoadMoreError(false)
 
         try {
             const response = await api.get<SearchResponse>(
@@ -110,9 +115,9 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
 
             setNextCursor(response.data.nextCursor)
             setHasMore(response.data.hasMore)
-        } catch (error) {
+        } catch {
             if (version === searchVersion.current)
-                console.error("Failed to load more users:", error)
+                setLoadMoreError(true)
         } finally {
             if (version === searchVersion.current) {
                 loadingMoreRef.current = false
@@ -156,8 +161,12 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
                         <p role="status" className="px-4 py-5 text-center text-sm text-app-text-secondary">
                             Searching...
                         </p>
+                    ) : searchError ? (
+                        <p className="px-4 py-5 text-center text-sm text-red-500">
+                            Couldn’t search users.
+                        </p>
                     ) : listUser.length === 0 ? (
-                        <p role="status" className="px-4 py-5 text-center text-sm text-app-text-secondary">
+                        <p className="px-4 py-5 text-center text-sm text-app-text-secondary">
                             No users found.
                         </p>
                     ) : (
@@ -200,6 +209,11 @@ export default function SearchBar({ hideOnMobile }: SearchBarProps) {
                             ))}
 
                             {/* Load more users */}
+                            {loadMoreError && (
+                                <p className="px-3 py-2 text-center text-sm text-red-500">
+                                    Couldn’t load more users. Try again.
+                                </p>
+                            )}
                             {hasMore && (
                                 <button
                                     type="button"

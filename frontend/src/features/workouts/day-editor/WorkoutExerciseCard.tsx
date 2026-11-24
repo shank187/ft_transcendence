@@ -1,73 +1,68 @@
 import type { Dispatch } from "react"
-import Button from "../../../components/ui/Button"
-import Card from "../../../components/ui/Card"
+import { Plus } from "lucide-react"
 import type { DraftExercise } from "./day-editor.types"
-import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields"
-import SetRow from "./SetRow"
 import type { DraftAction } from "./day-editor.draft"
+import { EXERCISE_FIELDS, setLabel } from "../shared/exercise-fields"
 import { MAX_SETS_PER_EXERCISE } from "../shared/limits"
 import ExerciseCardHeader from "../shared/ExerciseCardHeader"
+import ExerciseCardActions from "../shared/ExerciseCardActions"
 import SetColumnsHeader from "../shared/SetColumnsHeader"
+import SetRow from "./SetRow"
 
-export default function WorkoutExerciseCard(props: {
-    exercise: DraftExercise,
-    position: number ,
+interface WorkoutExerciseCardProps {
+    exercise: DraftExercise
+    position: number
     dispatch: Dispatch<DraftAction>
     openSetMenu: string | null
     setOpenSetMenu: (setKey: string | null) => void
     isFirst: boolean
     isLast: boolean
 }
-) {
+
+export default function WorkoutExerciseCard(props: WorkoutExerciseCardProps)
+{
     const { exercise, dispatch } = props
     const fields = EXERCISE_FIELDS[exercise.exerciseSummary.type]
-    const name = exercise.exerciseSummary.name
 
     return (
-        <Card className="flex gap-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-3">
-                <ExerciseCardHeader
-                position={props.position}
-                exercise={exercise.exerciseSummary}
+        <article className="flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-surface p-3.5">
+            <ExerciseCardHeader
+            position={props.position}
+            exercise={exercise.exerciseSummary}
+            aside={
+                <ExerciseCardActions
+                name={exercise.exerciseSummary.name}
+                isFirst={props.isFirst}
+                isLast={props.isLast}
+                onMove={direction => dispatch({ type: "exerciseMoved", exKey: exercise.key, direction })}
+                onRemove={() => dispatch({ type: "exerciseRemoved", exKey: exercise.key })}
                 />
+            }
+            />
 
-                <SetColumnsHeader fields={fields} />
-
-                <ol className="flex flex-col gap-3">
-                    {exercise.sets.map((set, i) => (
-                        <li key={set.key}>
-                            <SetRow
-                            exKey={exercise.key}
-                            dispatch={dispatch}
-                            isMenuOpen={props.openSetMenu === set.key}
-                            setOpenSetMenu={props.setOpenSetMenu}
-                            set={set}
-                            label={setLabel(exercise.sets, i)}
-                            fields={fields}
-                            />
-                        </li>
-                    ))}
-                </ol>
-                <div>
-                    {exercise.sets.length < MAX_SETS_PER_EXERCISE
-                        ? <Button variant="ghost" onClick={()=> dispatch({ type: "setAdded", exKey: exercise.key })} className="min-h-11">+ Add set</Button>
-                        : <p className="text-sm text-app-text-secondary">{`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`}</p>
-                    }
-                </div>
-            </div>
-
-            <div className="flex shrink-0 flex-col justify-between gap-3 border-l border-app-border pl-2">
-                <div className="flex flex-col overflow-hidden rounded-md border border-app-border">
-                    <Button variant="ghost" disabled={props.isFirst} aria-label={`Move ${name} up`} title={`Move ${name} up`} onClick={() => dispatch({ type: "exerciseMoved", exKey: exercise.key, direction: -1 })} className="size-11 text-lg">↑</Button>
-                    <Button variant="ghost" disabled={props.isLast} aria-label={`Move ${name} down`} title={`Move ${name} down`} onClick={() => dispatch({ type: "exerciseMoved", exKey: exercise.key, direction: 1 })} className="size-11 border-t border-app-border text-lg">↓</Button>
-                </div>
-                <Button variant="ghost" aria-label={`Remove ${name}`} title={`Remove ${name}`} onClick={() => dispatch({ type: "exerciseRemoved", exKey: exercise.key })} className="size-11 border border-app-border hover:text-app-danger">
-                    <svg aria-hidden="true" className="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
-                    </svg>
-                </Button>
-            </div>
-        </Card>
+            <SetColumnsHeader fields={fields} />
+            <ol className="flex flex-col gap-2">
+                {exercise.sets.map((set, i) => (
+                    <li key={set.key}>
+                        <SetRow
+                        exKey={exercise.key}
+                        dispatch={dispatch}
+                        isMenuOpen={props.openSetMenu === set.key}
+                        setOpenSetMenu={props.setOpenSetMenu}
+                        set={set}
+                        label={setLabel(exercise.sets, i)}
+                        fields={fields}
+                        />
+                    </li>
+                ))}
+            </ol>
+            {exercise.sets.length < MAX_SETS_PER_EXERCISE
+                ? <button type="button" onClick={() => dispatch({ type: "setAdded", exKey: exercise.key })} className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-app-surface-hover text-sm font-semibold hover:brightness-125">
+                    <Plus aria-hidden="true" className="size-4" strokeWidth={2.5} />
+                    Add set
+                </button>
+                : <p className="text-sm text-app-text-secondary">{`An exercise can have at most ${MAX_SETS_PER_EXERCISE} sets.`}</p>
+            }
+        </article>
     )
 }
-

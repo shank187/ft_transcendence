@@ -5,14 +5,20 @@ import { useAuth } from '../features/auth/AuthContext';
 import api from '../features/auth/axiosInstance';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { getProgressSummary } from '../features/progress/progress.api';
-import type { ProgressSummary } from '../features/progress/progress.types';
+import {
+    getProgressSummary,
+    getLeaderboard,
+} from '../features/progress/progress.api';
+import type {
+    ProgressSummary,
+    LeaderboardEntry,
+} from '../features/progress/progress.types';
+import HomeProgressCard from '../features/progress/HomeProgressCard';
 import { FriendsListHome } from '../features/chat/FriendsList';
 import type { FriendData } from '../features/chat/chat.types';
 import { useWebSocket } from './WebSocketContext';
 import { getNextDay } from '../features/workouts/shared/get-plan-details';
-import StartDayButton from '../features/workouts/shared/StartDayButton';
-import type { HomeDay } from '../features/workouts/shared/workouts.types';
+import NextWorkoutCard, { type NextDayState } from '../features/workouts/shared/NextWorkoutCard';
 
 function Home() {
     const { user, setUser } = useAuth();
@@ -20,15 +26,18 @@ function Home() {
     const navigate = useNavigate();
 
     const [progress, set_progress] = useState<ProgressSummary | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [friends, set_friends] = useState<FriendData[] | null>(null);
+    const [nextDayState, setNextDayState] = useState<NextDayState>({
+        status: 'loading',
+    });
+
     const [profile_error, set_profile_error] = useState('');
     const [progress_error, set_progress_error] = useState('');
     const [friends_error, set_friends_error] = useState('');
-    const friendshipUpdate = lastMessage?.type === 'friendship_updated' ? lastMessage : null;
 
-    type NextDaystates= {status:"loading"} |{status: "success", result: HomeDay|null} | {status: "failure", message: string}
-
-    const [nextDayState, setNextDayState] = useState<NextDaystates>({status:"loading"});
+    const friendshipUpdate =
+        lastMessage?.type === 'friendship_updated' ? lastMessage : null;
 
     useEffect(() => {
         async function loadProfile() {
@@ -37,33 +46,53 @@ function Home() {
                 setUser(response.data);
                 set_profile_error('');
             } catch (error) {
-                if (isAxiosError(error))
-                    set_profile_error(error.response?.data?.message || 'Could not refresh your profile.');
-                else
+                if (isAxiosError(error)) {
+                    set_profile_error(
+                        error.response?.data?.message ||
+                            'Could not refresh your profile.'
+                    );
+                } else {
                     set_profile_error('Could not refresh your profile.');
+                }
             }
         }
 
         async function loadNextWorkoutDay() {
-            setNextDayState({status:"loading"})
+            setNextDayState({ status: 'loading' });
+
             try {
                 const data = await getNextDay();
-                setNextDayState({status: "success", result: data});
+                setNextDayState({ status: 'success', result: data });
             } catch (error) {
-                setNextDayState({status: "failure", message: error instanceof Error ? error.message : "can't load your Next day, check your workouts page"});
+                setNextDayState({
+                    status: 'failure',
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : 'Could not load your next workout. Check your workouts page.',
+                });
             }
         }
 
         async function loadProgress() {
             try {
-                const data = await getProgressSummary();
-                set_progress(data);
+                const [summary, entries] = await Promise.all([
+                    getProgressSummary(),
+                    getLeaderboard(),
+                ]);
+
+                set_progress(summary);
+                setLeaderboard(entries);
                 set_progress_error('');
             } catch (error) {
-                if (isAxiosError(error))
-                    set_progress_error(error.response?.data?.message || 'Could not load your progress.');
-                else
+                if (isAxiosError(error)) {
+                    set_progress_error(
+                        error.response?.data?.message ||
+                            'Could not load your progress.'
+                    );
+                } else {
                     set_progress_error('Could not load your progress.');
+                }
             }
         }
 
@@ -79,17 +108,29 @@ function Home() {
                 set_friends(response.data);
                 set_friends_error('');
             } catch (error) {
-                if (isAxiosError(error))
-                    set_friends_error(error.response?.data?.message || 'Could not load your friends.');
-                else
+                if (isAxiosError(error)) {
+                    set_friends_error(
+                        error.response?.data?.message ||
+                            'Could not load your friends.'
+                    );
+                } else {
                     set_friends_error('Could not load your friends.');
+                }
             }
         }
 
         loadFriends();
     }, [friendshipUpdate]);
 
-    const onlineFriends = (friends || []).filter(friend => onlineUserIds.includes(friend.id));
+    const onlineFriends = (friends || []).filter((friend) =>
+        onlineUserIds.includes(friend.id)
+    );
+
+    const rankingIndex = leaderboard.findIndex(
+        (entry) => entry.id === user?.id
+    );
+
+    const ranking = rankingIndex >= 0 ? rankingIndex + 1 : null;
 
     return (
         <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -97,109 +138,69 @@ function Home() {
                 Welcome back, {user?.displayName}
             </h1>
 
-            {profile_error && <p role="alert" className="text-sm text-app-danger">{profile_error}</p>}
+            {profile_error && (
+                <p role="alert" className="text-sm text-app-danger">
+                    {profile_error}
+                </p>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-2">
-                <Card className="min-w-0 space-y-6 border border-app-border">
-                    <h2 className="text-sm font-semibold uppercase">Next workout</h2>
+                <NextWorkoutCard state={nextDayState} />
 
-                    {nextDayState.status === "loading" ? (
-                        <p role="status" className="text-app-text-secondary">Loading your next workout...</p>
-                    ) : nextDayState.status === "failure" ? (
-                        <p role="alert" className="text-sm text-app-danger">{nextDayState.message}</p>
-                    ) : nextDayState.result === null ? (
-                        <div className="space-y-4">
-                            <p className="text-app-text-secondary">You don't have any planned day yet.</p>
-                            <Button variant="outline" className="border" onClick={() => navigate('/workouts')}>
-                                Plan your workouts
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            <h3 className="truncate text-xl font-semibold">{nextDayState.result.name}</h3>
-                            <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                    <p className="text-2xl font-bold">{nextDayState.result.dayOrder}</p>
-                                    <p className="text-sm text-app-text-secondary">Day</p>
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold">{nextDayState.result.exerciseCount}</p>
-                                    <p className="text-sm text-app-text-secondary">Exercises</p>
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold">{nextDayState.result.setCount}</p>
-                                    <p className="text-sm text-app-text-secondary">Sets</p>
-                                </div>
-                            </div>
-                            {nextDayState.result.activeSessionId ? (
-                                <div className="space-y-2">
-                                    <p className="text-sm text-app-text-secondary">You already started this workout.</p>
-                                    <Button className="w-full min-h-11" onClick={() => navigate(`/workouts/session/${nextDayState.result?.activeSessionId}`)}>
-                                        ▶ Resume
-                                    </Button>
-                                </div>
-                            ) : (
-                                <StartDayButton dayId={nextDayState.result.id} />
-                            )}
-                        </div>
-                    )}
-                </Card>
+                <HomeProgressCard
+                    progress={progress}
+                    ranking={ranking}
+                    error={progress_error}
+                />
 
                 <Card className="min-w-0 space-y-6 border border-app-border">
-                    <h2 className="text-sm font-semibold uppercase">Your progress</h2>
+                    <h2 className="text-sm font-semibold uppercase">
+                        Gym discovery
+                    </h2>
 
-                    {progress_error ? (
-                        <p role="alert" className="text-sm text-app-danger">{progress_error}</p>
-                    ) : progress === null ? (
-                        <p role="status" className="text-app-text-secondary">Loading your progress...</p>
-                    ) : (
-                        <div className="grid grid-cols-3 gap-3">
-                            <div>
-                                <p className="text-2xl font-bold">{progress.completedWorkouts}</p>
-                                <p className="text-sm text-app-text-secondary">Completed workouts</p>
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{progress.totalXp}</p>
-                                <p className="text-sm text-app-text-secondary">Total XP</p>
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{progress.achievements.length}</p>
-                                <p className="text-sm text-app-text-secondary">Achievements</p>
-                            </div>
-                        </div>
-                    )}
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">
+                            Find your next gym
+                        </h3>
+                        <p className="text-app-text-secondary">
+                            Explore gyms, equipment and details.
+                        </p>
+                    </div>
 
-                    <Button variant="outline" className="border" onClick={() => navigate('/progress')}>
-                        View progress
+                    <Button onClick={() => navigate('/gyms')}>
+                        Browse gyms
                     </Button>
                 </Card>
 
                 <Card className="min-w-0 space-y-6 border border-app-border">
-                    <h2 className="text-sm font-semibold uppercase">Gym discovery</h2>
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">Find your next gym</h3>
-                        <p className="text-app-text-secondary">Explore gyms, equipment and details.</p>
-                    </div>
-                    <Button onClick={() => navigate('/gyms')}>Browse gyms</Button>
-                </Card>
-
-                <Card className="min-w-0 space-y-6 border border-app-border">
-                    <h2 className="text-sm font-semibold uppercase">Social</h2>
+                    <h2 className="text-sm font-semibold uppercase">
+                        Social
+                    </h2>
 
                     {friends_error ? (
-                        <p role="alert" className="text-sm text-app-danger">{friends_error}</p>
+                        <p role="alert" className="text-sm text-app-danger">
+                            {friends_error}
+                        </p>
                     ) : friends === null ? (
-                        <p role="status" className="text-app-text-secondary">Loading your friends...</p>
+                        <p role="status" className="text-app-text-secondary">
+                            Loading your friends...
+                        </p>
                     ) : connectionStatus !== 'connected' ? (
-                        <p role="status" className="text-app-text-secondary">Online status is currently unavailable.</p>
+                        <p role="status" className="text-app-text-secondary">
+                            Online status is currently unavailable.
+                        </p>
                     ) : (
                         <div className="space-y-3">
-                            <FriendsListHome friends={onlineFriends}/>
-                            <p className="text-sm text-app-text-secondary">Friends online: {onlineFriends.length}</p>
+                            <FriendsListHome friends={onlineFriends} />
+                            <p className="text-sm text-app-text-secondary">
+                                Friends online: {onlineFriends.length}
+                            </p>
                         </div>
                     )}
 
-                    <Button onClick={() => navigate('/social')}>Open chat</Button>
+                    <Button onClick={() => navigate('/social')}>
+                        Open chat
+                    </Button>
                 </Card>
             </div>
         </div>

@@ -1,4 +1,4 @@
-# Frozen Scope and Validation Map
+# Scope and Validation Map
 
 **Subject:** ft_transcendence v21.1  
 **Target:** reliable 14-point validation before 16–20 November 2026  
@@ -66,6 +66,17 @@ Gamification is stored in `XpEvent` and `UserAchievement`.
 | Two Additional Browsers | Minor | 1 | Shared QA |
 | **Total** |  | **14** |  |
 
+## Bonus claims — decided 24 November 2026
+
+Claimed beyond the 14 and counted only after the 14 are validated.
+
+| Module | Type | Points | Evidence owner |
+|---|---:|---:|---|
+| User activity analytics and insights dashboard | Minor | 1 | S5 + S3 (Home: weekly stats, next workout) |
+| Module of choice: community gym database with moderation | Minor | 1 | S2 + S5 |
+
+What each claim covers: README, "Bonus modules — beyond the 14".
+
 ## Mandatory gate
 
 - Full-stack web application with frontend, backend, and database
@@ -81,7 +92,7 @@ Gamification is stored in `XpEvent` and `UserAchievement`.
 - Meaningful contributions/commits from all five members
 - Complete English README with roles, management, stack, schema, features, modules, points, implementation, ownership, contributions, resources, and AI usage
 
-## Explicitly deferred until the validation gate is green
+## Out of scope
 
 - AI/ML/RAG fitness assistant or exercise ranking
 - Coaches, subscriptions, paid content
@@ -103,12 +114,10 @@ Gamification is stored in `XpEvent` and `UserAchievement`.
 
 A label or implemented-looking schema is not evidence. Each claimed module needs a working demo, success/failure/ownership/repeated-action tests as applicable, clean browser behavior, documented implementation, accurate contributor evidence, and a teammate who can explain and modify it.
 
-## Current implementation checkpoint — 16 November 2026
+## Current implementation checkpoint — 24 November 2026
 
-See the checkpoint in the README for what is on `main`.
+See the checkpoint in the README for what is on `main` (`22062eb`).
 
-S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs). Not done from the second priority: previous values shown in the workout (previous best is only used for the PR badge), and replacing an exercise in a workout. The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. The workout history list moved to S5 (Progress) on 19 Nov.
+S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs, removing an exercise from a workout in progress, bodyweight PRs, imperial units). The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. The workout history list moved to S5 (Progress) on 19 Nov.
 
-S1/shared: Compose now fails clearly when a required value is missing (JWT secrets included). Still open: CI/Gitleaks.
-
-Refresh this section from live GitHub/Trello evidence whenever a milestone merges.
+S1/shared: Compose fails clearly when a required value is missing (JWT secrets included).

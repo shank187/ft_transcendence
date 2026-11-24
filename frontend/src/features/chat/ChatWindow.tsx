@@ -10,7 +10,6 @@ import api from "../auth/axiosInstance"
 import { useAuth } from "../auth/AuthContext"
 import { useWebSocket } from "../../pages/WebSocketContext"
 
-// Render the selected conversation and its message composer.
 export default function ChatWindow({
     friend,
     onSendMessage,
@@ -18,62 +17,64 @@ export default function ChatWindow({
     onBack,
     onlineFriends
 }: ChatWindowProps) {
-    // Keep the cursor for the next page of older messages.
     const [nextCursor, setNextCursor] = useState<string | null>(null)
-    // Track whether older messages are available.
     const [hasMore, setHasMore] = useState(false)
-    // Track whether an older page is loading.
     const [loadingOlder, setLoadingOlder] = useState(false)
     const { wsRef, connectionStatus, lastMessage: wsMessage } = useWebSocket()
     const { user } = useAuth()
-    // Track whether the selected friend can receive messages.
     const [canMessage, setCanMessage] = useState(false)
-    // Store the messages displayed in this conversation.
+    const [permissionError, setPermissionError] = useState(false)
+    const [permissionRetry, setPermissionRetry] = useState(0)
     const [msgs, setMsgs] = useState<MessageData[]>([])
-    // Store the draft in the message input.
     const [msg, setMsg] = useState("")
     const chatBodyRef = useRef<HTMLDivElement>(null)
     const previousScrollHeight = useRef<number | null>(null)
     const sentReadReceipts = useRef(new Set<string>())
-    // Track whether the message history failed to load.
     const [loadError, setleadError] = useState<true | false>(false)
-    // Track whether an older page failed to load.
     const [loadMoreError, setloadMoreError] = useState<true | false>(false)
-    // Store the latest message send error.
     const [sendError, setSendError] = useState("")
     const friendshipUpdate = wsMessage?.type === "friendship_updated" ? wsMessage.userId : null
-    // Show send errors reported by the server.
+    const [historyRetry, setHistoryRetry] = useState(0)
+    const previousMessageIds = useRef<MessageData["id"][]>([])
+    const readReceipts = useRef(new Map<string, string>())
+
+    function applyReadReceipt(message: MessageData): MessageData {
+        const key = `${message.conversationId}:${message.id}`
+        const readAt = readReceipts.current.get(key)
+
+        if (readAt === undefined || readAt === message.readAt)
+            return message
+
+        return { ...message, readAt }
+    }
     useEffect(() => {
         if (lastMessage?.type === "send_error") {
             setSendError(lastMessage.message)
         }
     }, [lastMessage])
-    // Clear the send error when the selected friend changes.
     useEffect(() => {
         setSendError("")
     }, [friend?.id])
-    // Check messaging permission after friend, connection, or friendship changes.
     useEffect(() => {
-        if (!friend) {
-            setCanMessage(false)
+        const friendId = friend?.id
+        setCanMessage(false)
+        setPermissionError(false)
+
+        if (!friendId)
             return
-        }
 
         let cancelled = false
-        setCanMessage(false)
 
-        // Fetch and apply the current messaging permission.
         async function checkPermission() {
             try {
                 const response = await api.get<{ canMessage: boolean }>(
-                    `/api/friends/${friend!.id}/can-message`
+                    `/api/friends/${friendId}/can-message`
                 )
                 if (!cancelled)
                     setCanMessage(response.data.canMessage)
-            } catch (error) {
-                console.error("Permission check failed:", error)
+            } catch {
                 if (!cancelled)
-                    setCanMessage(false)
+                    setPermissionError(true)
             }
         }
 
@@ -81,16 +82,14 @@ export default function ChatWindow({
         return () => {
             cancelled = true
         }
-    }, [friend?.id, connectionStatus, friendshipUpdate])
+    }, [friend?.id, connectionStatus, friendshipUpdate, permissionRetry])
 
-    // Reset messages and pagination when the selected friend changes.
     useEffect(() => {
         setMsgs([])
         setNextCursor(null)
         setHasMore(false)
     }, [friend?.id])
 
-    // Load message history when the selected friend has a live connection.
     useEffect(() => {
         if (!friend || connectionStatus !== "connected")
             return
@@ -98,7 +97,6 @@ export default function ChatWindow({
         let cancelled = false
         const friendId = friend.id
 
-        // Fetch history and merge it with any messages already received.
         async function getMessageHistory() {
             try {
                 const response = await api.get<MessageHistoryResponse>(
@@ -111,7 +109,7 @@ export default function ChatWindow({
                     const messages = new Map<string, MessageData>()
 
                     response.data.messages.forEach(message => {
-                        messages.set(message.id, message)
+                        messages.set(message.id, applyReadReceipt(message))
                     })
 
                     current.forEach(message => {
@@ -135,7 +133,6 @@ export default function ChatWindow({
                 setleadError(false)
             } catch (error) {
                 if (!cancelled) {
-                    console.error("Failed to load messages:", error)
                     setleadError(true)
                 }
             }
@@ -143,18 +140,23 @@ export default function ChatWindow({
 
         getMessageHistory()
 
-        // Ignore the history response after this effect is cleaned up.
         return () => {
             cancelled = true
         }
-    }, [friend?.id, connectionStatus])
+    }, [friend?.id, connectionStatus, historyRetry])
 
-    // Preserve scroll position when older messages load. Otherwise scroll to the bottom.
     useLayoutEffect(() => {
         const chatBody = chatBodyRef.current
         if (!chatBody)
             return
+        const currentIds = msgs.map(message => message.id)
+        const previousIds = previousMessageIds.current
+        previousMessageIds.current = currentIds
 
+        const sameMessages = currentIds.length === previousIds.length &&
+        currentIds.every((id, index) => id === previousIds[index])
+        if (sameMessages)
+            return
         if (previousScrollHeight.current !== null) {
             const difference = chatBody.scrollHeight - previousScrollHeight.current
             chatBody.scrollTop += difference
@@ -164,22 +166,26 @@ export default function ChatWindow({
         }
     }, [msgs])
 
-    // Apply incoming read receipts to the matching message.
     useEffect(() => {
         if (lastMessage?.type !== "readMessage")
             return
-
-        setMsgs(current =>
-            current.map(message =>
+        const key = `${lastMessage.conversationId}:${lastMessage.messageId}`
+        readReceipts.current.set(key, lastMessage.readAt)
+        setMsgs(current => {
+            const index = current.findIndex(message =>
                 message.id === lastMessage.messageId &&
                 message.conversationId === lastMessage.conversationId
-                    ? { ...message, readAt: lastMessage.readAt }
-                    : message
             )
-        )
+
+            if (index === -1 || current[index].readAt === lastMessage.readAt)
+                return current
+
+            const updated = [...current]
+            updated[index] = { ...current[index], readAt: lastMessage.readAt }
+            return updated
+        })
     }, [lastMessage])
 
-    // Add live messages for this conversation without duplicating them.
     useEffect(() => {
         if (lastMessage?.type !== "message" || !friend || !user)
             return
@@ -196,14 +202,14 @@ export default function ChatWindow({
             if (current.some(message => message.id === lastMessage.messageId))
                 return current
 
-            return [...current, {
+            return [...current,applyReadReceipt( {
                 id: lastMessage.messageId,
                 senderId: lastMessage.from,
                 content: lastMessage.content,
                 conversationId: lastMessage.conversationId,
                 createdAt: lastMessage.createdAt,
                 readAt: null
-            }].sort(
+            })].sort(
                 (a, b) =>
                     new Date(a.createdAt).getTime() -
                     new Date(b.createdAt).getTime()
@@ -211,12 +217,10 @@ export default function ChatWindow({
         })
     }, [lastMessage, friend?.id, user?.id])
 
-    // A new connection may need to resend receipts that the server never received.
     useEffect(() => {
         sentReadReceipts.current.clear()
     }, [connectionStatus])
 
-    // mark messages in the open conversation as read.
     useEffect(() => {
         if (!friend || !user || connectionStatus !== "connected")
             return
@@ -241,7 +245,6 @@ export default function ChatWindow({
         })
     }, [msgs, friend?.id, user?.id, connectionStatus, wsRef])
 
-    // Load the next page of older messages and preserve the scroll position.
     async function loadOlderMessages() {
         if (!friend || !nextCursor || !hasMore || loadingOlder)
             return
@@ -260,7 +263,7 @@ export default function ChatWindow({
                 const messages = new Map<string, MessageData>()
 
                 response.data.messages.forEach(message => {
-                    messages.set(message.id, message)
+                    messages.set(message.id, applyReadReceipt(message))
                 })
 
                 current.forEach(message => {
@@ -282,14 +285,12 @@ export default function ChatWindow({
             setHasMore(response.data.hasMore)
             setloadMoreError(false)
         } catch (error) {
-            console.error("Failed to load older messages:", error)
             setloadMoreError(true)
         } finally {
             setLoadingOlder(false)
         }
     }
 
-    // Send a trimmed draft when messaging is available.
     function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         const content = msg.trim()
@@ -308,6 +309,7 @@ export default function ChatWindow({
     if (!friend)
         return (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+                <img src="/chatWindo-icon.png" alt="" className="mb-2 size-20 object-contain" />
                 <h3 className="text-lg font-semibold text-app-text">
                     No conversation selected
                 </h3>
@@ -322,7 +324,6 @@ export default function ChatWindow({
 
     return (
         <section className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-app-surface">
-            {/* Header */}
             <header className="flex shrink-0 items-center gap-3 border-b border-app-border px-3 py-3 sm:px-5 sm:py-4">
                 <button
                     type="button"
@@ -353,10 +354,9 @@ export default function ChatWindow({
                 </Link>
             </header>
 
-            {/* Messages */}
             <div
                 ref={chatBodyRef}
-                className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden1 ${loadError ? "hidden" : ""}`}
+               className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {loadMoreError &&
                     <p className="text-center text-sm text-app-text-secondary">
@@ -382,19 +382,43 @@ export default function ChatWindow({
                     />
                 ))}
             </div>
-            {loadError &&
-                <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
-                    <p className="text-sm text-app-text-secondary">
-                        Failed to load messages.
+            {loadError && (
+                <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-2 px-3 py-2 sm:px-5">
+                    <p className="text-center text-sm text-app-text-secondary">
+                        Couldn’t load message history.
                     </p>
+                    <button
+                        type="button"
+                        disabled={connectionStatus !== "connected"}
+                        onClick={() => {
+                            setleadError(false)
+                            setHistoryRetry(current => current + 1)
+                        }}
+                        className="rounded-lg border border-app-border px-3 py-1 text-sm disabled:opacity-50"
+                    >
+                        Retry
+                    </button>
                 </div>
-            }
+            )}
             {sendError && (
                 <p className="text-center text-sm text-red-500">
                     {sendError}
                 </p>
             )}
-            {/* Message input */}
+            {permissionError && (
+                <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-2 px-3 py-2 sm:px-5">
+                    <p role="status" className="text-center text-sm text-red-500">
+                        Couldn’t check if you can send messages.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setPermissionRetry(current => current + 1)}
+                        className="rounded-lg border border-app-border px-3 py-1 text-sm"
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
             <form
                 onSubmit={handleSubmit}
                 className="flex shrink-0 items-center gap-2 border-t border-app-border p-3 sm:gap-3 sm:p-4"

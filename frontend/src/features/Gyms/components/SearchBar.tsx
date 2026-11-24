@@ -3,12 +3,12 @@ import { Search} from "lucide-react";
 interface searchBarProps{
     searchTerm : string;
     onSearchChange: (text: string)=>void;
-    style?: string;
-    placeholder?: string;
+    style : string;
+    placeholder: string;
   
 };
 
-function SearchBar({ searchTerm, onSearchChange, style = "", placeholder } : searchBarProps){
+function SearchBar({ searchTerm, onSearchChange, style, placeholder } : searchBarProps){
     return (
         <div className={`flex items-center gap-1 w-full px-4 py-3 rounded-3xl ${style}`}>
             <Search className="w-5 h-5 text-zinc-500 shrink-0"/>

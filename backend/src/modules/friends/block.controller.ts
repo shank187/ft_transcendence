@@ -70,7 +70,6 @@ export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
         await notifyFriendshipUpdate(addresseeId, blockerId)
         return res.status(201).json({ message: "User was blocked successfully" })
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -130,7 +129,6 @@ export const unblockUser = async (req: AuthenticatedRequest, res: Response) => {
                 return res.status(404).json({ message: "not found" })
         }
     } catch (error) {
-        console.error(error)
         return res.status(500).json({ message: "Internal server error" });
     }
 }

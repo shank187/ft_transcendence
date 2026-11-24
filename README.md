@@ -4,15 +4,15 @@
 
 ## Description
 
-Gym App is a five-person, full-stack social fitness platform built for the 42 `ft_transcendence` project (subject v21.1). Its validation product connects one loop:
+Gym App is a five-person, full-stack social fitness platform built for the 42 `ft_transcendence` project (subject v21.1). It connects one loop:
 
 ```text
 Discover a gym → plan a workout → train and log sets → review progress → earn achievements → interact with friends
 ```
 
-The project deliberately freezes scope around a reliable 14-point validation target. AI/coaches, social feeds, advanced workout mutation, advanced recommendations, and other bonus work remain deferred until the core validation gate is green.
+The scope stays on this loop. AI coaching, social feeds and workout recommendations are out of scope.
 
-### Validation features
+### Key features
 
 - Secure email/password authentication and first-login onboarding
 - Own profile, avatar, OAuth, legal pages, and multi-user correctness
@@ -23,21 +23,17 @@ The project deliberately freezes scope around a reliable 14-point validation tar
 - Type-aware set logging, workout completion, history, volume, and basic PRs
 - Friends, presence, real-time chat, and message history
 - XP, achievements, and leaderboard
-- Responsive custom design system and Chrome/Firefox/Edge verification
+- Responsive custom design system, tested in Chrome, Firefox and Edge
 
-Implementation status must be taken from GitHub/Trello. A feature listed in the frozen target is not automatically implemented.
-
-## Current implementation checkpoint — 16 November 2026
-
-What exists on `main` at `49cb343` (routes and pages in the code, not a claim that each module is validated):
+## Features by area
 
 - React/Vite/TypeScript frontend, Express/TypeScript backend, PostgreSQL through Prisma, Docker Compose
-- Auth: email/password with email code, Google OAuth, refresh/logout/session check, onboarding
-- Profile: own profile, settings, avatar, public profile, Privacy and Terms pages
-- Gyms: search, details, current gym, gym submission and admin review
-- Workouts (S3): plans, days, day editor, exercise picker (search, filters, sort, gym filter, pagination), active workout, finish with PRs and XP
-- Progress: summary and leaderboard
-- Social: friends, requests, blocking, conversations and WebSocket chat
+- Auth: email/password with email code, Google OAuth, refresh/logout/session check, onboarding, admin navigation for the ADMIN role
+- Profile: own profile, settings with metric or imperial units, avatar (image content checked with Sharp), public profile, Privacy and Terms pages
+- Gyms: search, details, current gym, private gyms, gym submissions with photos, "My submissions", admin review (approve, or reject with a reason)
+- Workouts (S3): plans, days, day editor, exercise picker (search, filters, sort, gym filter, pagination), active workout (add, move and remove exercises; add, edit and tick sets), finish with PRs (bodyweight sets included) and XP, weights in kg or lb and distances in km or mi, next workout on Home
+- Progress: summary, leaderboard, achievements, weekly stats on Home
+- Social: friends, requests, blocking, user search, conversations, WebSocket chat with presence and read receipts, connection and message size limits
 
 The full endpoint list is in [`docs/api.md`](docs/api.md).
 
@@ -51,6 +47,10 @@ The full endpoint list is in [`docs/api.md`](docs/api.md).
 | Infrastructure | Docker Compose, GitHub | Reproducible services and collaborative review |
 
 The application is a modular monolith: one frontend, one Express backend, one PostgreSQL database, and domain modules inside the shared applications. It is not a microservice system.
+
+## Supported browsers
+
+The latest stable Google Chrome, Mozilla Firefox and Microsoft Edge. Every feature was tested in each of the three browsers, with the same layout and behaviour; no browser-specific limitations were found.
 
 ## Instructions
 
@@ -125,7 +125,7 @@ Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.e
 - [`docs/database.md`](docs/database.md) — current schema mental model and historical-data rules
 - [`docs/development.md`](docs/development.md) — branch, review, verification, and environment workflow
 - [`docs/pr-guide.md`](docs/pr-guide.md) — PR shape, naming, and the required PR description
-- [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — frozen product, 14-point module plan, and cutoffs
+- [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — product scope, 14-point module plan, and team cutoffs
 - [`docs/UPGRADE.md`](docs/UPGRADE.md) — October 2026 dependency upgrade: what changed, what to run after pulling, what is deferred
 
 The executable sources remain authoritative for current implementation details:
@@ -148,7 +148,7 @@ The executable sources remain authoritative for current implementation details:
 
 ### Project management
 
-- Trello: scope, priorities, ownership, and integration gates
+- Trello until 13 October 2026, then [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md): scope, priorities, ownership, and integration gates
 - GitHub branches and pull requests: implementation and peer review
 - Discord/team meetings: decisions and blocker escalation
 - Vertical slices: each owner delivers frontend → API → service → Prisma → PostgreSQL flows
@@ -158,7 +158,7 @@ The executable sources remain authoritative for current implementation details:
 - **User Interaction (`mouarar`, S4).** Users can search for and view public profiles, send and respond to friend requests, view and remove friends, and block or unblock users. Friends can exchange direct messages and load previous messages from their conversation history.
 - **Real-Time Features (`mouarar`, S4, with S1 infrastructure).** The React app connects to the Node backend over WebSocket for live messages, read receipts, online presence, and friendship updates. The backend authenticates each socket and sends events to the affected users' connected sessions. HTTP endpoints load saved conversations and message history. Nginx handles HTTPS and forwards the WebSocket upgrade.
 
-## Frozen modules — 14 points
+## Modules — 14 points
 
 | Module | Size | Points | Primary ownership |
 |---|---:|---:|---|
@@ -174,7 +174,38 @@ The executable sources remain authoritative for current implementation details:
 | Two Additional Browsers | Minor | 1 | Shared QA |
 | **Total** |  | **14** |  |
 
-Only fully working and demonstrable modules count. Detailed evidence and final contributors must be completed before evaluation.
+### Bonus modules — beyond the 14
+
+Counted once the 14 points above are validated (subject chapter VII, 5 bonus points at most).
+
+| Module | Size | Points | Ownership |
+|---|---:|---:|---|
+| User activity analytics and insights dashboard | Minor | 1 | S5 + S3 (Home) |
+| Module of choice: community gym database with moderation | Minor | 1 | S2 + S5 |
+| **Total with bonus** |  | **16** |  |
+
+#### User activity analytics and insights dashboard (Minor, 1 pt)
+
+- **Why:** a training app is useful when the user sees what they did and what to do next. Home is the first screen after login, so the analytics live there.
+- **Activity analytics:** `GET /api/progress/week` counts the user's completed workouts for the current week (Monday–Sunday, UTC): workouts, sets, volume in kg and PRs. `getWorkoutStats(userId, from, to)` in `backend/src/modules/progress/progress.service.ts` reads only the authenticated user's completed sessions.
+- **Insight — what to do next:** `GET /api/workout-plans/nextday` works out the next workout from the user's history: the day after the last completed day of that plan, back to day 1 after the last one, or the first day of the newest plan if nothing is done yet. If that workout is already in progress, Home resumes it; if the day has no exercises yet, Home opens its editor instead of starting an empty workout.
+- **Insight — what to beat:** the same response carries `lastTime`, the user's last finished workout of that day (when, volume, sets, time, from the same `toSummaryDto` as the workout summary). Home turns it into a target ("Beat 2,705 kg of volume today", or the sets for a day without weights), says "First time on this day" when there is no history, and links to that past workout.
+- **Kept apart from Gamification:** XP, levels, achievements and the leaderboard belong to the Gamification module and are not part of this claim.
+- **Who:** sabadri (weekly stats endpoint and card), aelbour (next workout endpoint and card with the "last time" target), abel-had (Home layout), mouarar (online friends on Home).
+
+#### Module of choice: community gym database with moderation (Minor, 1 pt)
+
+- **Why we chose it:** gyms seeded from Google Places miss places and go out of date. Members fill the gaps, and an admin keeps the public catalog trustworthy.
+- **Technical challenges:**
+  - One `Gym` table holds imported, team and member gyms, public or private (`visibility`, `verified`, `source`), so search, details and current gym work the same way for all of them.
+  - Members can add a private gym with its equipment and use it as their current gym straight away; it stays visible only to them.
+  - A submission changes nothing until an admin approves it. Approval creates the public verified gym, copies its equipment and first photo, and closes the submission in one serializable transaction, so a half-approved gym can't exist.
+  - Two admins reviewing at once, or a double click: the update is guarded on `status = PENDING`, so the second review gets 409 instead of a duplicate gym. An admin can't review their own submission.
+  - Rejection requires a reason (already listed, not a gym, can't confirm, other) and an optional detail the submitter can read.
+  - Abuse limits: at most 5 private gyms and 5 pending submissions per user; uploaded photos are checked by type and content.
+- **Value:** users can train at a gym the catalog didn't have, and the public catalog grows without losing trust.
+- **Why a Minor:** it is a full workflow (submit → review → publish) with roles, transactions and concurrency handling, beyond plain CRUD, but smaller than a Major module.
+- **Who:** zyahansa (private gyms, submissions with photos and equipment), sabadri (admin review queue, approve, reject with a reason).
 
 ## Database schema
 
@@ -315,7 +346,7 @@ Design decisions:
 
 - **Plans vs history.** Starting a workout copies the plan's targets into the session (`WorkoutSet.planned*`), so editing a plan never changes past workouts.
 - **One canonical `Equipment` table** shared by gyms (`GymEquipment`) and exercises (`ExerciseEquipment`), so "what can I do at my gym" is a join, not a second vocabulary.
-- **One `Gym` table with states.** `visibility`, `verified`, `source` and `closedAt` describe verified, unverified, private and closed gyms. A member's `GymSubmission` changes nothing until an admin approves it in one transaction, guarded on `status = PENDING` and on the gym's `updatedAt`, so a double click or a stale suggestion returns 409.
+- **One `Gym` table with states.** `visibility`, `verified`, `source` and `closedAt` describe verified, unverified, private and closed gyms. A member's `GymSubmission` changes nothing until an admin approves it in one serializable transaction, guarded on `status = PENDING`, so a double click or a second admin gets 409.
 - **Rewards are an event log.** `XpEvent` is unique on `(reason, sourceId)`, so a workout or an approval never pays twice; total XP, level and leaderboard are computed from it.
 - **Delete rules.** Cascade for data a user owns, SetNull for references history must survive, Restrict for catalog rows that history uses.
 
@@ -334,18 +365,8 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 
 Taken from the merged commits and pull requests on `main`.
 
-- **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs and the S5 award call, next workout on Home, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
+- **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs (bodyweight sets included) and the S5 award call, metric and imperial units, the next workout card on Home with the last time and target to beat, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
 - **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
 - **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
-- **mouarar (S4):** Helped implement public profiles,Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.
+- **mouarar (S4):** Helped implement public profiles. Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.
 - **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
-
-## Known gaps at this checkpoint
-
-- Error response bodies: every module returns `{ message }` except some gyms errors (`{ error }`), until S1 finalizes the shared error DTO.
-- S3: an exercise can't be removed from a workout in progress (its sets can).
-- The list of past workouts moved to S5 (Progress) on 19 Nov; until it lands, a finished workout opens only from its link.
-- CI/Gitleaks is not set up (no `.github/workflows`).
-- Frozen S2/S4/S5 flows and several mandatory legal/security/QA requirements remain integration work.
-
-This list is a dated checkpoint, not a permanent project status.

@@ -17,3 +17,10 @@ export type ProgressSummary = {
     totalXp: number;
     achievements: SavedAchievements[];
 };
+
+export type WeeklyStats = {
+    workouts: number;
+    sets: number;
+    volumeKg: number;
+    prs: number;
+};

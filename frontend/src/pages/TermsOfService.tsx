@@ -9,7 +9,7 @@ function TermsOfService() {
       <div className="mx-auto max-w-3xl">
 
         <Button
-          variant="secondary" onClick={() => navigate("/home")}>
+          variant="secondary" onClick={() => navigate("/")}>
           ← Back
         </Button>
 

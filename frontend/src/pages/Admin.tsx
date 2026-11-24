@@ -29,8 +29,7 @@ export default function Admin() {
             const { data } = await api.get<GymSubmission[]>("/api/gyms/submissions");
             setSubmissions(data);
             setLoadError(false);
-        } catch (error) {
-            console.error("Could not load gym submissions", error);
+        } catch {
             setLoadError(true);
         } finally {
             setLoadingSubmissions(false);
@@ -57,8 +56,7 @@ export default function Admin() {
                 current?.filter((submission) => submission.id !== id) ?? null
             );
             setDecline(null);
-        } catch (error) {
-            console.error("Could not decline submission", error);
+        } catch {
             setReviewError("Could not decline the submission.");
         } finally {
             setSavingDecline(false);
@@ -73,8 +71,7 @@ export default function Admin() {
             setSubmissions((current) =>
                 current?.filter((submission) => submission.id !== id) ?? null
             );
-        } catch (error) {
-            console.error("Could not approve submission", error);
+        } catch {
             setReviewError("Could not approve the submission.");
         }
     }

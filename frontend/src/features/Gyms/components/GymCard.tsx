@@ -12,24 +12,24 @@ function GymCard({gym} : GymCardPara){
     let imageUrl =  gym.imageUrl || "/gym-images/default-gym.png";
 
     return (
-        <Link to={`/gyms/${gym.id}`}>
-            <div className="group relative flex flex-col sm:flex-row rounded-2xl bg-[#181818] border border-[#2A2A2A] overflow-hidden transition-all duration-200 hover:border-[#3D3D3D] hover:bg-[#1C1C1C] cursor-pointer sm:h-56">
+        <Link to={`/gyms/${gym.id}`} className="@container">
+            <div className="group relative flex flex-col @[500px]:flex-row rounded-2xl bg-[#181818] border border-[#2A2A2A] overflow-hidden transition-all duration-200 hover:border-[#3D3D3D] hover:bg-[#1C1C1C] cursor-pointer @[500px]:h-56">
                     
                     
-                <div className=" relative w-full sm:w-54 lg:w-72 h-52 sm:h-auto overflow-hidden  shrink-0 bg-[#101010]">
+                <div className="relative w-full @[500px]:w-54 h-52 @[500px]:h-auto overflow-hidden shrink-0 bg-[#101010]">
                     <img src={imageUrl} alt={gym.name} 
                         className="h-full w-full object-cover group-hover:scale-105 "/>
                     
                     <div className="absolute top-3.5 left-3.5">
                         {gym.verified ? (
-                            <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Veridied</p>
+                            <p className="rounded-md bg-black/85 border border-[#CCFF00]/25 px-2 py-1 text-xs font-extrabold uppercase text-[#CCFF00]" >Verified</p>
                         ) : (
-                            <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Veridied</p>
+                            <p className="rounded-md bg-black/85 border border-white-100/10 px-2 py-1 text-xs font-extrabold uppercase text-[#A0A0A0] "> Not Verified</p>
                         )}
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between p-5 min-w-0 ">
+                <div className="flex-1 flex flex-col justify-between p-5 min-w-0 ">
                     <div >
                         <div className="flex items-center  justify-between gap-2.5">
                             <h3 className="text-xl font-bold text-white truncate">{gym.name}</h3>
@@ -74,6 +74,16 @@ function GymCard({gym} : GymCardPara){
                     </div>
                 </div>
             </div>
+            
+
+                            
+
+
+
+
+
+
+
         </Link>
     )
 }

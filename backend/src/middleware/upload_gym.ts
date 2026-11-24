@@ -1,6 +1,8 @@
 import path from "node:path";
 import multer from "multer";
 import { randomUUID } from "node:crypto";
+import type { RequestHandler } from "express";
+import { handle_image_upload } from "./upload_avatar";
 
 
 
@@ -31,7 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize : 3*1024*1024, 
+        fileSize : 2*1024*1024, 
         files:1
     },
     fileFilter: (req, file, callback) => {
@@ -43,5 +45,8 @@ const upload = multer({
 });
 
 
-export const upload_gym_image = upload.single("image");
-
+export const upload_gym_image: RequestHandler = (req, res, next) => {
+    upload.single("image")(req, res, async (error) => {
+        await handle_image_upload(req, res, next, error);
+    });
+};

@@ -3,22 +3,31 @@ import type { ExerciseSummary } from "./workouts.types"
 import { EXERCISE_TYPE_LABEL } from "./exercise-fields"
 import exercisePlaceholder from "../../../assets/exercise-placeholder.svg"
 
-export default function ExerciseCardHeader(props: {
+interface ExerciseCardHeaderProps {
     position: number
     exercise: ExerciseSummary
-    // On the right, e.g. the workout's move buttons.
+    // After type · muscle, e.g. "2 / 4 sets" during a workout.
+    progress?: string
+    // On the right, e.g. the workout's move buttons. Wraps under the name when space runs out.
     aside?: ReactNode
-})
+}
+
+export default function ExerciseCardHeader(props: ExerciseCardHeaderProps)
 {
     const { exercise } = props
+
     return (
-        <div className="flex items-start gap-3">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-app-surface-hover text-[13px] font-semibold">{props.position}</div>
+        <div className="flex flex-wrap items-center gap-2.5">
             {/* alt="" because the name right next to it already says what it is */}
-            <img src={exercise.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-md object-cover" />
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <h2 className="font-semibold wrap-break-word">{exercise.name}</h2>
-                <p className="text-[13px] text-app-text-muted">{EXERCISE_TYPE_LABEL[exercise.type]} · {exercise.primaryMuscle}</p>
+            <img src={exercise.imageUrl ?? exercisePlaceholder} alt="" className="size-10 shrink-0 rounded-lg bg-app-surface-hover object-cover" />
+            <div className="flex min-w-0 flex-[1_1_8rem] flex-col gap-0.5">
+                <h2 className="font-semibold wrap-break-word">
+                    <span className="tabular-nums text-app-text-muted">{props.position}.</span> {exercise.name}
+                </h2>
+                <p className="text-[13px] text-app-text-secondary">
+                    {EXERCISE_TYPE_LABEL[exercise.type]} · {exercise.primaryMuscle}
+                    {props.progress && <> · <span className="whitespace-nowrap tabular-nums text-app-primary">{props.progress}</span></>}
+                </p>
             </div>
             {props.aside}
         </div>

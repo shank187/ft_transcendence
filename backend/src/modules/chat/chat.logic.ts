@@ -86,6 +86,9 @@ export async function sendPresenceSnapshot(ws: AuthenticatedWebSocket) {
 
 export function initializeChat(wss: WebSocketServer) {
     wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
+        ws.on("error", error => {
+            console.error("Chat WebSocket error:", error.message)
+        })
         let messageQueue = Promise.resolve()
 
         console.log("client connected.")
@@ -153,12 +156,16 @@ export function initializeChat(wss: WebSocketServer) {
                             }
 
                             ws.send(JSON.stringify(response))
-
-                            if (!connectedUsers.has(ws.userId))
-                                connectedUsers.set(ws.userId, new Set())
-
-                            connectedUsers.get(ws.userId)?.add(ws)
-
+                            const sockets = connectedUsers.get(ws.userId) ?? new Set()
+                            sockets.add(ws)
+                            connectedUsers.set(ws.userId, sockets)
+                            if (sockets.size > 5) {
+                                const oldestSocket = Array.from(sockets)[0]
+                                if (oldestSocket) {
+                                    sockets.delete(oldestSocket)
+                                    oldestSocket.close(4001, "Replaced by a newer chat connection")
+                                }
+                            }
                             if (connectedUsers.get(ws.userId)?.size === 1) {
                                 try {
                                     await handlePresence(ws, "online")
@@ -214,7 +221,7 @@ export function initializeChat(wss: WebSocketServer) {
                                 ws.send(JSON.stringify(response))
                                 return
                             }
-                            if (message.content.length > 500) {
+                            if (!message.content.trim() || message.content.length > 500) {
                                 const response: ServerMessage = {
                                     type: "send_error",
                                     message: "Failed to send message. Please try again."
@@ -222,6 +229,7 @@ export function initializeChat(wss: WebSocketServer) {
 
                                 if (ws.readyState === WebSocket.OPEN)
                                     ws.send(JSON.stringify(response))
+                                return
                             }
                             if (!(await areUsersFriends(message.to, ws.userId))) {
                                 const response: ServerMessage = {
@@ -297,6 +305,9 @@ export function initializeChat(wss: WebSocketServer) {
                             }
                             else {
                                 connectedUsers.get(message.target)?.forEach(toSocket => {
+                                    toSocket.send(JSON.stringify(response))
+                                })
+                                connectedUsers.get(ws.userId)?.forEach(toSocket => {
                                     toSocket.send(JSON.stringify(response))
                                 })
                             }
