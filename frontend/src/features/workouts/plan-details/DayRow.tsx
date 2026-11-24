@@ -52,7 +52,7 @@ export default function DayRow(props: DayRowProps)
                     {day.dayOrder}
                 </span>
                 <span className="flex min-w-0 flex-col gap-0.5">
-                    <h3 className="truncate font-semibold md:text-[17px]">{day.name}</h3>
+                    <h3 className="line-clamp-2 font-semibold wrap-break-word md:text-[17px]">{day.name}</h3>
                     <span className="truncate text-[13px] text-app-text-secondary md:text-sm">
                         {day.exerciseCount > 0 ? exercises : "No exercises yet"}
                         {day.exerciseCount > 0 && <span className="hidden md:inline"> · {sets}</span>}

@@ -26,7 +26,7 @@ export default function ExerciseCardHeader(props: ExerciseCardHeaderProps)
                 </h2>
                 <p className="text-[13px] text-app-text-secondary">
                     {EXERCISE_TYPE_LABEL[exercise.type]} · {exercise.primaryMuscle}
-                    {props.progress && <> · <span className="tabular-nums text-app-primary">{props.progress}</span></>}
+                    {props.progress && <> · <span className="whitespace-nowrap tabular-nums text-app-primary">{props.progress}</span></>}
                 </p>
             </div>
             {props.aside}
