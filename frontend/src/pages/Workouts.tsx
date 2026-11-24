@@ -34,8 +34,9 @@ function Workouts()
             navigate(url)
     }
 
+    // Same width as the plan page and the workout, so the left edge stays put between S3 pages.
     return (
-        <div className="mx-auto flex max-w-5xl flex-col gap-6 md:gap-7">
+        <div className="mx-auto flex max-w-[880px] flex-col gap-6 md:gap-7">
             <header className="flex flex-col gap-1">
                 <h1 className="text-[28px] font-bold tracking-tight md:text-[32px]">Workouts</h1>
                 <p className="text-sm text-app-text-secondary md:text-[15px]">Pick a plan, or start lifting right away.</p>

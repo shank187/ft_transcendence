@@ -33,7 +33,7 @@ export default function ExerciseRow({ exercise, onToggle, isSelected, gymName, a
                 className="size-11 shrink-0 rounded-lg bg-app-surface-raised object-cover"
             />
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-sm font-semibold">{exercise.name}</span>
+                <span className="line-clamp-2 text-sm font-semibold">{exercise.name}</span>
                 <span className="truncate text-xs text-app-text-secondary">{meta}</span>
                 {(notAtGym || addedLabel) &&
                     <span className="flex flex-wrap gap-1.5">

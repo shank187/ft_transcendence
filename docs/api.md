@@ -2,7 +2,7 @@
 
 ## Status rule
 
-This file separates implemented endpoints from frozen target contracts. `backend/src/app.ts` and module route files are authoritative for what currently exists.
+`backend/src/app.ts` and the module route files are authoritative for what exists.
 
 ## Base path and transport
 
@@ -11,9 +11,9 @@ This file separates implemented endpoints from frozen target contracts. `backend
 - External/browser traffic must use HTTPS in the validated deployment
 - Credentials/cookies are sent only according to the shared auth configuration
 
-## Implemented endpoint inventory — 16 November 2026
+## Implemented endpoint inventory — 24 November 2026
 
-Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). This file documents the S3 endpoints (exercises, equipment, workout plans, workout sessions) in detail; the other rows list what exists, and each slice owner documents their own contracts.
+Source: `backend/src/app.ts` and the module route files on `main` (`22062eb`). This file documents the S3 endpoints (exercises, equipment, workout plans, workout sessions) in detail; the other rows list what exists, and each slice owner documents their own contracts.
 
 | Method | Path | Auth | Purpose |
 |---|---|---:|---|
@@ -35,12 +35,20 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | POST | `/api/users/add_admin` | Yes (admin) | Give another user the admin role |
 | GET | `/api/users/:userId/friends` | Yes | List a user's friends |
 | GET | `/api/users/:username/profile` | Yes | Public profile |
+| GET | `/api/users/name` | Yes | Search users by name (`?name=`, cursor pagination with `?cursor=`) |
 | GET | `/api/gyms/search` | Yes | Search gyms |
 | GET | `/api/gyms/equip` | Yes | Equipment list for the gym forms |
 | GET | `/api/gyms/submissions` | Yes (admin) | Gym submissions to review |
+| PATCH | `/api/gyms/submissions/:id/approve` | Yes (admin) | Approve a new-gym submission: creates the public gym in one transaction; 409 if already reviewed |
+| PATCH | `/api/gyms/submissions/:id/reject` | Yes (admin) | Reject a submission with a reason and an optional detail; 409 if already reviewed |
+| GET | `/api/gyms/me/submissions` | Yes | The user's own submissions and their status |
 | POST | `/api/gyms` | Yes | Submit or create a gym |
 | POST | `/api/gyms/upload-image` | Yes | Upload a gym image |
 | PATCH | `/api/gyms/me/current` | Yes | Set the user's current gym (`{ "gymId" }`) |
+| GET | `/api/gyms/me/current` | Yes | The user's current gym |
+| GET | `/api/gyms/private` | Yes | The user's private gyms |
+| PATCH | `/api/gyms/:id` | Yes (creator) | Edit an own private gym |
+| DELETE | `/api/gyms/:id` | Yes (creator) | Delete an own private gym |
 | GET | `/api/gyms/:id` | Yes | Gym details |
 | GET | `/api/exercises` | Yes | Return paginated canonical exercises |
 | GET | `/api/exercises/filters` | Yes | Return the muscle groups and equipment that at least one exercise uses, and the user's current gym |
@@ -68,6 +76,7 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | DELETE | `/api/workout-sessions/:sessionId/sets/:setId` | Yes | Delete a set and renumber the remaining sets |
 | GET | `/api/progress/summary` | Yes | XP, level and unlocked achievements |
 | GET | `/api/progress/leaderboard` | Yes | XP leaderboard among friends |
+| GET | `/api/progress/week` | Yes | This week's workouts, sets, volume and PRs (Monday–Sunday, UTC) |
 | GET | `/api/friends` | Yes | List friends |
 | GET | `/api/friends/pending_request` | Yes | Pending friend requests |
 | POST | `/api/friends/:userId/request` | Yes | Send a friend request |
@@ -78,6 +87,9 @@ Source: `backend/src/app.ts` and the module route files on `main` (`49cb343`). T
 | POST | `/api/friends/:userId/block` | Yes | Block a user |
 | POST | `/api/friends/:userId/unblock` | Yes | Unblock a user |
 | GET | `/api/friends/:userId/can-message` | Yes | Whether the user can message this user |
+| GET | `/api/conversations` | Yes | The user's conversations |
+| GET | `/api/conversations/:target/messages` | Yes | Message history with a user (10 per page, `?cursor=`) |
+| WS | `/chat` | Token in first frame | WebSocket: `authenticate`, `message`, `readMessage`; server sends messages, presence, read receipts and friendship updates |
 | GET | `/api/conversations` | Yes | List conversations |
 | GET | `/api/conversations/:target/messages` | Yes | Message history with a user |
 
@@ -116,7 +128,7 @@ React action
 
 ## Error contract
 
-API error responses must use this JSON shape (still to align: some errors in `backend/src/modules/gyms/gym.controller.ts` return `{ "error": "..." }`):
+API error responses use this JSON shape:
 
 ```json
 {
@@ -422,7 +434,9 @@ Returns the day Home shows under the next workout (`getNextDay` in `frontend/src
 - **Ownership:** the plan comes from the user's own plans or own last workout (`userId` from the token), never from the request.
 - **Code:** `getNextDayController` → `getNextWorkoutDay` in `workout.service.ts`.
 
-Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `activeSessionId`, the id of a workout of this day still in progress, else `null`. Home shows Resume instead of Start when it is set.
+Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `planId` (the plan the day belongs to), `activeSessionId` (the id of a workout of this day still in progress, else `null`) and `lastTime`. Home shows Resume when `activeSessionId` is set, "Add exercises" (a link to `/workouts/plans/:planId/days/:dayId`) when the day has no exercises, and Start otherwise.
+
+`lastTime` is the user's last finished workout of this day (`LastDayWorkout`), else `null`. Its numbers come from the same `toSummaryDto` as the workout summary, so Home and the summary always agree. Home shows them with the target to beat (the volume, or the sets when the day has no weight and reps) and a link to that workout.
 
 ```json
 {
@@ -431,7 +445,15 @@ Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `active
   "dayOrder": 1,
   "exerciseCount": 4,
   "setCount": 12,
-  "activeSessionId": null
+  "planId": "3c9d2b7e-6f1a-4d8b-a2c5-7e9f0b1d3a4c",
+  "activeSessionId": null,
+  "lastTime": {
+    "sessionId": "b3b4bc1a-b805-4a98-a0ce-147aebafbc3c",
+    "completedAt": "2026-11-18T18:42:10.000Z",
+    "durationSeconds": 2892,
+    "setsCompleted": 11,
+    "volumeKg": 2705
+  }
 }
 ```
 
@@ -836,7 +858,7 @@ Finishes a workout in progress: `status` becomes `COMPLETED`, `completedAt` is s
 - **One transaction:** the status change, the PR flags (`WorkoutSet.isPr`) and `award()` are saved together or not at all.
 - **Finish and set writes in order:** finish, `PATCH …/sets/:setId` and `DELETE …/sets/:setId` first lock the session row (`SELECT … FOR UPDATE`, `lockOpenSession`). A set write sent during a finish waits, then answers `404` because the workout is no longer in progress; a finish sent during a set write waits, then counts the ticked sets again and answers `422` if none is left. A finished workout's sets never change.
 - **PR rule:** only ticked sets count, for exercises of type `WEIGHT_REPS`, `WEIGHTED_BODYWEIGHT` or `BODYWEIGHT_REPS`. A weight type's set needs a weight and reps and scores its estimated one-rep max (Epley: `weight * (1 + reps / 30)`; one rep is the weight itself). A `BODYWEIGHT_REPS` set scores its reps. The workout's best set of an exercise is a PR when its score is strictly higher than the best score in the user's earlier `COMPLETED` workouts. At most one PR per exercise; the first time an exercise is done is not a PR. Ticking a set never writes `isPr`; only finish does.
-- **Award:** S5's `award()` (`backend/src/modules/progress/progress.service.ts`) gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. It saves 100 XP for the workout and 50 XP per PR (`progress.rules.ts`), unlocks the workout-count achievements, and returns `xpGained`, `levelUp` and the newly `unlocked` achievement codes.
+- **Award:** S5's `award()` (`backend/src/modules/progress/progress.service.ts`) gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. It saves 100 XP for the workout and 50 XP per PR (`progress.rules.ts`), unlocks achievements (workout counts, and `EARLY_BIRD` / `NIGHT_OWL` by the finish hour in UTC), and returns `xpGained`, `levelUp` and the newly `unlocked` achievement codes.
 - **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200` and `"award": null`, so a retry after a lost response is not an error and nothing is awarded twice. Two finishes sent at the same moment: the second waits on the session row lock, finds the workout no longer `IN_PROGRESS`, and answers `200` with `"award": null`.
 - **Code:** `finishWorkoutSessionController` → `finishWorkoutSession`.
 
@@ -963,10 +985,10 @@ Changes what the user did in one set, or ticks/unticks it.
 
 | Field | Type | Limits |
 |---|---|---|
-| `weight` | number \| null | 0–1000, at most 2 decimals |
+| `weight` | number \| null | kg, 0–1000, at most 2 decimals |
 | `reps` | integer \| null | 1–999 |
 | `duration` | integer \| null | 1–86400 (seconds) |
-| `distance` | number \| null | more than 0, at most 1000000, 1 decimal |
+| `distance` | number \| null | meters, more than 0, at most 1000000, 1 decimal |
 | `setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `completed` | boolean | `true` sets `completedAt` (keeps the first time if already ticked); `false` clears it |
 
@@ -1015,7 +1037,3 @@ All the S3 endpoints above are implemented. How each rule is kept:
 - **Closed workouts:** every write checks `status = IN_PROGRESS` again in its own `where`; finish and the set writes take the session row lock first.
 
 Checked on the dev stack on 16 November 2026 with two users (ownership, double finish, simultaneous starts, limits, pagination); results in PR #84.
-
-## Documentation completion gate
-
-For each merged endpoint record method/path, auth, request/query schema, response DTO, ownership rule, important status codes, and one failure example. Never document planned behavior as shipped.

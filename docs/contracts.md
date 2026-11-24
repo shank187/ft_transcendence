@@ -29,7 +29,7 @@ It reads the user's workouts with `status = COMPLETED` and `from <= completedAt 
 
 Each number is the sum of the per-workout `summary` (`toSummaryDto` in `workout-session.service.ts`): `setsCompleted`, `volumeKg` and `prSetIds.length`. The caller chooses `from` and `to`, so the caller decides where a week starts and ends.
 
-TO CONFIRM: which S5 code calls it. Nothing on `main` calls `getWorkoutStats` yet.
+Called by S5's `getWeeklyStats` (`progress.service.ts`) for `GET /api/progress/week`, with `from` = this Monday 00:00 UTC and `to` = the next Monday.
 
 ### Finish: `POST /api/workout-sessions/:sessionId/finish`
 
@@ -85,10 +85,11 @@ It is set with `PATCH /api/gyms/me/current` (`CurrentGymCOntroller` -> `selectCu
 | Body / case | Answer |
 |---|---|
 | `{ "gymId": "<id>" }`, gym can be selected | `200` `{ "message": "Gym selected successfully" }` |
-| `gymId` missing or not a string | `400` |
+| `{ "gymId": null }` | `200` `{ "message": "Gym reset successfully" }`, the user has no current gym |
+| `gymId` missing or not a string | `400` `{ "message": "gymId is required" }` |
 | Gym not found | `404` |
 | Private gym created by another user | `403` |
-| Public gym not verified | `422` |
+| Public gym not verified, or closed | `422` |
 
 ### `GET /api/exercises?gym=true`
 
@@ -135,4 +136,4 @@ The return type is not written on the function; it matches `AwardResult` in `sha
 - XP per event (`progress.rules.ts`): `XP_PER_WORKOUT = 100`, `XP_PER_PR = 50`. Each event is one `XpEvent` row; `@@unique([reason, sourceId])` means the same event is never paid twice.
 - `xpGained`: XP of the events saved by this call.
 - `levelUp`: the level after this call is higher than before. Level = `floor(totalXp / 500) + 1` (`getLevel`).
-- `unlocked`: achievement codes unlocked by this call (`WORKOUTS_1`, `WORKOUTS_10`, `WORKOUTS_50`, `WORKOUTS_100`), empty when none.
+- `unlocked`: achievement codes unlocked by this call, empty when none: `WORKOUTS_1`, `WORKOUTS_10`, `WORKOUTS_50`, `WORKOUTS_100` (finished workouts), `EARLY_BIRD` (a workout finished from 05:00 to 08:59 UTC) and `NIGHT_OWL` (from 22:00 to 04:59 UTC).

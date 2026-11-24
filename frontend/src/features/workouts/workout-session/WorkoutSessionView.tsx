@@ -232,8 +232,8 @@ export default function WorkoutSessionView(props: WorkoutSessionViewProps)
 
     return(
         <WorkoutSessionContext.Provider value={actions}>
-        {/* pb-24 keeps the last card above the phone action bar. */}
-        <div className={`flex flex-col gap-4 ${isReadOnly ? "" : "pb-24 md:pb-0"}`}>
+        {/* Same width as the plan page it starts from. pb-24 keeps the last card above the phone action bar. */}
+        <div className={`mx-auto flex w-full max-w-[880px] flex-col gap-4 ${isReadOnly ? "" : "pb-24 md:pb-0"}`}>
             {/* A finished workout opens on its summary; the summary has its own title. */}
             {loaded.status === "COMPLETED" && loaded.summary
                 ? <>

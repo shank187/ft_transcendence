@@ -1,9 +1,10 @@
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { MAX_DAYS_PER_PLAN, MAX_PLANS_PER_USER, type WorkoutPlanBody } from "./workout.schema";
-import type { DayDetail, DayExercise, HomeDay, PlanDay, PlanDetail, PlannedSet, SaveDayBody, WorkoutPlan } from "./workout.types";
+import type { DayDetail, DayExercise, HomeDay, LastDayWorkout, PlanDay, PlanDetail, PlannedSet, SaveDayBody, WorkoutPlan } from "./workout.types";
 import { exerciseSummarySelect, toExerciseSummaryDto } from "../exercises/exercise-summary";
 import { isNotFoundError, isUniqueViolation } from "../../lib/prisma-errors";
+import { sessionSelect, toSummaryDto } from "../workout-sessions/workout-session.service";
 
 const planListSelect = {
     id: true,
@@ -17,6 +18,7 @@ const daySelect = {
     id: true,
     name: true,
     dayOrder: true,
+    workoutPlanId: true,
     exercises: { select: { _count: { select: { sets: true } } } },
 } satisfies Prisma.WorkoutDaySelect;
 
@@ -255,7 +257,27 @@ export async function getNextWorkoutDay(userId: string): Promise<HomeDay | null>
         where: { userId, status: "IN_PROGRESS", workoutDayId: day.id },
         select: { id: true },
     })
-    return { ...planDayDto(day), activeSessionId: active?.id ?? null }
+    return { ...planDayDto(day), planId: day.workoutPlanId, activeSessionId: active?.id ?? null, lastTime: await getLastDayWorkout(userId, day.id) }
+}
+
+// The last finished workout of this day, summed by toSummaryDto like the summary page.
+async function getLastDayWorkout(userId: string, dayId: string): Promise<LastDayWorkout | null>
+{
+    const last = await prisma.workoutSession.findFirst({
+        where: { userId, status: "COMPLETED", workoutDayId: dayId },
+        orderBy: { completedAt: "desc" },
+        select: sessionSelect,
+    })
+    const summary = last ? toSummaryDto(last) : null
+    if(!last?.completedAt || !summary)
+        return null
+    return {
+        sessionId: last.id,
+        completedAt: last.completedAt.toISOString(),
+        durationSeconds: summary.durationSeconds,
+        setsCompleted: summary.setsCompleted,
+        volumeKg: summary.volumeKg,
+    }
 }
 
 export async function getWorkoutDay(userId: string, planId: string, dayId: string): Promise<DayDetail | null>

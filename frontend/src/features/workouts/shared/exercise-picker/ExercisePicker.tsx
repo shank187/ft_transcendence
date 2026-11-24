@@ -146,7 +146,8 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
     return(
         <div className="flex min-h-0 flex-1 flex-col gap-3">
             <div className="flex flex-col gap-3">
-                <div className="flex h-11 items-center gap-2 rounded-lg border border-app-border bg-app-canvas px-3">
+                {/* A label, so a tap anywhere on the box (icon included) focuses the input. */}
+                <label className="flex h-11 items-center gap-2 rounded-lg border border-app-border bg-app-canvas px-3 focus-within:border-app-primary">
                     <img src={searchIcon} alt="" width={18} height={18}/>
                     <input
                         type="search"
@@ -154,13 +155,13 @@ export function ExercisePicker({ onAdd, addedIds = [], addedLabel = "Added" }: E
                         placeholder="Search exercises"
                         aria-label="Search Exercises"
                         maxLength={EXERCISE_SEARCH_MAX}
-                        className="w-full bg-transparent text-[15px] outline-none"
+                        className="h-full w-full bg-transparent text-[15px] outline-none"
                         value={searchText}
                         onChange={(e)=>{
                             setSearchText(e.target.value)
                         }}
                     />
-                </div>
+                </label>
                 {/* One scrolling row on phones instead of several wrapped lines of pills. */}
                 <div role="group" aria-label="Muscle" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
                     {[{ id: "", name: "All" }, ...(filters?.muscles ?? [])].map(muscle => {

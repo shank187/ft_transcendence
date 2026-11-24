@@ -19,9 +19,10 @@ export default function WorkoutPlanCard(props: WorkoutPlanCardProps)
             className="flex h-full items-center gap-3.5 rounded-2xl border border-app-border bg-app-surface p-4 hover:border-app-text-muted md:min-h-42 md:flex-col md:items-stretch md:gap-2.5 md:p-5"
             >
                 <span className="flex min-w-0 flex-1 flex-col gap-1.5 md:flex-none md:gap-2.5">
-                    <span className="flex items-center gap-2 md:justify-between">
-                        <strong className="truncate font-semibold md:text-lg">{workout.name}</strong>
-                        <span className="shrink-0 rounded-full bg-app-surface-hover px-2 py-0.5 text-xs font-semibold text-app-text-secondary md:px-2.5">{daysLabel}</span>
+                    {/* items-start keeps the badge on the first line when a long name wraps to two. */}
+                    <span className="flex items-start gap-2 md:justify-between">
+                        <strong className="line-clamp-2 font-semibold wrap-break-word md:text-lg">{workout.name}</strong>
+                        <span className="mt-0.5 shrink-0 rounded-full bg-app-surface-hover px-2 py-0.5 text-xs font-semibold text-app-text-secondary md:mt-1 md:px-2.5">{daysLabel}</span>
                     </span>
                     {workout.description &&
                         <span className="line-clamp-2 text-[13px] leading-snug text-app-text-secondary md:text-sm">{workout.description}</span>

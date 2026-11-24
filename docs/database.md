@@ -27,16 +27,14 @@ See [Database relationship maps](database-relationships.md) for focused planning
 ```text
 Identity        User, PendingRegistration, Session, Role, UserRole
 Gyms (S2)       Gym, GymOpeningHour, Equipment, GymEquipment, GymSubmission, GymSubmissionEquipment,
-                GymSubmissionPhoto, Facility*, GymFacility*, GymReview*
+                GymSubmissionPhoto, Facility, GymFacility, GymReview
 Exercises (S3)  MuscleGroup, Exercise, ExerciseSecondaryMuscle, ExerciseEquipment
 Planning (S3)   WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutExerciseSet
 Execution (S3)  WorkoutSession, WorkoutSessionExercise, WorkoutSet
 Social (S4)     Friendship, Conversation, Message
 Rewards (S5)    XpEvent, UserAchievement
-Shared          Media, Notification*, ApiKey*
+Shared          Media, Notification, ApiKey
 ```
-
-`*` Present in the schema but not required by the frozen V1 scope in `docs/SCOPE_AND_VALIDATION.md`. Do not build features on them before the validation gate is green. Likewise, the `RECOMMENDED` plan type and `supersetGroup` exist in the schema, but recommended templates and complex supersets are deferred.
 
 ## Identity
 
@@ -60,7 +58,7 @@ WorkoutPlan                                WorkoutSession  (userId, status, star
             └─ WorkoutExerciseSet (target*)
 ```
 
-`restSeconds` on `WorkoutExercise` and `WorkoutSessionExercise` (unused since 18 Nov: rest removed from S3).
+Units as stored: weight in kg, duration in seconds, distance in meters. Imperial users see lb and mi; the frontend converts.
 
 Enforced by the Prisma schema / PostgreSQL:
 

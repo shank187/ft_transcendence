@@ -49,7 +49,7 @@ NavLink
   → Outlet renders the matched page
 ```
 
-Frozen top-level navigation:
+Top-level navigation:
 
 ```text
 Home · Gyms · Workouts · Progress · Social · Profile
@@ -144,4 +144,4 @@ The planning and execution models remain separate. A completed session must rema
 - Reuse shared UI only when reuse is real.
 - Discuss shared architecture/schema contract changes before merging.
 - Preserve historical correctness and authenticated ownership over convenience.
-- Implementation truth comes from code/schema; frozen documents describe the agreed target.
+- Implementation truth comes from the code and the schema.

@@ -71,7 +71,8 @@ export default function SessionSummaryCard(props: SessionSummaryCardProps)
             </dl>
 
             <div className="grid gap-2.5 md:grid-cols-2">
-                <section className="flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-surface p-3.5 md:p-4">
+                {/* Full row when there is no award card next to it (a finished workout opened later). */}
+                <section className="flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-surface p-3.5 md:p-4 md:only:col-span-2">
                     <h2 className="flex items-center gap-2 text-[15px] font-bold text-amber-400">
                         <Trophy aria-hidden="true" className="size-4.5" />
                         {prs.length === 0 ? "No new records" : `${prs.length} new personal ${prs.length === 1 ? "record" : "records"}`}
