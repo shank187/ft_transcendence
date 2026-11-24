@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import api from "../auth/axiosInstance"
 import type { ConversationData, ConversationsListProps } from "./chat.types"
 import { useWebSocket } from "../../pages/WebSocketContext"
@@ -158,45 +158,44 @@ export function ConversationsList({
                             last.senderId === conversation.user.id
 
                         return (
-                            <>
-                            <button
-                                key={conversation.conversationId}
-                                type="button"
-                                onClick={() => handleSelectConversation(conversation)}
-                                className="flex items-center gap-3 rounded-lg p-2 text-left hover:bg-app-surface-hover"
-                            >
-                                <img
-                                    src={avatar}
-                                    alt={conversation.user.username}
-                                    className="h-12 w-12 shrink-0 rounded-full border border-app-border object-cover"
-                                />
+                            <Fragment key={conversation.conversationId}>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectConversation(conversation)}
+                                    className="flex items-center gap-3 rounded-lg p-2 text-left hover:bg-app-surface-hover"
+                                >
+                                    <img
+                                        src={avatar}
+                                        alt={conversation.user.username}
+                                        className="h-12 w-12 shrink-0 rounded-full border border-app-border object-cover"
+                                    />
 
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium text-app-text">
-                                        {conversation.user.displayName ??
-                                            conversation.user.username}
-                                    </p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium text-app-text">
+                                            {conversation.user.displayName ??
+                                                conversation.user.username}
+                                        </p>
 
-                                    <p className={`truncate text-xs ${
-                                        isUnread
-                                            ? "font-bold text-app-text"
-                                            : "text-app-text-muted"
-                                    }`}>
-                                        {last?.senderId !== conversation.user.id && last
-                                            ? "You: "
-                                            : ""}
-                                        {last?.content ?? "No messages yet"}
-                                    </p>
-                                </div>
+                                        <p className={`truncate text-xs ${
+                                            isUnread
+                                                ? "font-bold text-app-text"
+                                                : "text-app-text-muted"
+                                        }`}>
+                                            {last?.senderId !== conversation.user.id && last
+                                                ? "You: "
+                                                : ""}
+                                            {last?.content ?? "No messages yet"}
+                                        </p>
+                                    </div>
 
-                                {last?.createdAt && (
-                                    <span className="shrink-0 text-xs text-app-text-muted">
-                                        {formatMessageDate(last.createdAt)}
-                                    </span>
-                                )}                            
-                            </button>
-                            <div className="border-t border-app-border" />
-</>
+                                    {last?.createdAt && (
+                                        <span className="shrink-0 text-xs text-app-text-muted">
+                                            {formatMessageDate(last.createdAt)}
+                                        </span>
+                                    )}
+                                </button>
+                                <div className="border-t border-app-border" />
+                            </Fragment>
                         )
                     })
                 )}
