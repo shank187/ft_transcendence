@@ -422,7 +422,9 @@ Returns the day Home shows under the next workout (`getNextDay` in `frontend/src
 - **Ownership:** the plan comes from the user's own plans or own last workout (`userId` from the token), never from the request.
 - **Code:** `getNextDayController` → `getNextWorkoutDay` in `workout.service.ts`.
 
-Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `activeSessionId`, the id of a workout of this day still in progress, else `null`. Home shows Resume instead of Start when it is set.
+Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `planId` (the plan the day belongs to), `activeSessionId` (the id of a workout of this day still in progress, else `null`) and `lastTime`. Home shows Resume when `activeSessionId` is set, "Add exercises" (a link to `/workouts/plans/:planId/days/:dayId`) when the day has no exercises, and Start otherwise.
+
+`lastTime` is the user's last finished workout of this day (`LastDayWorkout`), else `null`. Its numbers come from the same `toSummaryDto` as the workout summary, so Home and the summary always agree. Home shows them with the target to beat (the volume, or the sets when the day has no weight and reps) and a link to that workout.
 
 ```json
 {
@@ -431,7 +433,15 @@ Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `active
   "dayOrder": 1,
   "exerciseCount": 4,
   "setCount": 12,
-  "activeSessionId": null
+  "planId": "3c9d2b7e-6f1a-4d8b-a2c5-7e9f0b1d3a4c",
+  "activeSessionId": null,
+  "lastTime": {
+    "sessionId": "b3b4bc1a-b805-4a98-a0ce-147aebafbc3c",
+    "completedAt": "2026-11-18T18:42:10.000Z",
+    "durationSeconds": 2892,
+    "setsCompleted": 11,
+    "volumeKg": 2705
+  }
 }
 ```
 
