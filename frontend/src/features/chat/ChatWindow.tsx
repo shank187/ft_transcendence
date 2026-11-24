@@ -309,6 +309,7 @@ export default function ChatWindow({
     if (!friend)
         return (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+                <img src="/chatWindo-icon.png" alt="" className="mb-2 size-20 object-contain" />
                 <h3 className="text-lg font-semibold text-app-text">
                     No conversation selected
                 </h3>
