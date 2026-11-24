@@ -84,13 +84,14 @@ function Social() {
     )
 
     return (
-        <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col bg-app-surface md:h-[calc(100dvh-4rem)] md:bg-transparent">
+        <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col bg-black md:h-[calc(100dvh-4rem)] md:bg-transparent">
             <SearchBar hideOnMobile={selectedFriend !== null} />
             <div
                 className="
                     flex min-h-0 min-w-0 flex-1
-                    overflow-hidden bg-app-surface
+                    overflow-hidden
                     overscroll-none
+                    max-md:px-4 max-md:pt-3 max-md:pb-3
                     md:gap-4 md:bg-transparent
                     "
                     >
@@ -98,8 +99,8 @@ function Social() {
                 <aside
                     className={`
                         ${selectedFriend ? "hidden" : "flex"}
-                        min-h-0 w-full flex-col gap-0
-                        overflow-hidden bg-app-surface
+                        min-h-0 w-full flex-col gap-3
+                        overflow-hidden
                         md:flex md:w-[30%] md:min-w-60 md:max-w-96
                         md:shrink-0 md:gap-4 md:overflow-visible
                         md:bg-transparent
@@ -109,8 +110,7 @@ function Social() {
                     <div
                         className="
                         shrink-0 p-4
-                        md:rounded-2xl md:border md:border-app-border
-                        md:bg-app-surface
+                        rounded-2xl border border-app-border bg-app-surface
                         "
                         >
                         {connectionStatus === "connected" && onlineFriendsRefreshFailed && (
@@ -124,17 +124,13 @@ function Social() {
                         />
                     </div>
 
-                    {/* Separator visible only on mobile */}
-                    <div className="mx-4 border-t border-app-border md:hidden" />
-
                     {/* Conversations */}
                     <div
                         className="
                         min-h-0 flex-1 overflow-y-auto p-4
                         [scrollbar-width:none]
                         [&::-webkit-scrollbar]:hidden
-                        md:rounded-2xl md:border md:border-app-border
-                            md:bg-app-surface
+                        rounded-2xl border border-app-border bg-app-surface
                         "
                         >
                         <ConversationsList
@@ -149,8 +145,8 @@ function Social() {
                         ${selectedFriend ? "flex" : "hidden"}
                         min-h-0 min-w-0 flex-1 flex-col
                         overflow-hidden bg-app-surface
-                        md:flex md:rounded-2xl
-                        md:border md:border-app-border
+                        rounded-2xl border border-app-border
+                        md:flex
                     `}
                 >
                     <ChatWindow
