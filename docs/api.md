@@ -846,7 +846,7 @@ Finishes a workout in progress: `status` becomes `COMPLETED`, `completedAt` is s
 - **One transaction:** the status change, the PR flags (`WorkoutSet.isPr`) and `award()` are saved together or not at all.
 - **Finish and set writes in order:** finish, `PATCH …/sets/:setId` and `DELETE …/sets/:setId` first lock the session row (`SELECT … FOR UPDATE`, `lockOpenSession`). A set write sent during a finish waits, then answers `404` because the workout is no longer in progress; a finish sent during a set write waits, then counts the ticked sets again and answers `422` if none is left. A finished workout's sets never change.
 - **PR rule:** only ticked sets count, for exercises of type `WEIGHT_REPS`, `WEIGHTED_BODYWEIGHT` or `BODYWEIGHT_REPS`. A weight type's set needs a weight and reps and scores its estimated one-rep max (Epley: `weight * (1 + reps / 30)`; one rep is the weight itself). A `BODYWEIGHT_REPS` set scores its reps. The workout's best set of an exercise is a PR when its score is strictly higher than the best score in the user's earlier `COMPLETED` workouts. At most one PR per exercise; the first time an exercise is done is not a PR. Ticking a set never writes `isPr`; only finish does.
-- **Award:** S5's `award()` (`backend/src/modules/progress/progress.service.ts`) gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. It saves 100 XP for the workout and 50 XP per PR (`progress.rules.ts`), unlocks the workout-count achievements, and returns `xpGained`, `levelUp` and the newly `unlocked` achievement codes.
+- **Award:** S5's `award()` (`backend/src/modules/progress/progress.service.ts`) gets one `WORKOUT_COMPLETED` event (the session id) and one `PR_SET` event per PR set id. It saves 100 XP for the workout and 50 XP per PR (`progress.rules.ts`), unlocks achievements (workout counts, and `EARLY_BIRD` / `NIGHT_OWL` by the finish hour in UTC), and returns `xpGained`, `levelUp` and the newly `unlocked` achievement codes.
 - **Safe to repeat:** finishing a `COMPLETED` workout returns it again with `200` and `"award": null`, so a retry after a lost response is not an error and nothing is awarded twice. Two finishes sent at the same moment: the second waits on the session row lock, finds the workout no longer `IN_PROGRESS`, and answers `200` with `"award": null`.
 - **Code:** `finishWorkoutSessionController` → `finishWorkoutSession`.
 
@@ -973,10 +973,10 @@ Changes what the user did in one set, or ticks/unticks it.
 
 | Field | Type | Limits |
 |---|---|---|
-| `weight` | number \| null | 0–1000, at most 2 decimals |
+| `weight` | number \| null | kg, 0–1000, at most 2 decimals |
 | `reps` | integer \| null | 1–999 |
 | `duration` | integer \| null | 1–86400 (seconds) |
-| `distance` | number \| null | more than 0, at most 1000000, 1 decimal |
+| `distance` | number \| null | meters, more than 0, at most 1000000, 1 decimal |
 | `setType` | `"NORMAL"` \| `"HEAVY"` \| `"WARMUP"` \| `"DROP"` \| `"FAILURE"` | |
 | `completed` | boolean | `true` sets `completedAt` (keeps the first time if already ticked); `false` clears it |
 

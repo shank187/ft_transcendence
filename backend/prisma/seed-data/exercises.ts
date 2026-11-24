@@ -19,7 +19,7 @@ const exerciseRow = z.strictObject({
     equipment: z.array(equipmentName),
     description: z.string().min(1).nullable(),
     image: z.string().regex(/^[a-z0-9-]+\.jpg$/).nullable(),
-    // Checked now, written later: the schema has no column for these yet.
+    // Validated with the rest of the file; the schema has no column for these, so the seed does not store them.
     difficulty: z.enum(["beginner", "intermediate", "advanced"]).nullable(),
     instructions: z.string(),
     formCues: z.array(z.string()),

@@ -1,4 +1,4 @@
-# S3 — Workouts (draft README part)
+# S3 — Workouts
 
 ## Features
 
@@ -6,22 +6,18 @@
 - **Days**: add, rename and delete days in a plan (up to 7 per plan).
 - **Day editor**: pick the exercises of a day, reorder them, and add sets with a set type and targets (weight, reps, time or distance, depending on the exercise type). Up to 20 exercises per day and 20 sets per exercise. Save sends the whole day at once.
 - **Exercise picker**: search exercises by name, filter by primary muscle, by equipment and by what the current gym has, sort by name (A–Z or Z–A), and load the list page by page. Each exercise shows whether the current gym can do it.
-- **Active workout**: start an empty workout or start from a plan day (the day is copied, so later plan edits do not change it). One workout in progress at a time. Add exercises and sets, enter values, tick sets, reorder exercises, delete sets. A ticked set that beats the earlier best of its exercise is marked as a PR while you train. Discard deletes the workout.
+- **Active workout**: start an empty workout or start from a plan day (the day is copied, so later plan edits do not change it). One workout in progress at a time. Add, reorder and remove exercises, add and delete sets, enter values, tick sets. A ticked set that beats the earlier best of its exercise is marked as a PR while you train. Discard deletes the workout.
+- **Units**: weight in kg or lb and distance in km or mi, following the user's unit setting. The database always stores kg and meters.
+- **Home next workout**: the next day of the user's plan, with Start, Resume when it is in progress, or Add exercises when the day is empty. It shows the last time this day was finished (when, volume, sets, time), the target to beat and a link to that workout, or "First time on this day".
 - **Finish**: needs at least one ticked set. Shows a summary (duration, sets, volume, exercises), marks personal records (best estimated one-rep max per weighted exercise, most reps per bodyweight exercise), and gives XP through the S5 award function. Finishing twice does not give XP twice.
 
 ## Modules S3 backs
 
 - **Advanced Search**: the exercise search. Search by name, filters (muscle, equipment, current gym) that work together, sort by name, and pagination (`GET /api/exercises`, `GET /api/exercises/filters`).
 - **ORM**: all S3 data goes through Prisma (plans, days, exercises, sets, workouts), with transactions and row locks where two requests can collide.
+- **User activity analytics and insights dashboard (bonus)**: the Home next workout card. What to do next comes from the user's history, and "last time" turns the previous workout of that day into a target (`GET /api/workout-plans/nextday`).
 - **Gamification (data side)**: S3 stores `isPr` on each set at finish and calls S5's `award()` inside the finish transaction. It also gives S5 `getWorkoutStats` for weekly numbers. See `docs/contracts.md`.
 
 ## Contribution
 
 Aymane (shank187): S3 owner and Tech Lead. Schema lane, the contracts between S2, S3 and S5, and reviews.
-
-## Known limitations
-
-- Week boundaries are computed by the caller: `getWorkoutStats` takes a `from` and a `to` and does not know about weeks or time zones.
-- Weight and distance are stored in kg and km. An imperial user sees and types lb and mi; the conversion happens in the frontend.
-- No list of past workouts: it moved to S5 (Progress) on 19 Nov and has not landed, so a finished workout opens only from its link.
-- Two workout starts sent at the same moment: one is saved, and the other gets `409` without the running workout's id (a later start gets the id).
