@@ -93,7 +93,18 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
             alert("Gym name must be between 2 and 80 characters.");
             return;
         }
-
+        if (address && address.trim().length > 200) {
+            alert("Address can't exceed 200 characters.");
+            return;
+        }
+        if (phoneNumber && phoneNumber.trim().length > 15) {
+            alert("Phone number is too long.");
+            return;
+        }
+        if (description && description.trim().length > 500) {
+            alert("description is too long.");
+            return;
+        }
         if (!isPrivate && !city.trim()){
             alert("Please select a city.");
             return;
@@ -126,7 +137,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                 website : webSite,
                 imageUrl : urlBack || undefined
             });
-            // console.log(res.data);§
+
             onSuccess(res.data.msg);
             handleClose();
         }
@@ -183,6 +194,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                         Gym name
                     </label>
                     <input id="gym-name" type="text"
+                    maxLength={80}
                     value={name} onChange={function(e){setName(e.target.value)}}
                     placeholder="gym name" required 
                     className="w-full border rounded-xl bg-[#0A0A0A]  border-[#242424] px-4 py-3 text-sm text-white placeholder-zinc-600"
@@ -195,6 +207,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                         <span className="font-normal text-zinc-500 ml-1" > (optional)</span>
                     </label>
                     <input type="text"
+                            maxLength={500}
                             value={description}
                             placeholder="home gym ..." 
                             onChange={function(e){setDescription(e.target.value)}}
@@ -225,6 +238,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                             <span className="font-normal text-zinc-500 ml-1" > (optional)</span>
                         </label>
                         <input type="text"
+                        maxLength={200}
                         placeholder="addres of gym" 
                         value={address}
                         onChange={function(e){setAddress(e.target.value)}}
@@ -239,6 +253,7 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                         <span className="font-normal text-zinc-500 ml-1">(optional)</span>
                         </label>
                         <input type="text"
+                                    maxLength={50}
                                     placeholder="e.g www.1337.ma" 
                                     value={webSite}
                                     onChange={function(e){setWebSite(e.target.value)}}
@@ -250,15 +265,12 @@ function AddGym({onTabChange, onSuccess, onFailure} : gymProps){
                             <span className="font-normal text-zinc-500 ml-1">(optional)</span>
                         </label>
                         <input type="text"
+                                maxLength={15}
                                 placeholder="e.g +212 0616719491" 
                                 value={phoneNumber}
                                 onChange={function(e){SetPhoneNumber(e.target.value)}}
                                 className="w-full rounded-xl bg-[#0A0A0A] px-4 py-3 text-sm text-white placeholder-zinc-600"/>
                     </div>
-                </div>
-
-                <div>
-                    {/* /////// */}
                 </div>
 
                 <div>
