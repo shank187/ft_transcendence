@@ -1,11 +1,26 @@
 import { Link } from "react-router-dom";
 import Container from "./Container";
+import AppShot from "./AppShot";
+import { WorkoutCard } from "./AppCards";
+import { shots } from "./shots";
 
+// The one loud moment of the page: our real dorm gym photo behind the headline.
+// The photo sits under a flat dark layer (80% canvas) so the text keeps strong contrast.
+// pt-28 leaves room for the navbar, which is placed on top of this section.
 function Hero() {
     return (
-        <section id="top">
-            <Container className="flex flex-col gap-16 pb-24 pt-10 lg:flex-row lg:items-center lg:gap-24 lg:pb-32">
-                {/* left: the promise */}
+        <section id="top" className="relative isolate">
+            <img
+                src="/landing/dorm-green.jpg"
+                alt="Our campus dorm gym under green neon: preacher bench, plates and cable machines"
+                className="absolute inset-0 -z-10 h-full w-full object-cover"
+                width={1152}
+                height={1536}
+                fetchPriority="high"
+            />
+            <div className="absolute inset-0 -z-10 bg-app-canvas/80" aria-hidden="true" />
+
+            <Container className="flex flex-col gap-14 pb-20 pt-28 lg:flex-row lg:items-center lg:gap-24 lg:pb-28 lg:pt-36">
                 <div className="flex flex-1 flex-col gap-8">
                     <h1 className="font-display text-7xl font-semibold uppercase leading-[0.9] sm:text-8xl lg:text-9xl">
                         Repeat.
@@ -24,7 +39,7 @@ function Hero() {
                             >
                                 Create your account
                             </Link>
-                            <Link to="/login" className="border-b border-app-border pb-0.5 font-medium hover:border-app-primary">
+                            <Link to="/login" className="border-b border-app-text-secondary pb-0.5 font-medium hover:border-app-text">
                                 Log in
                             </Link>
                         </div>
@@ -32,15 +47,14 @@ function Hero() {
                     </div>
                 </div>
 
-                <figure className="mx-auto w-full max-w-xs lg:flex-1">
-                    <img
-                        src="/landing/phone-mockups/workout-session.png"
-                        alt="Push A workout with bench press, shoulder press and triceps sets being logged"
-                        className="w-full"
-                        width={897}
-                        height={1752}
-                    />
-                </figure>
+                <div className="w-full max-w-md lg:flex-none">
+                    <AppShot
+                        src={shots.workout}
+                        alt="Workout in progress: bench press sets with weight and reps, a new personal record and a live timer"
+                    >
+                        <WorkoutCard />
+                    </AppShot>
+                </div>
             </Container>
         </section>
     );
