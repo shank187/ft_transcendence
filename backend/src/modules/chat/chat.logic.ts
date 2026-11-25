@@ -90,9 +90,32 @@ export function initializeChat(wss: WebSocketServer) {
             console.error("Chat WebSocket error:", error.message)
         })
         let messageQueue = Promise.resolve()
-
         console.log("client connected.")
+        let waitingForReply = false
 
+        ws.on("pong", () => {
+            waitingForReply = false
+        })
+
+        const heartbeat = setInterval(() => {
+            if (ws.readyState !== WebSocket.OPEN)
+                return
+            if (waitingForReply) {
+                ws.terminate()
+                return
+            }
+            waitingForReply = true
+            ws.ping()
+        }, 30_000)
+
+        ws.once("close", () => clearInterval(heartbeat))
+        const authTimeout = setTimeout(() => {
+            if (!ws.userId && ws.readyState === WebSocket.OPEN) {
+                ws.close(1008, "Authentication timed out")
+            }
+        }, 5_000)
+
+        ws.once("close", () => clearTimeout(authTimeout))
         ws.on("message", rawData => {
             messageQueue = messageQueue
                 .then(async () => {
@@ -146,6 +169,7 @@ export function initializeChat(wss: WebSocketServer) {
                                 }
 
                                 ws.userId = decoded.userId
+                                clearTimeout(authTimeout)
                             } catch {
                                 ws.close(1008, "Invalid or expired access token")
                                 return
