@@ -12,7 +12,7 @@ const team = [
         name: "Abdelhamid",
         role: "Project manager · dev",
         text: "Project coordination, authentication, account settings and app setup.",
-        photo: "/team/abdelhamid.png",
+        photo: "/team/abdelhamid.jpg",
     },
     {
         name: "Aymane",
