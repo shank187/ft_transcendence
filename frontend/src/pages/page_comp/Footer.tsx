@@ -10,7 +10,7 @@ function Footer() {
                 <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-app-text-secondary">
                     <Link to="/privacy" className="hover:text-app-text">Privacy</Link>
                     <Link to="/terms" className="hover:text-app-text">Terms</Link>
-                    <span>Photos: our campus dorm gym</span>
+                    <span>Gym photos: our 1337 dorm gyms</span>
                     <span>© 2026 Repa</span>
                 </nav>
             </Container>

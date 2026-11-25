@@ -4,6 +4,7 @@ import Gyms from "./page_comp/Gyms";
 import HowItWorks from "./page_comp/HowItWorks";
 import Progress from "./page_comp/Progress";
 import Team from "./page_comp/Team";
+import WhereWeTrain from "./page_comp/WhereWeTrain";
 import ClosingCta from "./page_comp/ClosingCta";
 import Footer from "./page_comp/Footer";
 
@@ -19,6 +20,7 @@ function LandingPage() {
                 <HowItWorks />
                 <Progress />
                 <Team />
+                <WhereWeTrain />
                 <ClosingCta />
             </main>
             <Footer />
