@@ -4,19 +4,19 @@ import Container from "./Container";
 const team = [
     {
         name: "Salaheddine",
-        role: "Product owner · dev",
+        role: "Product owner and developer",
         text: "Training progress, XP and levels, achievements and leaderboards.",
         photo: "/team/salaheddine.jpg",
     },
     {
         name: "Abdelhamid",
-        role: "Project manager · dev",
+        role: "Project manager and developer",
         text: "Project coordination, authentication, account settings and app setup.",
         photo: "/team/abdelhamid.jpg",
     },
     {
         name: "Aymane",
-        role: "Tech lead · dev",
+        role: "Tech lead and developer",
         text: "Architecture, workout planning, exercises and training sessions.",
         photo: "/team/aymane.jpg",
     },
@@ -34,61 +34,58 @@ const team = [
     },
 ];
 
-// Two real photos of our dorm gym. Files are in frontend/public/landing/.
-const gymPhotos = [
-    { src: "/landing/dorm-green.jpg", alt: "Free-weight zone of our dorm gym under green neon: preacher bench and cable machines", caption: "Free weights · green zone" },
-    { src: "/landing/dorm-red.jpg", alt: "Cardio zone of our dorm gym under red neon: treadmills and bikes", caption: "Cardio · red zone" },
-];
+// On wide screens each card sits a little higher than the one before: the team "rises" like stairs.
+// Full class names (not built from numbers) so Tailwind can find them.
+const stepOffsets = ["lg:mt-24", "lg:mt-18", "lg:mt-12", "lg:mt-6", "lg:mt-0"];
 
 function Team() {
     return (
         <section id="team" className="border-t border-app-border">
-            <Container className="flex flex-col gap-16 py-24 lg:py-32">
-                {/* small band: where we tested the app */}
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="flex max-w-[34ch] flex-col gap-2">
-                        <span className="font-display text-2xl font-semibold uppercase">Tested where we train.</span>
-                        <p className="text-app-text-secondary">
-                            Every set we logged while building Repa happened here, in our campus dorm gym.
-                        </p>
-                    </div>
-                    <div className="flex gap-4">
-                        {gymPhotos.map((photo, i) => (
-                            // the second photo is lifted a little (mb-10) so the pair looks like steps
-                            <figure key={photo.src} className={`w-[45%] sm:w-[220px] ${i === 1 ? "mb-10" : ""}`}>
-                                <img src={photo.src} alt={photo.alt} className="aspect-[3/4] w-full rounded-sm border border-app-border object-cover" />
-                                <figcaption className="mt-2 font-mono text-xs text-app-text-secondary">{photo.caption}</figcaption>
-                            </figure>
-                        ))}
-                    </div>
-                </div>
-
+            <Container className="flex flex-col gap-12 py-20 lg:py-24">
                 <div className="flex flex-col gap-3">
-                    <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl lg:text-7xl">
-                        The crew behind <span className="text-app-primary">every rep.</span>
+                    <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">
+                        The crew behind every rep.
                     </h2>
                     <p className="max-w-[48ch] text-lg text-app-text-secondary">
                         Repa is our ft_transcendence project at 42. Five people, five parts of the app.
                     </p>
                 </div>
 
-                <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
-                    {team.map((member) => (
-                        <li key={member.name} className="flex flex-col gap-4">
+                <ul className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-5 lg:items-start">
+                    {team.map((member, i) => (
+                        <li key={member.name} className={`flex flex-col gap-3 ${stepOffsets[i]}`}>
                             <img
                                 src={member.photo}
                                 alt={member.name}
-                                className="aspect-[4/5] w-full rounded-lg border border-app-border object-cover"
+                                className="aspect-[4/5] w-full rounded-lg object-cover"
+                                loading="lazy"
                             />
-
-                            <h3 className="font-display text-2xl font-semibold uppercase">{member.name}</h3>
                             <div className="flex flex-col gap-1">
-                                <span className="font-mono text-xs uppercase tracking-wider text-app-primary">{member.role}</span>
+                                <h3 className="font-display text-2xl font-semibold uppercase">{member.name}</h3>
+                                <span className="text-sm font-medium">{member.role}</span>
                                 <p className="text-sm text-app-text-secondary">{member.text}</p>
                             </div>
                         </li>
                     ))}
                 </ul>
+
+                {/* where we tested the app: the red cardio zone of our dorm gym */}
+                <div className="grid items-center gap-6 lg:grid-cols-[1fr_2fr] lg:gap-16">
+                    <div className="flex flex-col gap-2">
+                        <h3 className="font-display text-3xl font-semibold uppercase">Tested where we train.</h3>
+                        <p className="max-w-[34ch] text-app-text-secondary">
+                            Every set we logged while building Repa happened here, in our campus dorm gym.
+                        </p>
+                    </div>
+                    <img
+                        src="/landing/dorm-red.jpg"
+                        alt="Cardio zone of our dorm gym under red neon: treadmills and bikes"
+                        className="aspect-[3/2] w-full lg:aspect-[5/2] rounded-lg object-cover object-[50%_60%]"
+                        width={1152}
+                        height={1536}
+                        loading="lazy"
+                    />
+                </div>
             </Container>
         </section>
     );

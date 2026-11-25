@@ -12,7 +12,7 @@ const points = [
 function Gyms() {
     return (
         <section id="gyms" className="border-t border-app-border">
-            <Container className="flex flex-col gap-14 py-20 lg:flex-row lg:items-center lg:gap-24 lg:py-28">
+            <Container className="flex flex-col gap-14 py-20 lg:flex-row lg:items-center lg:gap-24 lg:py-24">
                 <div className="flex flex-col gap-7 lg:flex-1">
                     <h2 className="max-w-[11ch] font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">
                         Plans that fit your gym.

@@ -7,7 +7,7 @@ import { shots } from "./shots";
 function Progress() {
     return (
         <section id="progress">
-            <Container className="flex flex-col gap-10 py-20 lg:py-28">
+            <Container className="flex flex-col gap-10 py-20 lg:py-24">
                 <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">Progress you can count.</h2>
 
                 <div className="grid gap-10 rounded-lg border border-app-border bg-app-surface p-6 sm:p-10 lg:grid-cols-[3fr_2fr] lg:gap-16">
