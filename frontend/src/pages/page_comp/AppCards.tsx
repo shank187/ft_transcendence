@@ -22,8 +22,8 @@ export function WorkoutCard() {
         <div
             role="img"
             aria-label="Workout in progress: bench press sets with weight and reps, a new personal record and a live timer"
-            // frosted glass: half-see-through black + blur, so the gym photo shows softly behind the card
-            className="flex flex-col gap-5 rounded-lg border border-app-text/15 bg-app-canvas/55 p-4 backdrop-blur-xl sm:p-6"
+            // frosted glass: half-see-through black + blur, so what's behind (photo, Glow) shows softly
+            className="flex flex-col gap-5 rounded-lg border border-app-text/15 bg-app-canvas/50 p-4 backdrop-blur-xl sm:p-6"
         >
             <div className="flex items-center justify-between">
                 <span className="font-display text-2xl font-semibold uppercase">Push A</span>
@@ -92,7 +92,8 @@ export function GymCard() {
         <div
             role="img"
             aria-label="Exercise picker for the selected gym: exercises its equipment supports, and others tagged Not at Dorm gym"
-            className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-5 sm:p-6"
+            // frosted glass, same as WorkoutCard
+            className="flex flex-col gap-5 rounded-lg border border-app-text/15 bg-app-canvas/50 p-5 backdrop-blur-xl sm:p-6"
         >
             <div className="flex flex-col gap-0.5">
                 <span className="text-sm text-app-text-secondary">Your gym</span>

@@ -1,5 +1,6 @@
 import Container from "./Container";
 import { GymCard } from "./AppCards";
+import Glow from "./Glow";
 
 const points = [
     { title: "Find your gym", text: "Search gyms by name or city and set the one you train at." },
@@ -30,7 +31,8 @@ function Gyms() {
                     </ul>
                 </div>
 
-                <div className="w-full max-w-md lg:flex-none">
+                <div className="relative isolate w-full max-w-md lg:flex-none">
+                    <Glow className="-left-8 top-1/4 size-72 bg-app-primary/35" />
                     <GymCard />
                 </div>
             </Container>

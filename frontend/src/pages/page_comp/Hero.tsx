@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Container from "./Container";
 import { WorkoutCard } from "./AppCards";
+import Glow from "./Glow";
 
 // A real photo of our dorm gym behind the hero, with a dark layer on top so the text stays readable.
 // The photo and the layers sit at -z-10 (behind the content); "isolate" keeps them inside this section.
@@ -59,7 +60,9 @@ function Hero() {
                     </div>
                 </div>
 
-                <div className="w-full max-w-md lg:flex-none">
+                <div className="relative isolate w-full max-w-md lg:flex-none">
+                    <Glow className="-right-10 -top-10 size-64 bg-app-primary/30" />
+                    <Glow className="-bottom-12 -left-12 size-56 bg-app-primary/15" />
                     <WorkoutCard />
                 </div>
             </Container>
