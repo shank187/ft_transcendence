@@ -21,8 +21,8 @@ function LandingPage() {
                 <HowItWorks />
                 <Progress />
                 <Motivation />
-                <Team />
                 <WhereWeTrain />
+                <Team />
                 <ClosingCta />
             </main>
             <Footer />

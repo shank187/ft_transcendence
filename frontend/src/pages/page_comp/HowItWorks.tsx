@@ -13,7 +13,7 @@ function HowItWorks() {
     return (
         <section id="how" className="bg-app-text text-app-canvas">
             <Container className="flex flex-col gap-12 py-20 lg:py-24">
-                <h2 className="max-w-[16ch] font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">
+                <h2 className="max-w-[16ch] font-display text-5xl lg:max-w-none font-semibold uppercase leading-none sm:text-6xl">
                     Same loop. Higher every week.
                 </h2>
 

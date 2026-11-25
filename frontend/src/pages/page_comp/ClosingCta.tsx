@@ -5,7 +5,7 @@ import { RepaMark } from "./Logo";
 
 function ClosingCta() {
     return (
-        <section className="border-t border-app-border">
+        <section>
             <Container className="flex flex-col gap-10 py-20 lg:flex-row lg:items-center lg:justify-between lg:py-24">
                 <div className="flex items-center gap-6">
                     <RepaMark className="h-20 w-20 flex-none" />

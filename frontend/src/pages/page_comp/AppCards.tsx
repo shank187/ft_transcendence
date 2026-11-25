@@ -17,7 +17,7 @@ const currentSet = sets.findIndex((set) => !set.done);
 
 export function WorkoutCard() {
     return (
-        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-canvas p-5 sm:p-6">
+        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-5 sm:p-6">
             <div className="flex items-center justify-between">
                 <span className="font-display text-2xl font-semibold uppercase">Push A</span>
                 <span className="flex items-center gap-1.5 tabular-nums text-app-text-secondary">
@@ -35,16 +35,16 @@ export function WorkoutCard() {
                 {sets.map((set, i) => (
                     <li
                         key={i}
-                        className={`flex items-center gap-3 rounded-sm border px-3 py-2 sm:gap-4 ${
+                        className={`flex items-center gap-2.5 rounded-sm border px-3 py-2 sm:gap-4 ${
                             i === currentSet ? "border-app-primary" : "border-transparent"
                         }`}
                     >
-                        <span className="w-4 text-sm text-app-text-muted">{i + 1}</span>
-                        <span className={`w-14 text-sm sm:w-16 ${set.color}`}>{set.type}</span>
+                        <span className="w-4 flex-none text-sm text-app-text-muted">{i + 1}</span>
+                        <span className={`w-16 flex-none whitespace-nowrap text-sm ${set.color}`}>{set.type}</span>
 
                         {/* weight big like the number on a plate, reps smaller */}
                         <span className="flex flex-1 items-baseline gap-1.5">
-                            <span className="font-display text-4xl font-semibold leading-none">{set.kg}</span>
+                            <span className="font-display text-3xl font-semibold leading-none sm:text-4xl">{set.kg}</span>
                             <span className="whitespace-nowrap text-sm text-app-text-secondary">kg × {set.reps}</span>
                             {set.pr && (
                                 <span className="ml-1 rounded-sm bg-app-primary px-1.5 text-xs font-bold text-app-canvas">PR</span>

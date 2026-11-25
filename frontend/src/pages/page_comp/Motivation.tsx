@@ -11,7 +11,7 @@ const lines = [
 
 function Motivation() {
     return (
-        <section className="border-t border-app-border">
+        <section>
             <Container className="py-20 lg:py-28">
                 <h2 className="flex flex-col gap-2 font-display font-semibold uppercase leading-[0.95]">
                     {lines.map((line) => (

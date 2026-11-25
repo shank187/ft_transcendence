@@ -83,7 +83,7 @@ const stepOffsets = ["lg:mt-24", "lg:mt-18", "lg:mt-12", "lg:mt-6", "lg:mt-0"];
 
 function Team() {
     return (
-        <section id="team" className="border-t border-app-border">
+        <section id="team">
             <Container className="flex flex-col gap-12 py-20 lg:py-24">
                 <div className="flex flex-col gap-3">
                     <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">
