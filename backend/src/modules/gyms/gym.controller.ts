@@ -24,7 +24,15 @@ export async function searchGymsController(req : AuthenticatedRequest, res : Res
     try{
         const search = typeof req.query.textSearched === "string" ? req.query.textSearched : undefined;
         const city  = typeof req.query.city === "string" ? req.query.city : undefined ;
-        const page = Number(req.query.page) || 1 ;
+        const raw_page = req.query.page;
+
+        if (raw_page !== undefined && typeof raw_page !== "string")
+            return res.status(400).json({message: "Page must be a positive integer."});
+
+        const page = raw_page === undefined ? 1 : Number(raw_page);
+
+        if (!Number.isSafeInteger(page) || page < 1)
+            return res.status(400).json({message: "Page must be a positive integer."});
 
         const sort = typeof req.query.sort === "string" ? req.query.sort : undefined;
 
