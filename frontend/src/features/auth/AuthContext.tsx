@@ -4,6 +4,7 @@ import api, {
     setAccessToken as setAxiosAccessToken,
     refreshAccessToken,
     hasSession,
+    setOnTokenRefresh,
 } from "./axiosInstance";
 
 type AuthContextType = {
@@ -52,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode })
 
 
     useEffect(() => {
+    setOnTokenRefresh(setToken);
+
     async function bootstrapSession() {
         try {
             const authenticated = await hasSession();
@@ -80,6 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode })
     }
 
     bootstrapSession();
+
+    return () => {
+        setOnTokenRefresh(null);
+    };
     }, []);
 
     if (loading)

@@ -6,6 +6,12 @@ let accessToken: string | null = null;
 
 let refreshPromise: Promise<string> | null = null;
 
+let onTokenRefresh: ((token: string) => void) | null = null;
+
+export function setOnTokenRefresh(callback: ((token: string) => void) | null) {
+    onTokenRefresh = callback;
+}
+
 export function setAccessToken(token: string | null) {
     accessToken = token;
 }
@@ -34,8 +40,13 @@ export function refreshAccessToken(): Promise<string>
         { withCredentials: true } // i keep this here because i did use default axios not my configured api  
     )
     .then((response) => {
-        accessToken = response.data.access_token;
-        return response.data.access_token;
+        const token: string = response.data.access_token;
+        accessToken = token;
+
+        if (onTokenRefresh)
+            onTokenRefresh(token);
+
+        return token;
     })
     .finally(() => {
         refreshPromise = null;
