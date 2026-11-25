@@ -178,7 +178,7 @@ The executable sources remain authoritative for current implementation details:
 | Custom Design System | Minor | 1 | Shared frontend |
 | Gamification | Minor | 1 | S5 |
 | OAuth 2.0 | Minor | 1 | S1 |
-| Two Additional Browsers | Minor | 1 | S5 |
+| Two Additional Browsers | Minor | 1 | Shared QA |
 | **Total** |  | **14** |  |
 
 ### How the modules are implemented
@@ -360,7 +360,7 @@ Design decisions:
 - **Plans vs history.** Starting a workout copies the plan's targets into the session (`WorkoutSet.planned*`), so editing a plan never changes past workouts.
 - **One canonical `Equipment` table** shared by gyms (`GymEquipment`) and exercises (`ExerciseEquipment`), so "what can I do at my gym" is a join, not a second vocabulary.
 - **One `Gym` table with states.** `visibility`, `verified`, `source` and `closedAt` describe verified, unverified, private and closed gyms. A member's `GymSubmission` changes nothing until an admin approves it in one serializable transaction, guarded on `status = PENDING`, so a double click or a second admin gets 409.
-- **Rewards are an event log.** `XpEvent` is unique on `(reason, sourceId)`, so a workout or an approval never pays twice; total XP, level and leaderboard are computed from it.
+- **Rewards are an event log.** `XpEvent` is unique on `(reason, sourceId)`, so the same completed workout or personal record cannot award XP twice; total XP, level and leaderboard are computed from it.
 - **Delete rules.** Cascade for data a user owns, SetNull for references history must survive, Restrict for catalog rows that history uses.
 
 Details: [docs/database.md](docs/database.md) (domains, invariants, migrations) and [docs/database-relationships.md](docs/database-relationships.md) (focused diagrams and delete rules).
