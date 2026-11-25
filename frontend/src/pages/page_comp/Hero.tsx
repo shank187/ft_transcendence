@@ -1,39 +1,11 @@
 import { Link } from "react-router-dom";
 import Container from "./Container";
-import { WorkoutCard } from "./AppCards";
-import Glow from "./Glow";
 
-// A real photo of our dorm gym behind the hero, with a dark layer on top so the text stays readable.
-// The photo and the layers sit at -z-10 (behind the content); "isolate" keeps them inside this section.
-// pt-28 leaves room for the navbar, which is placed on top of this section.
 function Hero() {
     return (
-        <section id="top" className="relative isolate overflow-hidden">
-            {/* Decorative (the text and the card carry the meaning), so alt is empty.
-                Phones: the whole photo at its real 4:3 shape across the top, never cropped to a slice.
-                Desktop: it covers the hero (a 4:3 photo in a wide box only loses a thin top and bottom strip). */}
-            <img
-                src="/landing/hero.jpg"
-                alt=""
-                className="absolute inset-x-0 top-0 -z-10 aspect-[4/3] w-full object-cover lg:inset-y-0 lg:aspect-auto lg:h-full"
-                width={2048}
-                height={1536}
-                fetchPriority="high"
-            />
-            {/* Phones: the photo fades from lightly dark at the top into the black page at its bottom edge. */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-x-0 top-0 -z-10 aspect-[4/3] bg-linear-to-b from-app-canvas/30 to-app-canvas lg:hidden"
-            />
-            {/* Desktop: darkest behind the text (left), light behind the card (right) so the gym shows. */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 -z-10 hidden bg-linear-to-r from-app-canvas/90 via-app-canvas/60 to-app-canvas/20 lg:block"
-            />
-            {/* Desktop: fades the photo into the black page at the bottom. */}
-            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 hidden h-40 bg-linear-to-t from-app-canvas lg:block" />
-
-            <Container className="flex flex-col gap-14 pb-24 pt-28 lg:flex-row lg:items-center lg:gap-24 lg:pb-32 lg:pt-40">
+        <section id="top">
+            <Container className="flex flex-col gap-16 pb-24 pt-10 lg:flex-row lg:items-center lg:gap-24 lg:pb-32">
+                {/* left: the promise */}
                 <div className="flex flex-1 flex-col gap-8">
                     <h1 className="font-display text-7xl font-semibold uppercase leading-[0.9] sm:text-8xl lg:text-9xl">
                         Repeat.
@@ -52,7 +24,7 @@ function Hero() {
                             >
                                 Create your account
                             </Link>
-                            <Link to="/login" className="border-b border-app-text-secondary pb-0.5 font-medium hover:border-app-text">
+                            <Link to="/login" className="border-b border-app-border pb-0.5 font-medium hover:border-app-primary">
                                 Log in
                             </Link>
                         </div>
@@ -60,11 +32,15 @@ function Hero() {
                     </div>
                 </div>
 
-                <div className="relative isolate w-full max-w-md lg:flex-none">
-                    <Glow className="-right-10 -top-10 size-64 bg-app-primary/30" />
-                    <Glow className="-bottom-12 -left-12 size-56 bg-app-primary/15" />
-                    <WorkoutCard />
-                </div>
+                <figure className="mx-auto w-full max-w-xs lg:flex-1">
+                    <img
+                        src="/landing/phone-mockups/workout-session.png"
+                        alt="Push A workout with bench press, shoulder press and triceps sets being logged"
+                        className="w-full"
+                        width={897}
+                        height={1752}
+                    />
+                </figure>
             </Container>
         </section>
     );
