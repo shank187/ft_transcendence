@@ -20,7 +20,7 @@ The scope stays on this loop. AI coaching, social feeds and workout recommendati
 - Canonical exercise catalog with muscle groups, equipment, and exercise types
 - Custom workout plans, workout days, ordered exercises, and planned sets
 - Empty or planned workout sessions with historical snapshots
-- Type-aware set logging, workout completion, history, volume, and basic PRs
+- Type-aware set logging, workout completion with a summary, volume and basic PRs, and the last workout of each day on Home
 - Friends, presence, real-time chat, and message history
 - XP, achievements, and leaderboard
 - Responsive custom design system, tested in Chrome, Firefox and Edge

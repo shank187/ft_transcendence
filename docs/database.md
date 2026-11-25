@@ -36,6 +36,8 @@ Rewards (S5)    XpEvent, UserAchievement
 Shared          Media, Notification, ApiKey
 ```
 
+`ApiKey`, `Notification`, `GymReview`, `Facility`, `GymFacility` and `GymOpeningHour` are in the schema but no route reads or writes them. No claimed module depends on them (there is no public API or notification module).
+
 ## Identity
 
 - `User` is the single account entity. `passwordHash` is null for Google-only accounts; `googleId` is unique when present.
