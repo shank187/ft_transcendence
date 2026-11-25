@@ -20,7 +20,7 @@ function ClosingCta() {
                     >
                         Create your account
                     </Link>
-                    <Link to="/login" className="border-b border-app-border pb-0.5 font-medium hover:border-app-primary">
+                    <Link to="/login" className="border-b border-app-text-secondary pb-0.5 font-medium hover:border-app-text">
                         Log in
                     </Link>
                 </div>
