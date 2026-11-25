@@ -4,23 +4,10 @@ import AppShot from "./AppShot";
 import { WorkoutCard } from "./AppCards";
 import { shots } from "./shots";
 
-// The one loud moment of the page: our real dorm gym photo behind the headline.
-// The photo sits under a flat dark layer (80% canvas) so the text keeps strong contrast.
-// pt-28 leaves room for the navbar, which is placed on top of this section.
 function Hero() {
     return (
-        <section id="top" className="relative isolate">
-            <img
-                src="/landing/dorm-green.jpg"
-                alt="Our campus dorm gym under green neon: preacher bench, plates and cable machines"
-                className="absolute inset-0 -z-10 h-full w-full object-cover"
-                width={1152}
-                height={1536}
-                fetchPriority="high"
-            />
-            <div className="absolute inset-0 -z-10 bg-app-canvas/80" aria-hidden="true" />
-
-            <Container className="flex flex-col gap-14 pb-20 pt-28 lg:flex-row lg:items-center lg:gap-24 lg:pb-28 lg:pt-36">
+        <section id="top">
+            <Container className="flex flex-col gap-14 pb-20 pt-10 lg:flex-row lg:items-center lg:gap-24 lg:pb-28 lg:pt-16">
                 <div className="flex flex-1 flex-col gap-8">
                     <h1 className="font-display text-7xl font-semibold uppercase leading-[0.9] sm:text-8xl lg:text-9xl">
                         Repeat.

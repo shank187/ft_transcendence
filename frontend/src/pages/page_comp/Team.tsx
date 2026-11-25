@@ -34,6 +34,12 @@ const team = [
     },
 ];
 
+// Two real photos of our dorm gym (files in frontend/public/landing/).
+const gymPhotos = [
+    { src: "/landing/dorm-green.jpg", alt: "Free-weight zone of our dorm gym under green neon: preacher bench, plates and cable machines" },
+    { src: "/landing/dorm-red.jpg", alt: "Cardio zone of our dorm gym under red neon: treadmills and bikes" },
+];
+
 // On wide screens each card sits a little higher than the one before: the team "rises" like stairs.
 // Full class names (not built from numbers) so Tailwind can find them.
 const stepOffsets = ["lg:mt-24", "lg:mt-18", "lg:mt-12", "lg:mt-6", "lg:mt-0"];
@@ -69,22 +75,27 @@ function Team() {
                     ))}
                 </ul>
 
-                {/* where we tested the app: the red cardio zone of our dorm gym */}
-                <div className="grid items-center gap-6 lg:grid-cols-[1fr_2fr] lg:gap-16">
+                {/* where we tested the app: two real photos of our dorm gym, shown whole (not cropped) */}
+                <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex flex-col gap-2">
                         <h3 className="font-display text-3xl font-semibold uppercase">Tested where we train.</h3>
                         <p className="max-w-[34ch] text-app-text-secondary">
                             Every set we logged while building Repa happened here, in our campus dorm gym.
                         </p>
                     </div>
-                    <img
-                        src="/landing/dorm-red.jpg"
-                        alt="Cardio zone of our dorm gym under red neon: treadmills and bikes"
-                        className="aspect-[3/2] w-full lg:aspect-[5/2] rounded-lg object-cover object-[50%_60%]"
-                        width={1152}
-                        height={1536}
-                        loading="lazy"
-                    />
+                    <div className="grid grid-cols-2 gap-4 lg:w-[600px]">
+                        {gymPhotos.map((photo) => (
+                            <img
+                                key={photo.src}
+                                src={photo.src}
+                                alt={photo.alt}
+                                className="aspect-[3/4] w-full rounded-lg object-cover"
+                                width={1152}
+                                height={1536}
+                                loading="lazy"
+                            />
+                        ))}
+                    </div>
                 </div>
             </Container>
         </section>
