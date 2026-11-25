@@ -108,22 +108,23 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
         return res.status(400).json({ message: "City is required for public gyms." });
 
 
-    if (isPrivate){
-        const privateCount = await prisma.gym.count({
-            where : {createdById : req.userId, visibility : "PRIVATE"}
-        });
-        if (privateCount >= 5){
-            return res.status(422).json({ message: "You can have at most 5 private gyms." });
+    try {
+        if (isPrivate){
+            const privateCount = await prisma.gym.count({
+                where : {createdById : req.userId, visibility : "PRIVATE"}
+            });
+            if (privateCount >= 5){
+                return res.status(422).json({ message: "You can have at most 5 private gyms." });
+            }
         }
-    }
-    else{
-        const pendingCount = await prisma.gymSubmission.count({
-            where : {submitterId : req.userId, status:"PENDING"}
-        });
-        if (pendingCount >= 5) {
-            return res.status(422).json({ message: "You can have at most 5 pending submissions." });
+        else{
+            const pendingCount = await prisma.gymSubmission.count({
+                where : {submitterId : req.userId, status:"PENDING"}
+            });
+            if (pendingCount >= 5) {
+                return res.status(422).json({ message: "You can have at most 5 pending submissions." });
+            }
         }
-    }
         const  validArrayEquip = Array.isArray(equipment)?  equipment : [];
         const uniqueEquipIds : string[] = [];
         for(const item of validArrayEquip){
@@ -134,27 +135,26 @@ export async function createGymController(req : AuthenticatedRequest, res:Respon
         }
 
 
-    const data = {
-        userID : req.userId,
-        dataName : name.trim(),
-        dataCity : typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
-        dataAddress : typeof address === "string" && address.trim() !== "" ? address.trim() :  undefined,
-        dataPhone : typeof phone === "string" && phone.trim() !== "" ? phone.trim() : undefined,
-        dataWebsite: typeof website === "string" && website.trim() !== "" ? website.trim()  : undefined,
-        dataDescription : typeof description === "string" &&  description.trim() !== "" ? description.trim() : undefined,
-        dataImageUrl : typeof imageUrl === "string" ? imageUrl.trim() : undefined,
-        dataIsPrivate : isPrivate === true,
+        const data = {
+            userID : req.userId,
+            dataName : name.trim(),
+            dataCity : typeof city === "string" && city.trim() !== "" ? city.trim() : undefined,
+            dataAddress : typeof address === "string" && address.trim() !== "" ? address.trim() :  undefined,
+            dataPhone : typeof phone === "string" && phone.trim() !== "" ? phone.trim() : undefined,
+            dataWebsite: typeof website === "string" && website.trim() !== "" ? website.trim()  : undefined,
+            dataDescription : typeof description === "string" &&  description.trim() !== "" ? description.trim() : undefined,
+            dataImageUrl : typeof imageUrl === "string" ? imageUrl.trim() : undefined,
+            dataIsPrivate : isPrivate === true,
 
 
-        dataEquip : uniqueEquipIds.map(function(id){
-            return {
-                equipmentId : id,
-                quantity : 1,
-            };
-        }),
-    }
-    
-    try {
+            dataEquip : uniqueEquipIds.map(function(id){
+                return {
+                    equipmentId : id,
+                    quantity : 1,
+                };
+            }),
+        }
+        
         const result = await createGym(data);
 
         const msg  = isPrivate 
@@ -192,21 +192,15 @@ export async function getSubmissionsController(req : AuthenticatedRequest, res:R
 }
 
 export async function uploadGymImageController(req: AuthenticatedRequest, res: Response) {
-    // 1. Safety check: Is user logged in?
     if (!req.userId) {
         return res.status(401).json({ message: "unauthorized" });
     }
-
-    // 2. Safety check: Did Multer actually find an image file?
     if (!req.file) {
         return res.status(400).json({ message: "Please select an image." });
     }
 
-    // 3. Multer saved the file to /public/uploads/gyms/ filename.jpg
-    // We create the URL that the browser can visit:
     const imageUrl = "/uploads/gyms/" + req.file.filename;
 
-    // 4. Send that URL back to the frontend!
     res.status(200).json({ imageUrl });
 }
 
@@ -269,7 +263,6 @@ export async function approveSubmissionController(
     }
 
     try {
-        // Check admin access before changing the submission.
         const adminRole = await prisma.userRole.findFirst({
             where: { userId: reviewerId, role: { name: "ADMIN" } },
         });
