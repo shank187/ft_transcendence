@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import Container from "./Container";
-import AppShot from "./AppShot";
 import { WorkoutCard } from "./AppCards";
-import { shots } from "./shots";
 
 function Hero() {
     return (
@@ -35,12 +33,7 @@ function Hero() {
                 </div>
 
                 <div className="w-full max-w-md lg:flex-none">
-                    <AppShot
-                        src={shots.workout}
-                        alt="Workout in progress: bench press sets with weight and reps, a new personal record and a live timer"
-                    >
-                        <WorkoutCard />
-                    </AppShot>
+                    <WorkoutCard />
                 </div>
             </Container>
         </section>

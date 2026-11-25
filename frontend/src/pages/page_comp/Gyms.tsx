@@ -1,7 +1,5 @@
 import Container from "./Container";
-import AppShot from "./AppShot";
 import { GymCard } from "./AppCards";
-import { shots } from "./shots";
 
 const points = [
     { title: "Find your gym", text: "Search gyms by name or city and set the one you train at." },
@@ -33,12 +31,7 @@ function Gyms() {
                 </div>
 
                 <div className="w-full max-w-md lg:flex-none">
-                    <AppShot
-                        src={shots.gyms}
-                        alt="Exercise picker for the selected gym: exercises its equipment supports, and others tagged Not at Dorm gym"
-                    >
-                        <GymCard />
-                    </AppShot>
+                    <GymCard />
                 </div>
             </Container>
         </section>

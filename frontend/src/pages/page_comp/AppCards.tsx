@@ -1,7 +1,9 @@
 import { Check, Lock, MessageCircle, Search, Timer, Trophy } from "lucide-react";
 
-// HTML versions of the app screens, used until real screenshots are set in shots.ts.
+// HTML versions of the app screens shown on the landing page.
 // Names and numbers are sample data. Each card only shows features the app really has.
+// role="img" + aria-label: a screen reader reads each card as one picture with that description,
+// instead of reading every number in it.
 
 /* ---------- Workout session (hero) ---------- */
 
@@ -17,7 +19,11 @@ const currentSet = sets.findIndex((set) => !set.done);
 
 export function WorkoutCard() {
     return (
-        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-4 sm:p-6">
+        <div
+            role="img"
+            aria-label="Workout in progress: bench press sets with weight and reps, a new personal record and a live timer"
+            className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-4 sm:p-6"
+        >
             <div className="flex items-center justify-between">
                 <span className="font-display text-2xl font-semibold uppercase">Push A</span>
                 <span className="flex items-center gap-1.5 tabular-nums text-app-text-secondary">
@@ -82,7 +88,11 @@ const exercises = [
 
 export function GymCard() {
     return (
-        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-5 sm:p-6">
+        <div
+            role="img"
+            aria-label="Exercise picker for the selected gym: exercises its equipment supports, and others tagged Not at Dorm gym"
+            className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-5 sm:p-6"
+        >
             <div className="flex flex-col gap-0.5">
                 <span className="text-sm text-app-text-secondary">Your gym</span>
                 <span className="font-display text-2xl font-semibold uppercase">{gymName}</span>
@@ -125,7 +135,11 @@ const achievements = [
 // No border or background: the Progress section puts this panel inside its own card.
 export function LevelPanel() {
     return (
-        <div className="flex flex-col gap-6">
+        <div
+            role="img"
+            aria-label="Progress example: level 5, 350 of 500 XP and the achievements unlocked so far"
+            className="flex flex-col gap-6"
+        >
             <span className="font-display text-7xl font-semibold uppercase leading-none sm:text-8xl">Level 5</span>
 
             <div className="flex flex-col gap-2">
@@ -165,7 +179,11 @@ const leaderboard = [
 
 export function CrewPanel() {
     return (
-        <div className="flex flex-col gap-6">
+        <div
+            role="img"
+            aria-label="Friends example: three friends online and a leaderboard of friends only"
+            className="flex flex-col gap-6"
+        >
             <div className="flex flex-col gap-2">
                 <span className="text-sm text-app-text-secondary">Friends online</span>
                 <ul className="flex flex-col gap-2">
