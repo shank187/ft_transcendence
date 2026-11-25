@@ -20,7 +20,7 @@ The scope stays on this loop. AI coaching, social feeds and workout recommendati
 - Canonical exercise catalog with muscle groups, equipment, and exercise types
 - Custom workout plans, workout days, ordered exercises, and planned sets
 - Empty or planned workout sessions with historical snapshots
-- Type-aware set logging, workout completion, history, volume, and basic PRs
+- Type-aware set logging, workout completion with a summary, volume and basic PRs, and the last workout of each day on Home
 - Friends, presence, real-time chat, and message history
 - XP, achievements, and leaderboard
 - Responsive custom design system, tested in Chrome, Firefox and Edge
@@ -157,6 +157,13 @@ The executable sources remain authoritative for current implementation details:
 
 - **User Interaction (`mouarar`, S4).** Users can search for and view public profiles, send and respond to friend requests, view and remove friends, and block or unblock users. Friends can exchange direct messages and load previous messages from their conversation history.
 - **Real-Time Features (`mouarar`, S4, with S1 infrastructure).** The React app connects to the Node backend over WebSocket for live messages, read receipts, online presence, and friendship updates. The backend authenticates each socket and sends events to the affected users' connected sessions. HTTP endpoints load saved conversations and message history. Nginx handles HTTPS and forwards the WebSocket upgrade.
+- **Workout plans and days (`aelbour`, S3).** Users create, rename and delete up to 3 plans, each with up to 7 named days.
+- **Day editor (`aelbour`, S3).** Users pick up to 20 exercises for a day, order them, and give each up to 20 sets with targets that match the exercise type (weight and reps, reps, time or distance). Save sends the whole day at once.
+- **Exercise search (`aelbour`, S3).** The 318-exercise catalog can be searched by name, filtered by muscle, equipment and "available at my gym", sorted A–Z or Z–A, and paged.
+- **Active workout (`aelbour`, S3).** Users start an empty workout or a plan day (the day's targets are copied into the workout), then add, move and remove exercises, add and delete sets, enter values and tick sets. A ticked set that beats the exercise's earlier best shows a PR badge. One workout can be in progress per user.
+- **Finish and summary (`aelbour`, S3; XP by `sabadri`, S5).** Finishing needs one ticked set. The summary shows time, sets, volume, exercises and PRs, and XP is given once even if Finish is sent twice.
+- **Units (`aelbour`, S3).** Weight in kg or lb and distance in km or mi, from the user's setting. The database always stores kg and meters.
+- **Next workout on Home (`aelbour`, S3).** Home shows the next day of the user's plan with Start, Resume or Add exercises, the last time that day was done, and the target to beat.
 
 ## Modules — 14 points
 
@@ -173,6 +180,12 @@ The executable sources remain authoritative for current implementation details:
 | OAuth 2.0 | Minor | 1 | S1 |
 | Two Additional Browsers | Minor | 1 | Shared QA |
 | **Total** |  | **14** |  |
+
+### How the modules are implemented
+
+- **Frontend + Backend Frameworks (Major, shared; stack chosen by aelbour as Tech Lead).** React 19 with React Router and Vite on the frontend, Express 5 on the backend, both in TypeScript. The team already knew JavaScript, both have official docs we could rely on, and one language on both sides lets the backend and frontend share types (`shared/*.d.ts`). Routes follow one shape in every module: `route → controller → service`, with Zod or express-validator checking the input in the controller.
+- **ORM (Minor, shared; schema lane by aelbour).** Prisma 6 with PostgreSQL. `backend/prisma/schema.prisma` is the single schema, and every change goes through a committed migration that `prisma migrate deploy` applies at startup. Prisma transactions keep multi-row writes whole: finishing a workout, saving a day and approving a gym each run in one transaction, and the places where two requests can collide take a row lock (`FOR UPDATE`) or run as `Serializable`.
+- **Advanced Search (Minor; exercises by aelbour, gyms by zyahansa).** Exercises: `GET /api/exercises` takes `search`, `muscle`, `equipment` and `gym=true` (only exercises the current gym's equipment allows), all combinable, `sort=name_asc|name_desc`, and `page`/`limit` (12 by default, 50 at most); it returns `total` and `totalPages`. Zod rejects a bad page, limit or sort with a 400. The exercise picker in the day editor and the active workout uses it. Gyms: `GET /api/gyms/search` takes a name search, city and verified filters, a sort by name or newest, and pages of 6.
 
 ### Bonus modules — beyond the 14
 
@@ -361,11 +374,19 @@ Primary references:
 
 AI was used for bounded explanations, documentation drafting, review checklists, debugging hypotheses, and planning. Generated work must be inspected, tested, understood, and peer-reviewed. AI output is not accepted as implementation evidence by itself, and each owner must be able to explain and modify their code during evaluation.
 
+By slice:
+
+- **S3 and Tech Lead work (aelbour):** AI assistants (Claude and Codex) explained Prisma, Zod and React patterns, reviewed S3 and teammates' pull requests against `docs/contracts.md`, drafted the S3 sections of `docs/api.md` and this README, and wrote parts of the S3 code. Each AI-written piece of S3 code is listed with its file and commit in a personal log, so it can be re-read, tested and explained before the evaluation.
+
 ## Individual contributions
 
 Taken from the merged commits and pull requests on `main`.
 
 - **aelbour (S3, Technical Lead):** workout schema, exercise catalog and search, plans, days, day editor, active workout, finish with PRs (bodyweight sets included) and the S5 award call, metric and imperial units, the next workout card on Home with the last time and target to beat, the contracts between S2, S3 and S5, and reviews. Details in [`docs/readme-parts/s3-workouts.md`](docs/readme-parts/s3-workouts.md).
+  Challenges:
+  - *Plans vs history.* Editing a plan must not change past workouts. Starting a workout copies the day's targets into the session (`WorkoutSet.planned*`), so a workout keeps what was planned that day.
+  - *Two requests at once.* A double click on Start could create two workouts, and a set ticked while Finish runs could be missed. Start runs as a `Serializable` transaction (the second start gets 409), and Finish and every set write first lock the workout row (`FOR UPDATE`), so they run one after the other.
+  - *XP only once.* Finish calls S5's `award()` inside the same transaction, and `XpEvent` is unique on `(reason, sourceId)`, so a repeated Finish returns the summary without new XP.
 - **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
 - **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
 - **mouarar (S4):** Helped implement public profiles. Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.

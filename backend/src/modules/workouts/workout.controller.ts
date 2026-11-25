@@ -28,8 +28,8 @@ export async function getWorkoutPlansController(req: AuthenticatedRequest, res: 
 export async function getNextDayController(req: AuthenticatedRequest, res: Response) {
     if(!req.userId) return res.status(401).json({message: "Unauthorized"})
     try{
+        // null when no plan has a day yet. A 404 here would log a console error on every new user's Home.
         const next = await getNextWorkoutDay(req.userId)
-        if(!next) return res.status(404).json({message:"No next workout day found, plan your days first."})
         return res.status(200).json(next)
     }catch(error){
         console.error("GET /api/workout-plans/nextday failed:", error)

@@ -459,8 +459,7 @@ Response `200` — `HomeDay` in `shared/workouts.d.ts`: a `PlanDay` plus `planId
 
 Status codes:
 
-- `200` next day returned
-- `404` no plan with a day yet — `{ "message": "No next workout day found, plan your days first." }`
+- `200` next day returned, or `null` when no plan has a day yet (Home then shows its empty state)
 - `401` missing, invalid, or expired access token
 - `500` unexpected error — `{ "message": "Internal server error" }`
 

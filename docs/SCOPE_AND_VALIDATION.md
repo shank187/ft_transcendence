@@ -116,8 +116,6 @@ A label or implemented-looking schema is not evidence. Each claimed module needs
 
 ## Current implementation checkpoint — 24 November 2026
 
-See the checkpoint in the README for what is on `main` (`22062eb`).
-
 S3: core scope done (catalog, search and filters, plans, days, planned sets, empty and planned workouts, type-aware sets, finish, basic PRs, removing an exercise from a workout in progress, bodyweight PRs, imperial units). The rest time and rest timer were removed from S3 on 18 Nov to reduce scope. The workout history list moved to S5 (Progress) on 19 Nov.
 
 S1/shared: Compose fails clearly when a required value is missing (JWT secrets included).

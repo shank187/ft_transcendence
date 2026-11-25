@@ -16,10 +16,9 @@ export async function getPlanDetails(planId: string): Promise<PlanDetail | null>
 export async function getNextDay(): Promise<HomeDay | null>
 {
     try{
-        const resp = await api.get('/api/workout-plans/nextday')
+        const resp = await api.get<HomeDay | null>('/api/workout-plans/nextday')
         return resp.data
     }catch(err){
-        if(isAxiosError(err) && err.response?.status === 404) return null
         throw toApiError(err, "Could not load the plan. Please try again.")
     }
 }
