@@ -401,3 +401,4 @@ Shared bonus contributions
 Technical challenges
 - Awarding XP once. Workout completion and rewards run in the same database transaction. Each XP event is unique by reward reason and source ID, so retrying Finish cannot award the same XP twice. Achievement unlocks are saved with the reward and survive refresh and login.
 - Handling concurrent reviews. Approval publishes the gym and marks the submission approved in one serializable transaction. The decision checks that the submission is still pending, so a competing review cannot publish a duplicate gym.
+- Support for additional browsers: Minor 1 point (shared QA, Minor · 1 point). The subject requires full compatibility with at least two browsers beyond Chrome, testing and fixing all features in each browser, consistent UI and UX across supported browsers, and documentation of browser-specific limitations. 01-zbi.pdf
