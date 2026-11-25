@@ -5,8 +5,8 @@ import { RepaMark } from "./Logo";
 
 function ClosingCta() {
     return (
-        <section>
-            <Container className="flex flex-col gap-10 py-20 lg:flex-row lg:items-center lg:justify-between lg:py-24">
+        <section className="border-t border-app-border">
+            <Container className="flex flex-col gap-10 py-24 lg:flex-row lg:items-center lg:justify-between lg:py-32">
                 <div className="flex items-center gap-6">
                     <RepaMark className="h-20 w-20 flex-none" />
                     <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl lg:text-7xl">
@@ -20,7 +20,7 @@ function ClosingCta() {
                     >
                         Create your account
                     </Link>
-                    <Link to="/login" className="border-b border-app-text-secondary pb-0.5 font-medium hover:border-app-text">
+                    <Link to="/login" className="border-b border-app-border pb-0.5 font-medium hover:border-app-primary">
                         Log in
                     </Link>
                 </div>

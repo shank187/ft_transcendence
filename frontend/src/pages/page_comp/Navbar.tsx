@@ -10,10 +10,9 @@ const sectionLinks = [
     { label: "Team", href: "#team" },
 ];
 
-// Placed on top of the hero photo (absolute), so the photo runs under it.
 function Navbar() {
     return (
-        <header className="absolute inset-x-0 top-0 z-10">
+        <header>
             <Container className="flex items-center justify-between gap-3 py-5 sm:gap-4">
                 <a href="#top" aria-label="Repa home">
                     <RepaLogo className="h-7 w-auto sm:h-8" />
@@ -30,7 +29,7 @@ function Navbar() {
                             {link.label}
                         </a>
                     ))}
-                    <Link to="/login" className="text-xs font-medium hover:text-app-text-secondary sm:text-sm">
+                    <Link to="/login" className="text-xs font-medium hover:text-app-primary sm:text-sm">
                         Log in
                     </Link>
                     <Link
