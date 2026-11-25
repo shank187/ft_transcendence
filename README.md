@@ -391,3 +391,13 @@ Taken from the merged commits and pull requests on `main`.
 - **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
 - **mouarar (S4):** Helped implement public profiles. Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.
 - **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
+Gamification · 1 point in the core scope
+- Built the Progress page with level progress, persistent achievement badges, a friends-only leaderboard, and a top-ranked friend card. The leaderboard includes the signed-in user, even when they have no accepted friends.
+- Implemented the authenticated progress summary and leaderboard APIs. The summary reads completed workouts, total XP, and achievement unlocks from PostgreSQL.
+- Implemented the XP and achievement logic used when S3 finishes a workout. A completed workout awards 100 XP, a new personal record awards 50 XP, and every 500 XP advances the user one level.
+Shared bonus contributions
+- Weekly activity analytics (S5 + S3). Implemented the weekly stats API and Home card. They show completed workouts, completed sets, training volume, and personal records from the signed-in user's saved workouts for the current Monday–Sunday UTC week.
+- Community gym moderation (S2 + S5). Contributed the admin review flow for new public-gym submissions. Admins can approve a submission to publish a verified gym with its equipment and primary photo, or reject it with a reason. Admins cannot review their own submissions.
+Technical challenges
+- Awarding XP once. Workout completion and rewards run in the same database transaction. Each XP event is unique by reward reason and source ID, so retrying Finish cannot award the same XP twice. Achievement unlocks are saved with the reward and survive refresh and login.
+- Handling concurrent reviews. Approval publishes the gym and marks the submission approved in one serializable transaction. The decision checks that the submission is still pending, so a competing review cannot publish a duplicate gym.

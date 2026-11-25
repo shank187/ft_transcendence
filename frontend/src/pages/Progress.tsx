@@ -20,13 +20,14 @@ export default function Progress() {
     const [error, setError] = useState<string | null>(null);
 
     // leaderboard
-    const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+    const [leaderboardEntries,
+         setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
     
     useEffect(() => {
         if (!user?.id) return;
 
         let ignore = false;
-        ////////////
+
         Promise.all([
             getProgressSummary(),
             getLeaderboard(),
