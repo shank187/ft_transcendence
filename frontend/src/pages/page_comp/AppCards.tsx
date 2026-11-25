@@ -22,7 +22,8 @@ export function WorkoutCard() {
         <div
             role="img"
             aria-label="Workout in progress: bench press sets with weight and reps, a new personal record and a live timer"
-            className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-4 sm:p-6"
+            // frosted glass: half-see-through black + blur, so the gym photo shows softly behind the card
+            className="flex flex-col gap-5 rounded-lg border border-app-text/15 bg-app-canvas/55 p-4 backdrop-blur-xl sm:p-6"
         >
             <div className="flex items-center justify-between">
                 <span className="font-display text-2xl font-semibold uppercase">Push A</span>
