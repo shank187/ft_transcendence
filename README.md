@@ -23,7 +23,7 @@ The scope stays on this loop. AI coaching, social feeds and workout recommendati
 - Type-aware set logging, workout completion with a summary, volume and basic PRs, and the last workout of each day on Home
 - Friends, presence, real-time chat, and message history
 - XP, achievements, and leaderboard
-- Responsive custom design system, with Chrome, Firefox and Edge as browser verification targets
+- Responsive custom design system, with Chrome, Firefox and Brave as browser verification targets
 
 ## Features by area
 
@@ -50,7 +50,7 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 
 ## Supported browsers
 
-The supported browser targets are the latest stable Google Chrome, Mozilla Firefox and Microsoft Edge. Browser verification is shared QA: each slice owner checks their flows in all three browsers. Record actual versions, results and limitations in the verification table below before evaluation; a target browser is not evidence of a passing test.
+The supported browser targets are the latest stable Google Chrome, Mozilla Firefox and Brave. Browser verification is shared QA: each slice owner checks their flows in all three browsers. Record actual versions, results and limitations in the verification table below before evaluation; a target browser is not evidence of a passing test.
 
 ## Instructions
 
@@ -127,7 +127,7 @@ For host-side checks, first copy `backend/.env.example` to `backend/.env` and fi
 
 The repository does not currently contain a completed browser/version/result record. The entries below are a checklist to complete with observed results, not a claim that tests passed or failed. Record the tester, browser version, date, desktop/mobile viewport, result and any limitation. Keep credentials, tokens and private messages out of test evidence.
 
-| Owner and flows | Chrome: version/result | Firefox: version/result | Edge: version/result |
+| Owner and flows | Chrome: version/result | Firefox: version/result | Brave: version/result |
 |---|---|---|---|
 | S1: register, verify/resend email, login, Google login, reload/session restore, logout | Not recorded | Not recorded | Not recorded |
 | S1: onboarding, profile/settings, unit changes, password, avatar upload/remove, admin access | Not recorded | Not recorded | Not recorded |
@@ -138,6 +138,22 @@ The repository does not currently contain a completed browser/version/result rec
 | Shared: responsive navigation, keyboard/focus, dialogs/selects, legal-page access, console/network errors | Not recorded | Not recorded | Not recorded |
 
 For live features, use two different accounts and check both sides. Include a page reload, a temporary disconnect/reconnect, and more than five chat tabs to check the replaced-connection notice. For settings, save Imperial values, reload, and verify displayed units and stored kg/cm. Browser-specific limitations must describe an observed issue and its affected flow; write "none found" only after the corresponding checks.
+
+For each completed browser run, add a record using this template and update the corresponding cells in the checklist:
+
+```text
+Tester: <team login>
+Date: <YYYY-MM-DD>
+Commit: <tested commit hash>
+Browser and version: <Chrome / Firefox / Brave and exact version>
+Viewport: <width x height; desktop or mobile>
+Flows checked: <specific features from the checklist>
+Result: <PASS / FAIL / PARTIAL>
+Observed issues or limitations: <reproduction steps and issue link, or none found>
+Evidence: <test notes or screenshot reference, if available>
+```
+
+Use PASS only for flows actually checked successfully; use PARTIAL when some listed flows were not checked, and FAIL when an observed result differs from the expected behavior. Keep unchecked cells as `Not recorded`. Each slice owner supplies their results and the PM consolidates the shared record. After a fix, retest the affected flow and record the new commit/result. Complete the Chrome baseline and both additional browsers before claiming the browser module as verified.
 
 ## Architecture and documentation
 
@@ -247,7 +263,7 @@ Search was chosen so users can narrow a large catalog to relevant exercises and 
 - **Why:** chat, read receipts, presence and friendship changes should reach other connected users without a page reload.
 - **Implementation:** `ws` shares the backend HTTP server at `/chat`, forwarded through Nginx as WSS. The first client frame authenticates with an application access JWT; the server closes unauthenticated connections after five seconds. Authenticated sockets are grouped by user so events reach their connected tabs. Presence follows the user's connected sockets, and a new connection receives an online-friends snapshot. A ping/pong heartbeat every 30 seconds detects unresponsive connections.
 - **Disconnect/reconnect:** the frontend marks the socket disconnected, clears stale online IDs and retries ordinary closures after three seconds. Its effect restarts when the AuthContext access token changes. The server allows five sockets per user and closes the oldest with code 4001 when replaced; that tab shows a manual reconnect action instead of immediately replacing another tab.
-- **Current integration limitation:** Axios stores an automatically refreshed API token separately from AuthContext. That refresh alone does not restart the WebSocket effect; a reconnect can therefore use an older token until AuthContext changes or the page is reloaded.
+- **Current integration limitation:** Axios stores an automatically refreshed API token separately from AuthContext. That refresh alone does not restart the WebSocket effect; a reconnect can therefore use an older token until AuthContext changes or the page is reloaded. Tracked in [issue #51](https://github.com/shank187/ft_transcendence/issues/51); documenting this limitation does not resolve it.
 - **Who:** mouarar implements the WebSocket protocol, presence, events and reconnect UI; abel-had supplies authentication integration and Nginx HTTPS/upgrade forwarding.
 - **Sources:** `backend/src/modules/chat/chat.logic.ts`, `frontend/src/layouts/WebSocketProvider.tsx`, `frontend/src/layouts/MainLayout.tsx` and `nginx/default.conf`.
 
@@ -289,7 +305,7 @@ Search was chosen so users can narrow a large catalog to relevant exercises and 
 #### Two Additional Browsers — Minor, 1 point
 
 - **Why:** the application should remain usable beyond the mandatory Chrome baseline.
-- **Implementation and verification:** the React/Tailwind frontend uses shared controls and responsive layouts, with Firefox and Edge as the two additional verification targets. Each owner must check all their features, fix incompatibilities and record observed limitations in the browser table above. Browser compatibility cannot be established by a TypeScript build or source inspection alone.
+- **Implementation and verification:** the React/Tailwind frontend uses shared controls and responsive layouts, with Firefox and Brave as the two additional verification targets. Each owner must check all their features, fix incompatibilities and record observed limitations in the browser table above. Browser compatibility cannot be established by a TypeScript build or source inspection alone.
 - **Who:** Shared QA across all five members; the PM collects the versions, results and outstanding issues. The verification record is still to be completed.
 
 ### Bonus modules — beyond the 14
