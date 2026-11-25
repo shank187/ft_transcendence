@@ -2,9 +2,10 @@ import Navbar from "./page_comp/Navbar";
 import Hero from "./page_comp/Hero";
 import Gyms from "./page_comp/Gyms";
 import HowItWorks from "./page_comp/HowItWorks";
-import LogSection from "./page_comp/LogSection";
 import Progress from "./page_comp/Progress";
+import Motivation from "./page_comp/Motivation";
 import Team from "./page_comp/Team";
+import WhereWeTrain from "./page_comp/WhereWeTrain";
 import ClosingCta from "./page_comp/ClosingCta";
 import Footer from "./page_comp/Footer";
 
@@ -18,8 +19,9 @@ function LandingPage() {
                 <Hero />
                 <Gyms />
                 <HowItWorks />
-                <LogSection />
                 <Progress />
+                <Motivation />
+                <WhereWeTrain />
                 <Team />
                 <ClosingCta />
             </main>

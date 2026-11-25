@@ -1,38 +1,34 @@
 import Container from "./Container";
+import { CrewPanel, LevelPanel } from "./AppCards";
+import Glow from "./Glow";
 
+// One wide card: your level on the left, your friends on the right.
 function Progress() {
     return (
-        <section id="progress" className="bg-[#131313]">
-            <Container className="grid gap-6 py-24 lg:grid-cols-2 lg:py-32">
-                <article className="flex flex-col gap-6 rounded-lg border border-app-border bg-app-canvas p-7 text-app-text sm:p-9">
-                    <h2 className="font-display text-4xl font-semibold uppercase leading-none sm:text-5xl">Progress you can count.</h2>
-                    <p className="max-w-[40ch] text-app-text-secondary">
-                        +100 XP for every workout, +50 for every personal record. Every 500 XP is a new level.
-                    </p>
-                    <img
-                        src="/landing/phone-mockups/progress.png"
-                        alt="Training progress example: Level 5, 350 of 500 XP toward the next level and a friends leaderboard"
-                        className="mx-auto mt-auto w-full max-w-xs"
-                        width={897}
-                        height={1752}
-                        loading="lazy"
-                    />
-                </article>
+        <section id="progress">
+            <Container className="flex flex-col gap-10 py-20 lg:py-24">
+                <h2 className="font-display text-5xl font-semibold uppercase leading-none sm:text-6xl">Progress you can count.</h2>
 
-                <article className="flex flex-col gap-6 rounded-lg border border-app-border bg-app-canvas p-7 text-app-text sm:p-9">
-                    <h2 className="font-display text-4xl font-semibold uppercase leading-none sm:text-5xl">Train with your crew.</h2>
-                    <p className="max-w-[40ch] text-app-text-secondary">
-                        Add friends, see who’s online and chat live. The leaderboard ranks you against your friends only.
-                    </p>
-                    <img
-                        src="/landing/phone-mockups/social.png"
-                        alt="Social example with Sara, Youssef and Aymane online and conversations about training"
-                        className="mx-auto mt-auto w-full max-w-xs"
-                        width={897}
-                        height={1752}
-                        loading="lazy"
-                    />
-                </article>
+                {/* frosted card with two glows behind it: one under the XP bar side, one under the friends side */}
+                <div className="relative isolate">
+                    <Glow className="-left-10 top-10 size-72 bg-app-primary/25" />
+                    <Glow className="-bottom-10 -right-10 size-64 bg-app-primary/15" />
+                    <div className="grid gap-10 rounded-lg border border-app-text/15 bg-app-canvas/50 p-6 backdrop-blur-xl sm:p-10 lg:grid-cols-[3fr_2fr] lg:gap-16">
+                        <div className="flex flex-col justify-between gap-6">
+                            <LevelPanel />
+                            <p className="max-w-[44ch] text-app-text-secondary">
+                                +100 XP for every workout, +50 for every personal record. Every 500 XP is a new level.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col justify-between gap-6">
+                            <CrewPanel />
+                            <p className="max-w-[44ch] text-app-text-secondary">
+                                Add friends, see who’s online and chat live. The leaderboard ranks you against your friends only.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </Container>
         </section>
     );
