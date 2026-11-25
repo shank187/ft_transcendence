@@ -9,3 +9,4 @@ todo
 !/backend/uploads/avatars/.gitkeep
 
 /nginx/certs/
+/TRANS_subj.pdf
