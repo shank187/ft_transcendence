@@ -178,7 +178,7 @@ The executable sources remain authoritative for current implementation details:
 | Custom Design System | Minor | 1 | Shared frontend |
 | Gamification | Minor | 1 | S5 |
 | OAuth 2.0 | Minor | 1 | S1 |
-| Two Additional Browsers | Minor | 1 | Shared QA |
+| Two Additional Browsers | Minor | 1 | S5 |
 | **Total** |  | **14** |  |
 
 ### How the modules are implemented
