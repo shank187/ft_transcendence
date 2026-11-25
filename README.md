@@ -50,7 +50,7 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 
 ## Supported browsers
 
-The supported browser targets are the latest stable Google Chrome, Mozilla Firefox and Brave. Browser verification is shared QA: each slice owner checks their flows in all three browsers. Record actual versions, results and limitations in the verification table below before evaluation; a target browser is not evidence of a passing test.
+The supported browser targets are the latest stable Google Chrome, Mozilla Firefox and Brave. Browser verification is shared QA. The team reports that sabadri's manual checks passed for the flows below in all three browsers; exact browser versions and run details remain to be recorded.
 
 ## Instructions
 
@@ -125,24 +125,24 @@ For host-side checks, first copy `backend/.env.example` to `backend/.env` and fi
 
 ### Browser verification — shared QA
 
-The repository does not currently contain a completed browser/version/result record. The entries below are a checklist to complete with observed results, not a claim that tests passed or failed. Record the tester, browser version, date, desktop/mobile viewport, result and any limitation. Keep credentials, tokens and private messages out of test evidence.
+**Tester: sabadri.** According to the team's manual-test report, the flows below passed in Chrome, Firefox and Brave. These are reported results, not automated test results. Exact browser versions, test date, tested commit, viewport sizes and evidence were not supplied with the report and remain to be recorded. Keep credentials, tokens and private messages out of test evidence. The refresh/WebSocket integration limitation documented below remains tracked separately in issue #51.
 
-| Owner and flows | Chrome: version/result | Firefox: version/result | Brave: version/result |
+| Owner and flows | Chrome result | Firefox result | Brave result |
 |---|---|---|---|
-| S1: register, verify/resend email, login, Google login, reload/session restore, logout | Not recorded | Not recorded | Not recorded |
-| S1: onboarding, profile/settings, unit changes, password, avatar upload/remove, admin access | Not recorded | Not recorded | Not recorded |
-| S2: gym search/filters/sort/pagination, details, current gym, private gym editing, submissions | Not recorded | Not recorded | Not recorded |
-| S3: exercise picker, plans/day editor, start/resume, set logging, units, finish/discard | Not recorded | Not recorded | Not recorded |
-| S4: profiles, user search, friend requests, blocking, chat/history/read receipts, presence/reconnect | Not recorded | Not recorded | Not recorded |
-| S5: progress, achievements, leaderboard, weekly stats, approve/reject submissions | Not recorded | Not recorded | Not recorded |
-| Shared: responsive navigation, keyboard/focus, dialogs/selects, legal-page access, console/network errors | Not recorded | Not recorded | Not recorded |
+| S1: register, verify/resend email, login, Google login, reload/session restore, logout | Passed | Passed | Passed |
+| S1: onboarding, profile/settings, unit changes, password, avatar upload/remove, admin access | Passed | Passed | Passed |
+| S2: gym search/filters/sort/pagination, details, current gym, private gym editing, submissions | Passed | Passed | Passed |
+| S3: exercise picker, plans/day editor, start/resume, set logging, units, finish/discard | Passed | Passed | Passed |
+| S4: profiles, user search, friend requests, blocking, chat/history/read receipts, presence/reconnect | Passed | Passed | Passed |
+| S5: progress, achievements, leaderboard, weekly stats, approve/reject submissions | Passed | Passed | Passed |
+| Shared: responsive navigation, keyboard/focus, dialogs/selects, legal-page access, console/network errors | Passed | Passed | Passed |
 
 For live features, use two different accounts and check both sides. Include a page reload, a temporary disconnect/reconnect, and more than five chat tabs to check the replaced-connection notice. For settings, save Imperial values, reload, and verify displayed units and stored kg/cm. Browser-specific limitations must describe an observed issue and its affected flow; write "none found" only after the corresponding checks.
 
 For each completed browser run, add a record using this template and update the corresponding cells in the checklist:
 
 ```text
-Tester: <team login>
+Tester: sabadri
 Date: <YYYY-MM-DD>
 Commit: <tested commit hash>
 Browser and version: <Chrome / Firefox / Brave and exact version>
@@ -306,7 +306,7 @@ Search was chosen so users can narrow a large catalog to relevant exercises and 
 
 - **Why:** the application should remain usable beyond the mandatory Chrome baseline.
 - **Implementation and verification:** the React/Tailwind frontend uses shared controls and responsive layouts, with Firefox and Brave as the two additional verification targets. Each owner must check all their features, fix incompatibilities and record observed limitations in the browser table above. Browser compatibility cannot be established by a TypeScript build or source inspection alone.
-- **Who:** Shared QA across all five members; the PM collects the versions, results and outstanding issues. The verification record is still to be completed.
+- **Who:** Shared QA across all five members; sabadri is the reported tester for the passing manual checks above. The PM collects browser versions, run details and outstanding issues; those supporting details remain to be recorded.
 
 ### Bonus modules — beyond the 14
 
