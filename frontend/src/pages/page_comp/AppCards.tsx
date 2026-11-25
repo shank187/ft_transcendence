@@ -17,7 +17,7 @@ const currentSet = sets.findIndex((set) => !set.done);
 
 export function WorkoutCard() {
     return (
-        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-5 sm:p-6">
+        <div className="flex flex-col gap-5 rounded-lg border border-app-border bg-app-surface p-4 sm:p-6">
             <div className="flex items-center justify-between">
                 <span className="font-display text-2xl font-semibold uppercase">Push A</span>
                 <span className="flex items-center gap-1.5 tabular-nums text-app-text-secondary">
@@ -35,24 +35,27 @@ export function WorkoutCard() {
                 {sets.map((set, i) => (
                     <li
                         key={i}
-                        className={`flex items-center gap-2.5 rounded-sm border px-3 py-2 sm:gap-4 ${
+                        // 4 fixed columns: set number, type, weight (takes the rest), tick box.
+                        // The tick box column never moves, whatever the weight text needs.
+                        className={`grid grid-cols-[1rem_4rem_minmax(0,1fr)_1.75rem] items-center gap-2 rounded-sm border px-2 py-2 sm:gap-4 sm:px-3 ${
                             i === currentSet ? "border-app-primary" : "border-transparent"
                         }`}
                     >
-                        <span className="w-4 flex-none text-sm text-app-text-muted">{i + 1}</span>
-                        <span className={`w-16 flex-none whitespace-nowrap text-sm ${set.color}`}>{set.type}</span>
+                        <span className="text-sm text-app-text-muted">{i + 1}</span>
+                        <span className={`whitespace-nowrap text-sm ${set.color}`}>{set.type}</span>
 
-                        {/* weight big like the number on a plate, reps smaller */}
-                        <span className="flex flex-1 items-baseline gap-1.5">
+                        {/* weight big like the number on a plate, reps smaller.
+                            flex-wrap: on a narrow screen the PR badge goes under instead of overflowing */}
+                        <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
                             <span className="font-display text-3xl font-semibold leading-none sm:text-4xl">{set.kg}</span>
                             <span className="whitespace-nowrap text-sm text-app-text-secondary">kg × {set.reps}</span>
                             {set.pr && (
-                                <span className="ml-1 rounded-sm bg-app-primary px-1.5 text-xs font-bold text-app-canvas">PR</span>
+                                <span className="rounded-sm bg-app-primary px-1.5 text-xs font-bold text-app-canvas">PR</span>
                             )}
                         </span>
 
                         <span
-                            className={`flex size-7 flex-none items-center justify-center rounded-sm border-2 ${
+                            className={`flex size-7 items-center justify-center rounded-sm border-2 ${
                                 set.done ? "border-app-text bg-app-text text-app-canvas" : "border-app-border"
                             }`}
                         >
