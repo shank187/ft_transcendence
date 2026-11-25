@@ -482,7 +482,7 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 By slice:
 
 - **S3 and Tech Lead work (aelbour):** AI assistants (Claude and Codex) explained Prisma, Zod and React patterns, reviewed S3 and teammates' pull requests against `docs/contracts.md`, drafted the S3 sections of `docs/api.md` and this README, and wrote parts of the S3 code. Each AI-written piece of S3 code is listed with its file and commit in a personal log, so it can be re-read, tested and explained before the evaluation.
-- **S1 and Project Manager work (abel-had):** Codex helped explain authentication/session flows, Google OAuth, upload validation, Docker/Nginx and frontend styling; suggested and edited parts of S1 code; and reviewed/drafted README and API documentation. This README's module explanations were checked against the current repository. Browser-test results and other members' personal AI usage cannot be inferred from those code/documentation reviews.
+- **S1 and Project Manager work (abel-had):** Codex helped explain authentication/session flows, Google OAuth, upload validation, Docker/Nginx and frontend styling; and reviewed/drafted README and API documentation. This README's module explanations were checked against the current repository. Browser-test results and other members' personal AI usage cannot be inferred from those code/documentation reviews.
 
 ## Individual contributions
 
