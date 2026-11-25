@@ -58,6 +58,9 @@ app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
             return res.status(413).json({message: 'Request body is too large.'});
     }
 
+    if (error instanceof Error && 'status' in error && typeof error.status === 'number' && Number.isInteger(error.status) && error.status >= 400 && error.status < 500)
+        return res.status(error.status).json({message: 'Invalid request.'});
+
     return res.status(500).json({message: 'Internal server error.'});
 });
 
