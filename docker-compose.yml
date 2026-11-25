@@ -71,7 +71,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - ./shared:/shared:ro
+      - ./shared:/shared
 
     depends_on:
       postgres:
@@ -92,6 +92,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./shared:/shared
 
     depends_on:
       - backend
