@@ -23,7 +23,7 @@ The scope stays on this loop. AI coaching, social feeds and workout recommendati
 - Type-aware set logging, workout completion with a summary, volume and basic PRs, and the last workout of each day on Home
 - Friends, presence, real-time chat, and message history
 - XP, achievements, and leaderboard
-- Responsive custom design system, tested in Chrome, Firefox and Edge
+- Responsive custom design system, with Chrome, Firefox and Edge as browser verification targets
 
 ## Features by area
 
@@ -50,7 +50,7 @@ The application is a modular monolith: one frontend, one Express backend, one Po
 
 ## Supported browsers
 
-The latest stable Google Chrome, Mozilla Firefox and Microsoft Edge. Every feature was tested in each of the three browsers, with the same layout and behaviour; no browser-specific limitations were found.
+The supported browser targets are the latest stable Google Chrome, Mozilla Firefox and Microsoft Edge. Browser verification is shared QA: each slice owner checks their flows in all three browsers. Record actual versions, results and limitations in the verification table below before evaluation; a target browser is not evidence of a passing test.
 
 ## Instructions
 
@@ -69,7 +69,7 @@ cd ft_transcendence
 cp .env.example .env
 ```
 
-Fill every required value with local credentials. Never commit `.env` or real secrets. Compose refuses to start while a required value (database, JWT secrets, SMTP, URLs) is missing.
+Fill every required value with local credentials. Never commit `.env` or real secrets. Compose refuses to start while a required value (database credentials, JWT secrets, SMTP, administrator credentials or public URLs) is missing. Use `SMTP_PORT=587`: the backend rejects other SMTP ports at startup. Supply working SMTP credentials so registration emails can be delivered. Compose constructs the backend's `DATABASE_URL` from `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_DB`; a host-side Prisma command needs its own reachable database URL.
 
 ### Start
 
@@ -107,14 +107,37 @@ docker compose logs backend
 docker compose logs frontend
 ```
 
-Run narrow checks inside the relevant service or local environment:
+Run these checks from the repository root with the services running:
 
 ```bash
-cd frontend && npm run build && npm run lint
-cd backend && npm run build && npm run prisma:validate
+docker compose exec frontend npm run build
+docker compose exec frontend npm run lint
+docker compose exec backend npm run build
+docker compose exec backend npm run prisma:validate
 ```
 
-Outside Docker, `npx prisma generate` needs `DATABASE_URL`: copy `backend/.env.example` to `backend/.env` and fill it first.
+For host-side checks, first copy `backend/.env.example` to `backend/.env` and fill `DATABASE_URL` with a URL reachable from the host (normally `localhost:5432` for this Compose setup). Then run from the repository root:
+
+```bash
+(cd frontend && npm ci && npm run build && npm run lint)
+(cd backend && npm ci && npm run prisma:generate && npm run build && npm run prisma:validate)
+```
+
+### Browser verification — shared QA
+
+The repository does not currently contain a completed browser/version/result record. The entries below are a checklist to complete with observed results, not a claim that tests passed or failed. Record the tester, browser version, date, desktop/mobile viewport, result and any limitation. Keep credentials, tokens and private messages out of test evidence.
+
+| Owner and flows | Chrome: version/result | Firefox: version/result | Edge: version/result |
+|---|---|---|---|
+| S1: register, verify/resend email, login, Google login, reload/session restore, logout | Not recorded | Not recorded | Not recorded |
+| S1: onboarding, profile/settings, unit changes, password, avatar upload/remove, admin access | Not recorded | Not recorded | Not recorded |
+| S2: gym search/filters/sort/pagination, details, current gym, private gym editing, submissions | Not recorded | Not recorded | Not recorded |
+| S3: exercise picker, plans/day editor, start/resume, set logging, units, finish/discard | Not recorded | Not recorded | Not recorded |
+| S4: profiles, user search, friend requests, blocking, chat/history/read receipts, presence/reconnect | Not recorded | Not recorded | Not recorded |
+| S5: progress, achievements, leaderboard, weekly stats, approve/reject submissions | Not recorded | Not recorded | Not recorded |
+| Shared: responsive navigation, keyboard/focus, dialogs/selects, legal-page access, console/network errors | Not recorded | Not recorded | Not recorded |
+
+For live features, use two different accounts and check both sides. Include a page reload, a temporary disconnect/reconnect, and more than five chat tabs to check the replaced-connection notice. For settings, save Imperial values, reload, and verify displayed units and stored kg/cm. Browser-specific limitations must describe an observed issue and its affected flow; write "none found" only after the corresponding checks.
 
 ## Architecture and documentation
 
@@ -155,6 +178,13 @@ The executable sources remain authoritative for current implementation details:
 
 ## Features List
 
+- **Accounts and sessions (`abel-had`, S1).** Email/password registration, verification and resend, login, session restoration after reload, access-token refresh and logout. Passwords and verification codes are hashed; refresh-token hashes are stored in per-login sessions.
+- **Google login (`abel-had`, S1).** Google authorization and callback verification, existing-account linking or account creation, application session creation, and onboarding/home redirects.
+- **Onboarding and settings (`abel-had`, S1).** Display name, biography, experience, goal and unit preferences; weight and height conversion for Imperial display with kg/cm storage; password change and validated avatar upload/removal with a default avatar.
+- **Application shell and administration (`abel-had`, S1).** Guest/authenticated/admin route guards, administrator promotion, desktop/mobile navigation, Home layout, landing page, Privacy/Terms pages, Docker setup and Nginx HTTPS/WebSocket forwarding. Public profile/social actions are shared with S4; gym moderation is S2 + S5.
+- **Gym discovery and personal gyms (`zyahansa`, S2).** Search with city/verified filters, sorting and pagination, gym details/equipment, current gym selection, and private gym creation/editing. Seed scripts import Google Places data and team-verified gym data.
+- **Gym submissions (`zyahansa`, S2; moderation by `sabadri`, S5; image validation by `abel-had`, S1).** Members submit a public gym with equipment/photos and follow its review status. Administrators approve publication or reject with a reason.
+- **Progress and rewards (`sabadri`, S5, integrated with S3).** Saved XP, levels, achievements, a friends-only leaderboard including the current user, profile progress components and weekly activity statistics on Home.
 - **User Interaction (`mouarar`, S4).** Users can search for and view public profiles, send and respond to friend requests, view and remove friends, and block or unblock users. Friends can exchange direct messages and load previous messages from their conversation history.
 - **Real-Time Features (`mouarar`, S4, with S1 infrastructure).** The React app connects to the Node backend over WebSocket for live messages, read receipts, online presence, and friendship updates. The backend authenticates each socket and sends events to the affected users' connected sessions. HTTP endpoints load saved conversations and message history. Nginx handles HTTPS and forwards the WebSocket upgrade.
 - **Workout plans and days (`aelbour`, S3).** Users create, rename and delete up to 3 plans, each with up to 7 named days.
@@ -183,9 +213,84 @@ The executable sources remain authoritative for current implementation details:
 
 ### How the modules are implemented
 
-- **Frontend + Backend Frameworks (Major, shared; stack chosen by aelbour as Tech Lead).** React 19 with React Router and Vite on the frontend, Express 5 on the backend, both in TypeScript. The team already knew JavaScript, both have official docs we could rely on, and one language on both sides lets the backend and frontend share types (`shared/*.d.ts`). Routes follow one shape in every module: `route → controller → service`, with Zod or express-validator checking the input in the controller.
-- **ORM (Minor, shared; schema lane by aelbour).** Prisma 6 with PostgreSQL. `backend/prisma/schema.prisma` is the single schema, and every change goes through a committed migration that `prisma migrate deploy` applies at startup. Prisma transactions keep multi-row writes whole: finishing a workout, saving a day and approving a gym each run in one transaction, and the places where two requests can collide take a row lock (`FOR UPDATE`) or run as `Serializable`.
+- **Frontend + Backend Frameworks (Major, shared; stack chosen by aelbour as Tech Lead).** React 19 with React Router and Vite on the frontend, Express 5 on the backend, both in TypeScript. The team already knew JavaScript, both have official docs we could rely on, and one language on both sides lets the backend and frontend share types (`shared/*.d.ts`). Domain routes use controllers and services where needed, with Zod, express-validator or explicit runtime checks validating inputs. Each slice owner implemented their frontend/backend flows.
+- **ORM (Minor, shared; schema lane by aelbour).** Prisma 6 with PostgreSQL was chosen for typed queries, relational constraints and versioned migrations. `backend/prisma/schema.prisma` is the single schema, and every change goes through a committed migration that `prisma migrate deploy` applies at startup. Prisma transactions keep multi-row writes whole: finishing a workout, saving a day and approving a gym each run in one transaction, and the places where two requests can collide take a row lock (`FOR UPDATE`) or run as `Serializable`. Each slice owner contributes their domain queries.
 - **Advanced Search (Minor; exercises by aelbour, gyms by zyahansa).** Exercises: `GET /api/exercises` takes `search`, `muscle`, `equipment` and `gym=true` (only exercises the current gym's equipment allows), all combinable, `sort=name_asc|name_desc`, and `page`/`limit` (12 by default, 50 at most); it returns `total` and `totalPages`. Zod rejects a bad page, limit or sort with a 400. The exercise picker in the day editor and the active workout uses it. Gyms: `GET /api/gyms/search` takes a name search, city and verified filters, a sort by name or newest, and pages of 6.
+
+Search was chosen so users can narrow a large catalog to relevant exercises and gyms instead of scrolling through every entry. The remaining core modules are described below.
+
+#### Standard User Management — Major, 2 points
+
+- **Why:** accounts connect each user's profile, gyms, workouts, progress and friendships across visits and browsers.
+- **Implementation:** registration validates email/username/password, checks uniqueness, hashes the password and email code with bcrypt, and saves a `PendingRegistration` with an expiration and attempt limit. Verification creates the user and USER role, then signs a 15-minute access JWT and creates a seven-day refresh session. The browser receives the raw refresh token in an HttpOnly cookie; `Session.tokenHash` stores its SHA-256 hash. Refresh looks up the session and checks expiration/revocation; logout revokes it and clears the cookie. Expired sessions are deleted when a new session is created.
+- **User-facing features:** onboarding, profile/settings, password change, default avatar and avatar upload/removal. Multer limits upload size and type; Sharp checks the image content and decodes it. Authentication middleware verifies access JWTs before protected actions. Public profiles, friendships and online status complete the social side of user management.
+- **Who:** abel-had implements authentication, sessions, onboarding, own profile/settings, avatars and route protection; mouarar implements friendships, public-profile interaction and presence, with progress components from sabadri.
+- **Sources:** `backend/src/modules/auth/`, `backend/src/modules/users/`, `backend/src/middleware/upload_avatar.ts`, `frontend/src/features/auth/` and the profile/social features.
+
+#### OAuth 2.0 — Minor, 1 point
+
+- **Why:** users can authenticate with their Google account without choosing an application password.
+- **Implementation:** the backend generates an authorization URL with `openid` and `email` scopes and a random state saved in a short-lived HttpOnly, SameSite=Lax cookie. The callback compares state, exchanges the authorization code using `google-auth-library`, verifies the ID token against the configured client ID, and requires a verified email. It finds the application user by email, creates one or links their Google identifier, assigns the USER role and creates the same refresh session used by password login. The browser is redirected to onboarding or Home; `AuthProvider` obtains the application's access token through session restoration.
+- **Configuration:** `GOOGLE_REDIRECT_URI` must match a registered redirect URI, including scheme, host, port and callback path. `FRONTEND_URL` selects the final application redirect. Google tokens are used for Google identity verification; application API requests use the application's own access JWT.
+- **Who:** abel-had, including the callback, frontend login entry points and HTTPS redirect configuration.
+- **Sources:** `backend/src/modules/auth/google.controller.ts`, `frontend/src/features/auth/AuthContext.tsx` and the login/register pages.
+
+#### User Interaction — Major, 2 points
+
+- **Why:** friends can find each other, share public profiles and communicate around their training.
+- **Implementation:** authenticated users search for profiles, send/accept/decline friend requests, remove friends and block/unblock users. PostgreSQL stores friendship state, conversations and messages. HTTP endpoints load conversations and cursor-paginated history, up to 20 messages per page. The backend checks accepted friendship before sending messages or updating read receipts. Live delivery uses the Real-Time module below.
+- **Who:** mouarar implements user search, social profile actions, friendships, blocking, chat/history and read receipts; public profile presentation integrates S1 account data and S5 progress components.
+- **Sources:** `backend/src/modules/friends/`, `backend/src/modules/chat/` and `frontend/src/features/profile/` / `frontend/src/features/chat/`.
+
+#### Real-Time Features — Major, 2 points
+
+- **Why:** chat, read receipts, presence and friendship changes should reach other connected users without a page reload.
+- **Implementation:** `ws` shares the backend HTTP server at `/chat`, forwarded through Nginx as WSS. The first client frame authenticates with an application access JWT; the server closes unauthenticated connections after five seconds. Authenticated sockets are grouped by user so events reach their connected tabs. Presence follows the user's connected sockets, and a new connection receives an online-friends snapshot. A ping/pong heartbeat every 30 seconds detects unresponsive connections.
+- **Disconnect/reconnect:** the frontend marks the socket disconnected, clears stale online IDs and retries ordinary closures after three seconds. Its effect restarts when the AuthContext access token changes. The server allows five sockets per user and closes the oldest with code 4001 when replaced; that tab shows a manual reconnect action instead of immediately replacing another tab.
+- **Current integration limitation:** Axios stores an automatically refreshed API token separately from AuthContext. That refresh alone does not restart the WebSocket effect; a reconnect can therefore use an older token until AuthContext changes or the page is reloaded.
+- **Who:** mouarar implements the WebSocket protocol, presence, events and reconnect UI; abel-had supplies authentication integration and Nginx HTTPS/upgrade forwarding.
+- **Sources:** `backend/src/modules/chat/chat.logic.ts`, `frontend/src/layouts/WebSocketProvider.tsx`, `frontend/src/layouts/MainLayout.tsx` and `nginx/default.conf`.
+
+#### Custom Design System — Minor, 1 point
+
+- **Why:** shared visual rules and components keep account, gym, workout, social and progress screens consistent as different members build them.
+- **Palette:** Tailwind theme tokens in `frontend/src/styles/globals.css` define canvas `#050505`, surface `#222222`, raised surface `#262626`, border `#3a3a3a`, primary lime `#CCFF00`, main text `#f5f5f5`, secondary text `#bdbdbd` and danger `#f87171`. Set-type colors distinguish heavy, warm-up, drop and failure sets.
+- **Typography and icons:** system sans-serif text and an Oswald display-font token, reusable Tailwind size/weight classes, shared corner radii and a visible keyboard-focus outline. `lucide-react` supplies navigation and action icons. Responsive layouts adapt the sidebar to mobile navigation.
+- **Reusable components:** these 13 components are used by application pages/features; class helpers are not counted as components.
+
+| Component | Purpose / example use |
+|---|---|
+| `Button` | Shared action variants and sizes across forms and workouts |
+| `Card` | Surface container, including Home cards |
+| `Form_input` | Labeled inputs in registration, onboarding and settings |
+| `Form_select` | Labeled selects in onboarding/settings and admin review |
+| `FilterSelect` | Exercise-picker filters |
+| `Dialog` | Workout confirmations, exercise picker and admin review |
+| `DropdownMenu` | Plan/day and workout action menus |
+| `Or_divider` | Email/Google authentication separator |
+| `ProgressTabs` | Progress/Achievements navigation |
+| `LoadingState` | Progress and feature loading feedback |
+| `ErrorState` | Progress and feature error feedback |
+| `EmptyState` | Empty catalogs, exercise picker and workout state |
+| `NotFoundState` | Missing plans, workouts and unknown pages |
+
+- **Who:** aelbour establishes theme tokens, core UI components and workout/picker extensions; abel-had contributes shared account forms, shell/landing styling and the lime branding update; sabadri contributes the shared progress tabs and progress integration. zyahansa and mouarar integrate the UI into gym and social screens. Component/theme commit history records the individual changes.
+- **Sources:** `frontend/src/components/ui/`, `frontend/src/components/states/` and `frontend/src/styles/globals.css`.
+
+#### Gamification — Minor, 1 point
+
+- **Why:** saved rewards and visible progress give feedback for completed training. This module covers XP/levels, achievements and the leaderboard; weekly activity analytics is a separate bonus claim.
+- **Rules:** a completed workout awards 100 XP, each PR award gives 50 XP, and `level = floor(totalXp / 500) + 1`. Milestones unlock at 1, 10, 50 and 100 completed workouts. Early Bird uses completion times from 05:00 to before 09:00 UTC; Night Owl uses 22:00 to before 05:00 UTC. Full PR and reward rules are in [contracts.md](docs/contracts.md).
+- **Persistence:** S3 calls S5's `award()` inside the workout-finish transaction. `XpEvent` is unique on `(reason, sourceId)` and duplicate events are skipped, so a repeated Finish cannot pay twice. `UserAchievement` stores unlocks; the summary and friends-only leaderboard read PostgreSQL, include the current user and survive reload/login. Gym approval gives no XP.
+- **Visual feedback:** the Progress page shows level progress, earned/locked achievement badges and leaderboard ranking; profile cards show XP and achievement progress. The finish API returns XP gained, level-up state and newly unlocked codes for workout feedback.
+- **Who:** sabadri implements reward rules, progress APIs/UI, achievements and leaderboard; aelbour integrates the award call with workout completion; abel-had supplies the Home layout containing the weekly card.
+- **Sources:** `backend/src/modules/progress/`, `frontend/src/features/progress/`, `frontend/src/features/profile/` and `backend/src/modules/workout-sessions/`.
+
+#### Two Additional Browsers — Minor, 1 point
+
+- **Why:** the application should remain usable beyond the mandatory Chrome baseline.
+- **Implementation and verification:** the React/Tailwind frontend uses shared controls and responsive layouts, with Firefox and Edge as the two additional verification targets. Each owner must check all their features, fix incompatibilities and record observed limitations in the browser table above. Browser compatibility cannot be established by a TypeScript build or source inspection alone.
+- **Who:** Shared QA across all five members; the PM collects the versions, results and outstanding issues. The verification record is still to be completed.
 
 ### Bonus modules — beyond the 14
 
@@ -377,6 +482,7 @@ AI was used for bounded explanations, documentation drafting, review checklists,
 By slice:
 
 - **S3 and Tech Lead work (aelbour):** AI assistants (Claude and Codex) explained Prisma, Zod and React patterns, reviewed S3 and teammates' pull requests against `docs/contracts.md`, drafted the S3 sections of `docs/api.md` and this README, and wrote parts of the S3 code. Each AI-written piece of S3 code is listed with its file and commit in a personal log, so it can be re-read, tested and explained before the evaluation.
+- **S1 and Project Manager work (abel-had):** Codex helped explain authentication/session flows, Google OAuth, upload validation, Docker/Nginx and frontend styling; suggested and edited parts of S1 code; and reviewed/drafted README and API documentation. This README's module explanations were checked against the current repository. Browser-test results and other members' personal AI usage cannot be inferred from those code/documentation reviews.
 
 ## Individual contributions
 
@@ -388,17 +494,19 @@ Taken from the merged commits and pull requests on `main`.
   - *Two requests at once.* A double click on Start could create two workouts, and a set ticked while Finish runs could be missed. Start runs as a `Serializable` transaction (the second start gets 409), and Finish and every set write first lock the workout row (`FOR UPDATE`), so they run one after the other.
   - *XP only once.* Finish calls S5's `award()` inside the same transaction, and `XpEvent` is unique on `(reason, sourceId)`, so a repeated Finish returns the summary without new XP.
 - **abel-had (S1, Project Manager):** register, login and email verification, Google OAuth, refresh tokens and sessions, route guards, onboarding, own profile with avatar and password change, admin role, Privacy Policy and Terms of Service, backend input validation, HTTPS Nginx proxy and Docker setup.
-- **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places seeding of verified gyms, gym submissions with photos and equipment, landing page components.
+  - **Implementation challenge — restoring a session after reload.** A short-lived access token held in frontend memory disappears on reload. `AuthProvider` checks the refresh session, requests a new access token and loads `/api/users/me`. Axios shares one pending refresh request between failed API calls and retries each original request at most once. The backend checks the stored session hash, expiration and revocation; logout revokes that session.
+  - **Implementation challenge — validating actual image content.** A client can label non-image content as JPEG/PNG. Multer applies the upload size/type limits, then Sharp reads the actual format and decodes the file. Invalid uploads are deleted before the request proceeds. The image-validation callback is reused for gym images.
+  - **Integration and coordination:** maintains account flows and shared navigation, integrates Home cards from other slices, configures local HTTPS and OAuth redirect URLs, and coordinates PR review and the shared browser-verification record. Session/token ownership across Axios and WebSocket context remains an integration item as documented above.
+- **zyahansa (S2):** gym search with filters and pagination, gym details, current gym, Google Places import and team-verified gym seeding, gym submissions with photos and equipment, landing page components.
+  - **Implementation challenge — importing external gym data without losing existing seeds.** `fetchFromGoogleMaps.ts` requests selected Google Places fields, maps optional values into the application's seed format and saves the JSON only after a successful non-empty fetch. If a request fails or times out, the previous seed file is kept. Separate seed scripts distinguish imported data from team-verified gyms.
+  - **Implementation challenge — editing gym equipment safely.** Deleting equipment before a failed update could lose the user's previous selection. The private-gym edit controller validates inputs and performs the update/equipment replacement in the same Prisma transaction. Submission records remain separate from published gyms until S5's approval workflow publishes them.
+  - **Sources:** `backend/prisma/seed-data/`, `backend/src/modules/gyms/` and the gym frontend features.
 - **mouarar (S4):** Helped implement public profiles. Implemented friend requests, the friends list, friend removal and blocking, direct chat, conversation history, read receipts, and online presence. Contributed to the social features on the Home page. Handled multiple tabs by limiting each user to five chat connections and letting a replaced tab reconnect manually.
+  - **Implementation challenge — presence across multiple tabs.** One user can have several authenticated sockets. The backend stores a set of sockets per user, announces offline only after the last one closes, and replaces the oldest connection above the five-tab limit. The replaced tab offers manual reconnection to avoid competing automatic reconnects.
+  - **Connection lifecycle:** JWT authentication must arrive within five seconds; ping/pong checks remove unresponsive sockets. Ordinary disconnections trigger a three-second client retry and an online-friends snapshot after authentication. The API-refresh/AuthContext synchronization limitation is recorded in the Real-Time module rather than treating a successful build as reconnection evidence.
 - **sabadri (S5, Product Owner):** progress summary, XP and levels, achievements, leaderboard, Progress page, and the admin approval of gym submissions.
-Gamification · 1 point in the core scope
-- Built the Progress page with level progress, persistent achievement badges, a friends-only leaderboard, and a top-ranked friend card. The leaderboard includes the signed-in user, even when they have no accepted friends.
-- Implemented the authenticated progress summary and leaderboard APIs. The summary reads completed workouts, total XP, and achievement unlocks from PostgreSQL.
-- Implemented the XP and achievement logic used when S3 finishes a workout. A completed workout awards 100 XP, a new personal record awards 50 XP, and every 500 XP advances the user one level.
-Shared bonus contributions
-- Weekly activity analytics (S5 + S3). Implemented the weekly stats API and Home card. They show completed workouts, completed sets, training volume, and personal records from the signed-in user's saved workouts for the current Monday–Sunday UTC week.
-- Community gym moderation (S2 + S5). Contributed the admin review flow for new public-gym submissions. Admins can approve a submission to publish a verified gym with its equipment and primary photo, or reject it with a reason. Admins cannot review their own submissions.
-Technical challenges
-- Awarding XP once. Workout completion and rewards run in the same database transaction. Each XP event is unique by reward reason and source ID, so retrying Finish cannot award the same XP twice. Achievement unlocks are saved with the reward and survive refresh and login.
-- Handling concurrent reviews. Approval publishes the gym and marks the submission approved in one serializable transaction. The decision checks that the submission is still pending, so a competing review cannot publish a duplicate gym.
-- Support for additional browsers: Minor 1 point (shared QA, Minor · 1 point). The subject requires full compatibility with at least two browsers beyond Chrome, testing and fixing all features in each browser, consistent UI and UX across supported browsers, and documentation of browser-specific limitations.
+  - **Gamification:** authenticated summary and leaderboard APIs, level progress, persistent achievement badges, profile progress components and a top-ranked friend card. The leaderboard includes the signed-in user even without accepted friends. The module section above documents the progression rules and visual feedback.
+  - **Shared bonus contributions:** weekly stats API/Home card with S3 (completed workouts, sets, volume and PRs for the Monday–Sunday UTC week); admin review of S2 gym submissions, including approve/publish and reject with a reason. Admins cannot review their own submissions.
+  - **Implementation challenge — awarding XP once.** Workout completion and rewards run in the same database transaction. Each XP event is unique by reward reason and source ID, so retrying Finish cannot award the same XP twice. Achievement unlocks are saved with the reward and survive refresh and login.
+  - **Implementation challenge — concurrent reviews.** Approval publishes the gym and marks the submission approved in one serializable transaction. The decision checks that the submission is still pending, so a competing review cannot publish a duplicate gym.
+  - **Shared UI and QA:** extracted `ProgressTabs` into reusable UI; contributes browser checks for S5 flows. The additional-browser module is Shared QA across the team, not solely S5.
