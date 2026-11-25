@@ -1,4 +1,5 @@
 import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import authRoutes from './modules/auth/auth.routes';
@@ -38,6 +39,30 @@ app.use('/api/conversations', conversationsRoutes);
 
 
 app.use('/api/gyms', gymsRoutes);
+
+// unknown api routes
+app.use('/api', (_req: Request, res: Response) => {
+    return res.status(404).json({message: 'API route not found.'});
+});
+
+app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent)
+        return next(error);
+
+    if (error instanceof Error && 'type' in error)
+    {
+        if (error.type === 'entity.parse.failed')
+            return res.status(400).json({message: 'Invalid JSON request body.'});
+
+        if (error.type === 'entity.too.large')
+            return res.status(413).json({message: 'Request body is too large.'});
+    }
+
+    if (error instanceof Error && 'status' in error && typeof error.status === 'number' && Number.isInteger(error.status) && error.status >= 400 && error.status < 500)
+        return res.status(error.status).json({message: 'Invalid request.'});
+
+    return res.status(500).json({message: 'Internal server error.'});
+});
 
 
 export default app;

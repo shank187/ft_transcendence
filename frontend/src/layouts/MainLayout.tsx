@@ -31,8 +31,6 @@ const mobile_nav_items = [
 const more_nav_items = [
     { to: "/progress", label: "Progress", icon: TrendingUp},
     { to: "/profile", label: "Profile", icon: User },
-    { to: '/privacy', label: 'privacy'},
-    { to: '/terms', label: 'terms'},
     { to: "/profile/settings", label: "Settings" , icon: Settings},
 ];
 
