@@ -162,10 +162,7 @@ Use PASS only for flows actually checked successfully; use PARTIAL when some lis
 - [`docs/contracts.md`](docs/contracts.md) — what S2, S3 and S5 rely on from each other
 - [`docs/database-relationships.md`](docs/database-relationships.md) — focused schema diagrams and delete rules
 - [`docs/database.md`](docs/database.md) — current schema mental model and historical-data rules
-- [`docs/development.md`](docs/development.md) — branch, review, verification, and environment workflow
-- [`docs/pr-guide.md`](docs/pr-guide.md) — PR shape, naming, and the required PR description
 - [`docs/SCOPE_AND_VALIDATION.md`](docs/SCOPE_AND_VALIDATION.md) — product scope, 14-point module plan, and team cutoffs
-- [`docs/UPGRADE.md`](docs/UPGRADE.md) — October 2026 dependency upgrade: what changed, what to run after pulling, what is deferred
 
 The executable sources remain authoritative for current implementation details:
 

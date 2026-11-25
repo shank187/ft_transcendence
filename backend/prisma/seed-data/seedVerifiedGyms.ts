@@ -23,11 +23,6 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
             const equip = await prisma.equipment.findMany({
                 where:{name : {in :gym.equipment}}
             });
-            // [
-            //   { "id": "uuid-111", "name": "Dumbbells" },
-            //   { "id": "uuid-222", "name": "Barbell" },
-            //   { "id": "uuid-333", "name": "Bench" }
-            // ]   
 
             if (!existingGym){
                 await prisma.gym.create({
@@ -61,8 +56,9 @@ export async function seedVerifiedGyms(prisma : PrismaClient){
                     where : {id : existingGym.id},
                     data:{
                         imageUrl:gym.imageUrl,
+                        latitude: gym.latitude,
+                        longitude: gym.longitude,
                         verifiedAt :existingGym.verifiedAt?? new Date(),
-                        // ?? : If the value on the left is NOT null/undefined, keep it. Otherwise, use the fallback on the right
                     }
                 });
             }
