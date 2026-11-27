@@ -2,6 +2,8 @@
 
 # Gym App — ft_transcendence
 
+Development continues in a private repository, so the live app may include features or fixes that haven’t reached this public version yet.
+
 ## Description
 
 Gym App is a five-person, full-stack social fitness platform built for the 42 `ft_transcendence` project (subject v21.1). It connects one loop:
