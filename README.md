@@ -2,6 +2,8 @@
 
 # Gym App — ft_transcendence
 
+Repa continues privately from this 42 `ft_transcendence` team project. Aymane El Bour maintains the continuation for learning, bug fixes, improvements and future features. The [live Repa app](https://repa-app.duckdns.org/) may include features and fixes developed after this public version. The original team and their contributions are credited below.
+
 ## Description
 
 Gym App is a five-person, full-stack social fitness platform built for the 42 `ft_transcendence` project (subject v21.1). It connects one loop:
